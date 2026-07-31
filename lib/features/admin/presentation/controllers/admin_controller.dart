@@ -1,0 +1,11 @@
+class AdminController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

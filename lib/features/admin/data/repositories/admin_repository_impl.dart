@@ -1,0 +1,7 @@
+class AdminRepositoryImpl
+implements AdminRepository {
+
+
+}
+
+

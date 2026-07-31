@@ -1,0 +1,11 @@
+class NotificationsBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+

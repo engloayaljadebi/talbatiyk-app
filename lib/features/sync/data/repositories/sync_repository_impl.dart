@@ -1,0 +1,7 @@
+class SyncRepositoryImpl
+implements SyncRepository {
+
+
+}
+
+

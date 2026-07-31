@@ -1,0 +1,11 @@
+class AuthController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

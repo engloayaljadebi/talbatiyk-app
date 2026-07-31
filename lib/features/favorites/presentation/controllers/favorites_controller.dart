@@ -1,0 +1,11 @@
+class FavoritesController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

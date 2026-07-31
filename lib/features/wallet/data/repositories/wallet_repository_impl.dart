@@ -1,0 +1,7 @@
+class WalletRepositoryImpl
+implements WalletRepository {
+
+
+}
+
+

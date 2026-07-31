@@ -1,0 +1,11 @@
+class SplashController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

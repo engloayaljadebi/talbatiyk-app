@@ -1,0 +1,7 @@
+class OrdersRepositoryImpl
+implements OrdersRepository {
+
+
+}
+
+

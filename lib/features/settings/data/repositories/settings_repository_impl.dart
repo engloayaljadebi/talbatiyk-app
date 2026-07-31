@@ -1,0 +1,7 @@
+class SettingsRepositoryImpl
+implements SettingsRepository {
+
+
+}
+
+

@@ -1,0 +1,7 @@
+class PaymentRepositoryImpl
+implements PaymentRepository {
+
+
+}
+
+

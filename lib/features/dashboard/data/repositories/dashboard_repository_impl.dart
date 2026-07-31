@@ -1,0 +1,7 @@
+class DashboardRepositoryImpl
+implements DashboardRepository {
+
+
+}
+
+

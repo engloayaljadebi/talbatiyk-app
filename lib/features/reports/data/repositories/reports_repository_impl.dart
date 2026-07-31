@@ -1,0 +1,7 @@
+class ReportsRepositoryImpl
+implements ReportsRepository {
+
+
+}
+
+

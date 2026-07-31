@@ -1,0 +1,7 @@
+class AuthRepositoryImpl
+implements AuthRepository {
+
+
+}
+
+

@@ -1,0 +1,7 @@
+class MapsRepositoryImpl
+implements MapsRepository {
+
+
+}
+
+

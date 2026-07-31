@@ -1,0 +1,11 @@
+class ChatController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

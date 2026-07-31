@@ -1,0 +1,7 @@
+class CameraRepositoryImpl
+implements CameraRepository {
+
+
+}
+
+

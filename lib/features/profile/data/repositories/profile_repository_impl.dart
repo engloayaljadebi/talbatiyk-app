@@ -1,0 +1,7 @@
+class ProfileRepositoryImpl
+implements ProfileRepository {
+
+
+}
+
+

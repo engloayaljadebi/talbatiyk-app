@@ -1,0 +1,7 @@
+class UsersRepositoryImpl
+implements UsersRepository {
+
+
+}
+
+

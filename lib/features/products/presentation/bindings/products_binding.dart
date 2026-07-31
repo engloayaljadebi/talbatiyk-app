@@ -1,0 +1,11 @@
+class ProductsBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+

@@ -1,0 +1,7 @@
+class AiRepositoryImpl
+implements AiRepository {
+
+
+}
+
+

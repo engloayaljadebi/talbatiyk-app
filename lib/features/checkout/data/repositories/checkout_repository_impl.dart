@@ -1,0 +1,7 @@
+class CheckoutRepositoryImpl
+implements CheckoutRepository {
+
+
+}
+
+

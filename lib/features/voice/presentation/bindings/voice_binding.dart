@@ -1,0 +1,11 @@
+class VoiceBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+

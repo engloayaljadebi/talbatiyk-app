@@ -1,0 +1,11 @@
+class FavoritesBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+

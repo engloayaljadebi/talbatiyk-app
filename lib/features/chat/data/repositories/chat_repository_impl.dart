@@ -1,0 +1,7 @@
+class ChatRepositoryImpl
+implements ChatRepository {
+
+
+}
+
+

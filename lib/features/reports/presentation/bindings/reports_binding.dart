@@ -1,0 +1,11 @@
+class ReportsBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+

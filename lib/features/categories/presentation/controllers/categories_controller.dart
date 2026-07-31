@@ -1,0 +1,11 @@
+class CategoriesController {
+
+
+ void load(){
+
+
+ }
+
+
+}
+

@@ -1,0 +1,7 @@
+class CategoriesRepositoryImpl
+implements CategoriesRepository {
+
+
+}
+
+

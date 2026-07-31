@@ -1,0 +1,7 @@
+class SplashRepositoryImpl
+implements SplashRepository {
+
+
+}
+
+

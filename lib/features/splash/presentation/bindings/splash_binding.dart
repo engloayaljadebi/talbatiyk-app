@@ -1,0 +1,11 @@
+class SplashBinding {
+
+
+ void dependencies(){
+
+
+ }
+
+
+}
+
