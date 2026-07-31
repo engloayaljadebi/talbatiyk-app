@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'features/products/presentation/pages/products_page.dart';
+import 'core/theme/app_theme.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const TalbatiykApp());
@@ -12,16 +13,10 @@ class TalbatiykApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'طلبيتك',
-
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        fontFamily: 'Cairo',
-      ),
-
-      home: ProductsPage(),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      home: const HomePage(),
     );
   }
 }
