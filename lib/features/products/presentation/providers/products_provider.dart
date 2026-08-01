@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../controllers/products_controller.dart';
 
-final ProductsProvider =
-Provider<ProductsController>((ref){
-
- return ProductsController();
-
+final productsProvider = ChangeNotifierProvider<ProductsController>((ref) {
+  return ProductsController();
 });
-
-

@@ -1,22 +1,12 @@
+import '../entities/users_entity.dart';
+import '../repositories/users_repository.dart';
+
 class UsersUseCase {
+  final UsersRepository repository;
 
+  UsersUseCase(this.repository);
 
- final UsersRepository repository;
-
-
- UsersUseCase(
- this.repository
- );
-
-
- Future<List<UsersEntity>> call(){
-
-
- return repository.getUserss();
-
-
- }
-
-
+  Future<List<UsersEntity>> call() {
+    return repository.getUsers();
+  }
 }
-
