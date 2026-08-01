@@ -1,38 +1,358 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
-class BannerSlider extends StatelessWidget {
+class BannerSlider extends StatefulWidget {
   const BannerSlider({super.key});
 
-  final List<String> banners = const [
-    'https://picsum.photos/800/300?random=1',
-    'https://picsum.photos/800/300?random=2',
-    'https://picsum.photos/800/300?random=3',
+  @override
+  State<BannerSlider> createState() => _BannerSliderState();
+}
+
+class _BannerSliderState extends State<BannerSlider> {
+  final PageController _controller = PageController();
+
+  Timer? _timer;
+
+  int _currentPage = 0;
+
+
+  late final List<Widget> _banners = [
+
+    _promoBanner(),
+
+
+    _networkBanner(
+      'https://yemenmobile.com.ye/uploads/images/202410/image_753x_67183d0a346a0.webp',
+    ),
+
+
+    _networkBanner(
+      'https://yemenmobile.com.ye/uploads/images/202410/image_753x_67183ca456e19.webp',
+    ),
+
+
+    _networkBanner(
+      'https://yemenmobile.com.ye/uploads/images/202410/image_753x_67183ce5b77c2.webp',
+    ),
+
   ];
+
+
+
+  Widget _promoBanner() {
+
+    return Container(
+
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+      ),
+
+
+      decoration: BoxDecoration(
+
+        borderRadius: BorderRadius.circular(20),
+
+        color: Colors.red,
+
+      ),
+
+
+      child: Padding(
+
+        padding: const EdgeInsets.all(20),
+
+
+        child: Column(
+
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+
+          children: [
+
+
+            const Text(
+
+              "أفضل العروض",
+
+              style: TextStyle(
+
+                color: Colors.white,
+
+                fontSize: 24,
+
+                fontWeight: FontWeight.bold,
+
+              ),
+
+            ),
+
+
+
+            const SizedBox(
+
+              height: 10,
+
+            ),
+
+
+
+            const Text(
+
+              "منتجات أصلية بأسعار منافسة",
+
+              style: TextStyle(
+
+                color: Colors.white,
+
+              ),
+
+            ),
+
+
+
+            const Spacer(),
+
+
+
+            ElevatedButton(
+
+              onPressed: () {},
+
+              child: const Text(
+
+                "تسوق الآن",
+
+              ),
+
+            ),
+
+
+          ],
+
+        ),
+
+      ),
+
+    );
+
+  }
+
+
+
+
+  Widget _networkBanner(String imageUrl) {
+
+
+    return Container(
+
+      margin: const EdgeInsets.symmetric(
+
+        horizontal: 16,
+
+      ),
+
+
+      decoration: BoxDecoration(
+
+        borderRadius: BorderRadius.circular(20),
+
+        color: Colors.grey.shade100,
+
+      ),
+
+
+      child: ClipRRect(
+
+        borderRadius: BorderRadius.circular(20),
+
+
+        child: Image.network(
+
+          imageUrl,
+
+
+          width: double.infinity,
+
+          height: 170,
+
+
+          fit: BoxFit.contain,
+
+
+
+          loadingBuilder: (
+              context,
+              child,
+              loadingProgress,
+              ) {
+
+
+            if (loadingProgress == null) {
+
+              return child;
+
+            }
+
+
+            return const Center(
+
+              child: CircularProgressIndicator(),
+
+            );
+
+
+          },
+
+
+
+          errorBuilder: (
+              context,
+              error,
+              stackTrace,
+              ) {
+
+
+            return const Center(
+
+              child: Icon(
+
+                Icons.image_not_supported,
+
+                size: 40,
+
+              ),
+
+            );
+
+
+          },
+
+
+        ),
+
+      ),
+
+    );
+
+
+  }
+
+
+
+
+  @override
+  void initState() {
+
+    super.initState();
+
+
+    _timer = Timer.periodic(
+
+      const Duration(seconds: 4),
+
+
+          (timer) {
+
+
+        if (!_controller.hasClients) return;
+
+
+
+        _currentPage++;
+
+
+
+        if (_currentPage >= _banners.length) {
+
+          _currentPage = 0;
+
+        }
+
+
+
+        _controller.animateToPage(
+
+          _currentPage,
+
+
+          duration: const Duration(
+
+            milliseconds: 450,
+
+          ),
+
+
+          curve: Curves.easeInOut,
+
+
+        );
+
+
+      },
+
+
+    );
+
+
+  }
+
+
+
+
+
+  @override
+  void dispose() {
+
+
+    _timer?.cancel();
+
+
+    _controller.dispose();
+
+
+    super.dispose();
+
+  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
+
+
     return SizedBox(
-      height: 150,
+
+
+      height: 170,
+
+
       child: PageView.builder(
-        itemCount: banners.length,
-        controller: PageController(
-          viewportFraction: 0.95,
-        ),
+
+
+        controller: _controller,
+
+
+        itemCount: _banners.length,
+
+
+
         itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              image: DecorationImage(
-                image: NetworkImage(
-                  banners[index],
-                ),
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
+
+
+          return _banners[index];
+
+
         },
+
+
       ),
+
+
     );
+
+
   }
+
 }

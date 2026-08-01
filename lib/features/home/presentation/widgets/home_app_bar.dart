@@ -15,40 +15,32 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-
-        // زر القائمة يصبح يمين
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {},
-        ),
-
-        title: const Text(
-          'طلبيتك',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        actions: [
-          IconButton(
-            onPressed: onNotificationTap,
-            icon: const Icon(Icons.notifications_none),
-          ),
-
-          IconButton(
-            onPressed: onProfileTap,
-            icon: const Icon(Icons.person_outline),
-          ),
-        ],
+    return AppBar(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      leading: IconButton(
+        icon: const Icon(Icons.menu),
+        onPressed: () {},
       ),
+      title: const Text(
+        'طلبيتك',
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: onNotificationTap,
+          icon: const Icon(Icons.notifications_none),
+        ),
+        IconButton(
+          onPressed: onProfileTap,
+          icon: const Icon(Icons.person_outline),
+        ),
+      ],
     );
   }
 }

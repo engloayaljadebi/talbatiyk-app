@@ -10,3 +10,4 @@ export 'cart_bottom_bar.dart';
 //export 'product_card.dart';
 //export 'product_list.dart';
 export 'search_box.dart';
+export 'home_bottom_navigation.dart';
