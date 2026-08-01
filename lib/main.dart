@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'features/products/presentation/pages/products_page.dart';
+import 'core/theme/app_theme.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const TalbatiykApp());
@@ -12,16 +13,21 @@ class TalbatiykApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'طلبيتك',
 
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        fontFamily: 'Cairo',
-      ),
+      debugShowCheckedModeBanner: false,
 
-      home: ProductsPage(),
+      theme: AppTheme.light,
+
+      // جعل التطبيق بالكامل من اليمين إلى اليسار
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        );
+      },
+
+      home: const HomePage(),
     );
   }
 }
