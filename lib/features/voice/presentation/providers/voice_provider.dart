@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../controllers/voice_controller.dart';
 
-final VoiceProvider =
-Provider<VoiceController>((ref){
-
- return VoiceController();
-
+final voiceProvider = Provider<VoiceController>((ref) {
+  return VoiceController();
 });
-
-

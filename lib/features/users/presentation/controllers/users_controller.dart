@@ -1,11 +1,7 @@
-class UsersController {
+import 'package:flutter/foundation.dart';
 
-
- void load(){
-
-
- }
-
-
+class UsersController extends ChangeNotifier {
+  void load() {
+    notifyListeners();
+  }
 }
-
