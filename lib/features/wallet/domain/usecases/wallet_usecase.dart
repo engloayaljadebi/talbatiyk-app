@@ -7,6 +7,6 @@ class WalletUseCase {
   WalletUseCase(this.repository);
 
   Future<List<WalletEntity>> call() {
-    return repository.getWallets();
+    return repository.getWallet();
   }
 }

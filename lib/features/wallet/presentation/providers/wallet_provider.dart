@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../controllers/wallet_controller.dart';
 
-final WalletProvider =
-Provider<WalletController>((ref){
-
- return WalletController();
-
+final walletProvider = Provider<WalletController>((ref) {
+  return WalletController();
 });
-
-

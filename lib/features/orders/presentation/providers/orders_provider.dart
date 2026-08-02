@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../controllers/orders_controller.dart';
 
-final OrdersProvider =
-Provider<OrdersController>((ref){
-
- return OrdersController();
-
+final ordersProvider = Provider<OrdersController>((ref) {
+  return OrdersController();
 });
-
-

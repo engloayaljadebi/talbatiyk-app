@@ -1,11 +1,3 @@
 class OrdersController {
-
-
- void load(){
-
-
- }
-
-
+  void load() {}
 }
-

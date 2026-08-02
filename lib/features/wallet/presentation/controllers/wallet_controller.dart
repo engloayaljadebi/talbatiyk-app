@@ -1,11 +1,7 @@
-class WalletController {
+import 'package:flutter/foundation.dart';
 
-
- void load(){
-
-
- }
-
-
+class WalletController extends ChangeNotifier {
+  void load() {
+    notifyListeners();
+  }
 }
-

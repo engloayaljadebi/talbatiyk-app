@@ -1,6 +1,6 @@
+import '../../data/datasources/local/products_local_datasource.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
-import '../datasources/local/products_local_datasource.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl(this.localDataSource);
