@@ -6,10 +6,7 @@ class CartSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 12,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 
       padding: const EdgeInsets.all(16),
 
@@ -27,10 +24,8 @@ class CartSummary extends StatelessWidget {
         ],
       ),
 
-
       child: Row(
         children: [
-
           Container(
             height: 55,
             width: 55,
@@ -47,75 +42,47 @@ class CartSummary extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(width: 14),
 
-          const SizedBox(
-            width: 14,
-          ),
-
-
-           Expanded(
+          Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-
                 Text(
                   'سلة التسوق',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                 ),
 
-
-                SizedBox(
-                  height: 6,
-                ),
-
+                SizedBox(height: 6),
 
                 Text(
                   '0 منتجات  •  الإجمالي 0 ريال',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
-
               ],
             ),
           ),
-
 
           ElevatedButton(
             onPressed: () {},
 
             style: ElevatedButton.styleFrom(
-
               backgroundColor: Colors.red,
 
               foregroundColor: Colors.white,
 
               elevation: 0,
 
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
 
-              shape:
-              RoundedRectangleBorder(
-                borderRadius:
-                BorderRadius.circular(12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
 
-            child: const Text(
-              'عرض',
-            ),
+            child: const Text('عرض'),
           ),
-
         ],
       ),
     );

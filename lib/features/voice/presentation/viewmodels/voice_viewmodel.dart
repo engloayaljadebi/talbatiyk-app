@@ -1,5 +1,1 @@
-class VoiceViewModel {
-
-
-}
-
+class VoiceViewModel {}

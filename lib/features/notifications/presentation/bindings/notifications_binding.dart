@@ -1,11 +1,3 @@
 class NotificationsBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

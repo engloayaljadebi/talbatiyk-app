@@ -1,7 +1,0 @@
-class CategoriesRepositoryImpl
-implements CategoriesRepository {
-
-
-}
-
-

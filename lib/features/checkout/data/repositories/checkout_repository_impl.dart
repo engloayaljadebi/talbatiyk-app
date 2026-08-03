@@ -1,7 +1,0 @@
-class CheckoutRepositoryImpl
-implements CheckoutRepository {
-
-
-}
-
-

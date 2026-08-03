@@ -1,15 +1,5 @@
 class NotificationsState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const NotificationsState({
-
- this.loading=false,
-
- });
-
-
+  const NotificationsState({this.loading = false});
 }
-

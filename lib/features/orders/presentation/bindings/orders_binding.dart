@@ -1,11 +1,3 @@
 class OrdersBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

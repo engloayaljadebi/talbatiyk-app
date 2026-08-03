@@ -1,15 +1,5 @@
 class OrdersState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const OrdersState({
-
- this.loading=false,
-
- });
-
-
+  const OrdersState({this.loading = false});
 }
-

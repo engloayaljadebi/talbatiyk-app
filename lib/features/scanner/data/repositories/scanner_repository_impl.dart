@@ -1,7 +1,0 @@
-class ScannerRepositoryImpl
-implements ScannerRepository {
-
-
-}
-
-

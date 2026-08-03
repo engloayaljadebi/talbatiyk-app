@@ -1,7 +1,0 @@
-class ProfileRepositoryImpl
-implements ProfileRepository {
-
-
-}
-
-

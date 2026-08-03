@@ -1,5 +1,1 @@
-class UsersViewModel {
-
-
-}
-
+class UsersViewModel {}

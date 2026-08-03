@@ -1,7 +1,0 @@
-class ReportsRepositoryImpl
-implements ReportsRepository {
-
-
-}
-
-

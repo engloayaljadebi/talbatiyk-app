@@ -1,15 +1,5 @@
 class WalletState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const WalletState({
-
- this.loading=false,
-
- });
-
-
+  const WalletState({this.loading = false});
 }
-

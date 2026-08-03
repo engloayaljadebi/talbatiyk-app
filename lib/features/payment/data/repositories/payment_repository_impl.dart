@@ -1,7 +1,0 @@
-class PaymentRepositoryImpl
-implements PaymentRepository {
-
-
-}
-
-

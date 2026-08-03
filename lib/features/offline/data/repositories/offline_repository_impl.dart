@@ -1,7 +1,0 @@
-class OfflineRepositoryImpl
-implements OfflineRepository {
-
-
-}
-
-

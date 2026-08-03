@@ -1,11 +1,3 @@
 class NotificationsController {
-
-
- void load(){
-
-
- }
-
-
+  void load() {}
 }
-

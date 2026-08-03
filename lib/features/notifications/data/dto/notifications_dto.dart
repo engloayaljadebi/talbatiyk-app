@@ -1,12 +1,5 @@
 class NotificationsDto {
-
   final String id;
 
-
-  NotificationsDto({
-    required this.id,
-  });
-
-
+  NotificationsDto({required this.id});
 }
-

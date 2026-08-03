@@ -1,5 +1,1 @@
-class NotificationsViewModel {
-
-
-}
-
+class NotificationsViewModel {}

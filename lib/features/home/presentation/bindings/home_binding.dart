@@ -1,11 +1,3 @@
 class HomeBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

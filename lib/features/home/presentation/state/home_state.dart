@@ -1,15 +1,5 @@
 class HomeState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const HomeState({
-
- this.loading=false,
-
- });
-
-
+  const HomeState({this.loading = false});
 }
-

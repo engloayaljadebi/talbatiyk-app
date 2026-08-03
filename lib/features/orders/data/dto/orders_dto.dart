@@ -1,12 +1,5 @@
 class OrdersDto {
-
   final String id;
 
-
-  OrdersDto({
-    required this.id,
-  });
-
-
+  OrdersDto({required this.id});
 }
-

@@ -1,7 +1,0 @@
-class SearchRepositoryImpl
-implements SearchRepository {
-
-
-}
-
-

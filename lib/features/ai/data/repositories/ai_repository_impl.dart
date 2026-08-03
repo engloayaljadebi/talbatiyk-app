@@ -1,7 +1,0 @@
-class AiRepositoryImpl
-implements AiRepository {
-
-
-}
-
-
