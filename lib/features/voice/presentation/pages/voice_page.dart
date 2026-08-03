@@ -1,31 +1,10 @@
 import 'package:flutter/material.dart';
 
-
 class VoicePage extends StatelessWidget {
+  const VoicePage({super.key});
 
-
- const VoicePage({super.key});
-
-
- @override
- Widget build(BuildContext context){
-
-
- return Scaffold(
-
- body:Center(
-
- child:Text(
- "Voice Page"
- ),
-
- ),
-
- );
-
-
- }
-
-
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(body: Center(child: Text("Voice Page")));
+  }
 }
-

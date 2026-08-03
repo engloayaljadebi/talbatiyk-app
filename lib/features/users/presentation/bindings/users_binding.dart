@@ -1,11 +1,3 @@
 class UsersBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

@@ -1,15 +1,5 @@
 class UsersState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const UsersState({
-
- this.loading=false,
-
- });
-
-
+  const UsersState({this.loading = false});
 }
-

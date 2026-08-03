@@ -1,11 +1,3 @@
 class WalletBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

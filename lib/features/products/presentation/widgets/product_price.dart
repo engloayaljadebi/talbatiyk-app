@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ProductPrice extends StatelessWidget {
-  const ProductPrice({
-    super.key,
-    required this.price,
-  });
+  const ProductPrice({super.key, required this.price});
 
   final double price;
 

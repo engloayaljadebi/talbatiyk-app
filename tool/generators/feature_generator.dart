@@ -4,15 +4,12 @@ import 'file_generator.dart';
 import 'template_generator.dart';
 
 class FeatureGenerator {
-  static void createFeature(
-    String name,
-    String stateManagement,
-  ) {
+  static void createFeature(String name, String stateManagement) {
     final feature = name.toLowerCase();
 
-// ===============================
-// Folders
-// ===============================
+    // ===============================
+    // Folders
+    // ===============================
 
     final folders = [
       // DATA
@@ -39,7 +36,7 @@ class FeatureGenerator {
       "lib/features/$feature/presentation/bindings",
     ];
 
-// State Management
+    // State Management
 
     if (stateManagement == "riverpod") {
       folders.add("lib/features/$feature/presentation/providers");
@@ -49,102 +46,120 @@ class FeatureGenerator {
       folders.add("lib/features/$feature/presentation/bloc");
     }
 
-// إنشاء المجلدات
+    // إنشاء المجلدات
 
     for (final folder in folders) {
       Directory(folder).createSync(recursive: true);
     }
 
-// ===============================
-// DATA FILES
-// ===============================
+    // ===============================
+    // DATA FILES
+    // ===============================
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/models/${feature}_model.dart",
-        TemplateGenerator.model(capitalize(feature)));
+      "lib/features/$feature/data/models/${feature}_model.dart",
+      TemplateGenerator.model(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/dto/${feature}_dto.dart",
-        TemplateGenerator.dto(capitalize(feature)));
+      "lib/features/$feature/data/dto/${feature}_dto.dart",
+      TemplateGenerator.dto(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/mappers/${feature}_mapper.dart",
-        TemplateGenerator.mapper(capitalize(feature)));
+      "lib/features/$feature/data/mappers/${feature}_mapper.dart",
+      TemplateGenerator.mapper(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/datasources/local/${feature}_local_datasource.dart",
-        TemplateGenerator.datasource(capitalize(feature), "Local"));
+      "lib/features/$feature/data/datasources/local/${feature}_local_datasource.dart",
+      TemplateGenerator.datasource(capitalize(feature), "Local"),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/datasources/remote/${feature}_remote_datasource.dart",
-        TemplateGenerator.datasource(capitalize(feature), "Remote"));
+      "lib/features/$feature/data/datasources/remote/${feature}_remote_datasource.dart",
+      TemplateGenerator.datasource(capitalize(feature), "Remote"),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/data/repositories/${feature}_repository_impl.dart",
-        TemplateGenerator.repositoryImpl(capitalize(feature)));
+      "lib/features/$feature/data/repositories/${feature}_repository_impl.dart",
+      TemplateGenerator.repositoryImpl(capitalize(feature)),
+    );
 
-// ===============================
-// DOMAIN FILES
-// ===============================
-
-    FileGenerator.createFile(
-        "lib/features/$feature/domain/entities/${feature}_entity.dart",
-        TemplateGenerator.entity(capitalize(feature)));
+    // ===============================
+    // DOMAIN FILES
+    // ===============================
 
     FileGenerator.createFile(
-        "lib/features/$feature/domain/repositories/${feature}_repository.dart",
-        TemplateGenerator.repository(capitalize(feature)));
+      "lib/features/$feature/domain/entities/${feature}_entity.dart",
+      TemplateGenerator.entity(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/domain/usecases/${feature}_usecase.dart",
-        TemplateGenerator.usecase(capitalize(feature)));
+      "lib/features/$feature/domain/repositories/${feature}_repository.dart",
+      TemplateGenerator.repository(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/domain/services/${feature}_service.dart",
-        TemplateGenerator.service(capitalize(feature)));
-
-// ===============================
-// PRESENTATION
-// ===============================
+      "lib/features/$feature/domain/usecases/${feature}_usecase.dart",
+      TemplateGenerator.usecase(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/pages/${feature}_page.dart",
-        TemplateGenerator.page(capitalize(feature)));
+      "lib/features/$feature/domain/services/${feature}_service.dart",
+      TemplateGenerator.service(capitalize(feature)),
+    );
+
+    // ===============================
+    // PRESENTATION
+    // ===============================
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/widgets/${feature}_widget.dart",
-        TemplateGenerator.widget(capitalize(feature)));
+      "lib/features/$feature/presentation/pages/${feature}_page.dart",
+      TemplateGenerator.page(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/controllers/${feature}_controller.dart",
-        TemplateGenerator.controller(capitalize(feature)));
+      "lib/features/$feature/presentation/widgets/${feature}_widget.dart",
+      TemplateGenerator.widget(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/state/${feature}_state.dart",
-        TemplateGenerator.state(capitalize(feature)));
+      "lib/features/$feature/presentation/controllers/${feature}_controller.dart",
+      TemplateGenerator.controller(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/viewmodels/${feature}_viewmodel.dart",
-        TemplateGenerator.viewmodel(capitalize(feature)));
+      "lib/features/$feature/presentation/state/${feature}_state.dart",
+      TemplateGenerator.state(capitalize(feature)),
+    );
 
     FileGenerator.createFile(
-        "lib/features/$feature/presentation/bindings/${feature}_binding.dart",
-        TemplateGenerator.binding(capitalize(feature)));
+      "lib/features/$feature/presentation/viewmodels/${feature}_viewmodel.dart",
+      TemplateGenerator.viewmodel(capitalize(feature)),
+    );
 
-// Riverpod
+    FileGenerator.createFile(
+      "lib/features/$feature/presentation/bindings/${feature}_binding.dart",
+      TemplateGenerator.binding(capitalize(feature)),
+    );
+
+    // Riverpod
 
     if (stateManagement == "riverpod") {
       FileGenerator.createFile(
-          "lib/features/$feature/presentation/providers/${feature}_provider.dart",
-          TemplateGenerator.provider(capitalize(feature)));
+        "lib/features/$feature/presentation/providers/${feature}_provider.dart",
+        TemplateGenerator.provider(capitalize(feature)),
+      );
     }
 
-// Bloc
+    // Bloc
 
     if (stateManagement == "bloc") {
       FileGenerator.createFile(
-          "lib/features/$feature/presentation/bloc/${feature}_bloc.dart",
-          TemplateGenerator.bloc(capitalize(feature)));
+        "lib/features/$feature/presentation/bloc/${feature}_bloc.dart",
+        TemplateGenerator.bloc(capitalize(feature)),
+      );
     }
 
     print("✔ $feature generated successfully");

@@ -1,7 +1,0 @@
-class CameraRepositoryImpl
-implements CameraRepository {
-
-
-}
-
-

@@ -10,9 +10,7 @@ class NavigationController extends ChangeNotifier {
   void changeIndex(int index) {
     if (index == _state.currentIndex) return;
 
-    _state = _state.copyWith(
-      currentIndex: index,
-    );
+    _state = _state.copyWith(currentIndex: index);
 
     notifyListeners();
   }

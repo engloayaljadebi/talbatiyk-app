@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_text_styles.dart';
@@ -8,9 +8,7 @@ final ThemeData lightTheme = ThemeData(
 
   scaffoldBackgroundColor: AppColors.background,
 
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: AppColors.primary,
-  ),
+  colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
 
   textTheme: TextTheme(
     titleLarge: AppTextStyles.titleLarge,

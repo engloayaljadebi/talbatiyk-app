@@ -32,6 +32,6 @@ class ProjectConfig {
     "sync",
     "offline",
     "backup",
-    "admin"
+    "admin",
   ];
 }

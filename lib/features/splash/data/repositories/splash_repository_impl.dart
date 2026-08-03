@@ -1,7 +1,0 @@
-class SplashRepositoryImpl
-implements SplashRepository {
-
-
-}
-
-

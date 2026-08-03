@@ -8,27 +8,18 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: RouteNames.splash,
-      builder: (context, state) => const Scaffold(
-        body: Center(
-          child: Text("Splash"),
-        ),
-      ),
+      builder: (context, state) =>
+          const Scaffold(body: Center(child: Text("Splash"))),
     ),
     GoRoute(
       path: RouteNames.home,
-      builder: (context, state) => const Scaffold(
-        body: Center(
-          child: Text("Home"),
-        ),
-      ),
+      builder: (context, state) =>
+          const Scaffold(body: Center(child: Text("Home"))),
     ),
     GoRoute(
       path: RouteNames.products,
-      builder: (context, state) => const Scaffold(
-        body: Center(
-          child: Text("Products"),
-        ),
-      ),
+      builder: (context, state) =>
+          const Scaffold(body: Center(child: Text("Products"))),
     ),
   ],
 );

@@ -1,11 +1,3 @@
 class HomeController {
-
-
- void load(){
-
-
- }
-
-
+  void load() {}
 }
-

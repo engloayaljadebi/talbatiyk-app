@@ -1,7 +1,0 @@
-class SyncRepositoryImpl
-implements SyncRepository {
-
-
-}
-
-

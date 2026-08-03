@@ -30,7 +30,7 @@ class ProjectGenerator {
     'sync',
     'offline',
     'backup',
-    'admin'
+    'admin',
   ];
 
   static void generate() {

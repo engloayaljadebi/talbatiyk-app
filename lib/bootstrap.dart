@@ -10,11 +10,7 @@ Future<void> bootstrap() async {
 
   await AppInitializer.initialize();
 
-  AppConfig.initialize(
-    FlavorConfig.development,
-  );
+  AppConfig.initialize(FlavorConfig.development);
 
-  runApp(
-    const TalbytkApp(),
-  );
+  runApp(const TalbytkApp());
 }

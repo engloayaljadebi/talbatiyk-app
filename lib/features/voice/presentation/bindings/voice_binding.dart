@@ -1,11 +1,3 @@
 class VoiceBinding {
-
-
- void dependencies(){
-
-
- }
-
-
+  void dependencies() {}
 }
-

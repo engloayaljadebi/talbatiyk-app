@@ -1,12 +1,5 @@
 class HomeService {
-
-
- Future<void> initialize(){
-
-   return Future.value();
-
- }
-
-
+  Future<void> initialize() {
+    return Future.value();
+  }
 }
-

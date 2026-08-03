@@ -1,5 +1,1 @@
-class HomeViewModel {
-
-
-}
-
+class HomeViewModel {}

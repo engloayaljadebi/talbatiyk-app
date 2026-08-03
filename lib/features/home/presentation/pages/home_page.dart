@@ -9,13 +9,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: const HomeAppBar(),
 
       bottomNavigationBar: HomeBottomNavigation(
@@ -32,35 +30,19 @@ class _HomePageState extends State<HomePage> {
           physics: const BouncingScrollPhysics(),
 
           slivers: const [
+            SliverToBoxAdapter(child: HomeSearchBar()),
 
-            SliverToBoxAdapter(
-              child: HomeSearchBar(),
-            ),
+            SliverToBoxAdapter(child: BannerSlider()),
 
-            SliverToBoxAdapter(
-              child: BannerSlider(),
-            ),
+            SliverToBoxAdapter(child: CategoriesSection()),
 
-            SliverToBoxAdapter(
-              child: CategoriesSection(),
-            ),
+            SliverToBoxAdapter(child: FeaturedProductsSection()),
 
-            SliverToBoxAdapter(
-              child: FeaturedProductsSection(),
-            ),
+            SliverToBoxAdapter(child: LatestProductsSection()),
 
-            SliverToBoxAdapter(
-              child: LatestProductsSection(),
-            ),
+            SliverToBoxAdapter(child: CartSummary()),
 
-            SliverToBoxAdapter(
-              child: CartSummary(),
-            ),
-
-            SliverPadding(
-              padding: EdgeInsets.only(bottom: 24),
-            ),
-
+            SliverPadding(padding: EdgeInsets.only(bottom: 24)),
           ],
         ),
       ),

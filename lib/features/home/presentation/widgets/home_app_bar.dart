@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const HomeAppBar({
-    super.key,
-    this.onNotificationTap,
-    this.onProfileTap,
-  });
+  const HomeAppBar({super.key, this.onNotificationTap, this.onProfileTap});
 
   final VoidCallback? onNotificationTap;
   final VoidCallback? onProfileTap;
@@ -20,16 +16,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {},
-      ),
+      leading: IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
       title: const Text(
         'طلبيتك',
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       ),
       actions: [
         IconButton(

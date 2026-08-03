@@ -1,7 +1,0 @@
-class FavoritesRepositoryImpl
-implements FavoritesRepository {
-
-
-}
-
-

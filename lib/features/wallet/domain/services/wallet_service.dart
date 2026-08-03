@@ -1,12 +1,5 @@
 class WalletService {
-
-
- Future<void> initialize(){
-
-   return Future.value();
-
- }
-
-
+  Future<void> initialize() {
+    return Future.value();
+  }
 }
-

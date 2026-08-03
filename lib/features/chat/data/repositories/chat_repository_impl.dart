@@ -1,7 +1,0 @@
-class ChatRepositoryImpl
-implements ChatRepository {
-
-
-}
-
-

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AddToCartButton extends StatelessWidget {
-  const AddToCartButton({
-    super.key,
-    required this.onPressed,
-  });
+  const AddToCartButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -16,14 +13,9 @@ class AddToCartButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onPressed,
 
-        icon: const Icon(
-          Icons.shopping_cart_outlined,
-          size: 18,
-        ),
+        icon: const Icon(Icons.shopping_cart_outlined, size: 18),
 
-        label: const Text(
-          'إضافة',
-        ),
+        label: const Text('إضافة'),
 
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,

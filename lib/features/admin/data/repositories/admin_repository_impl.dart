@@ -1,7 +1,0 @@
-class AdminRepositoryImpl
-implements AdminRepository {
-
-
-}
-
-

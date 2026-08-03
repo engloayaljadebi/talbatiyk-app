@@ -1,12 +1,5 @@
 class ProductsService {
-
-
- Future<void> initialize(){
-
-   return Future.value();
-
- }
-
-
+  Future<void> initialize() {
+    return Future.value();
+  }
 }
-

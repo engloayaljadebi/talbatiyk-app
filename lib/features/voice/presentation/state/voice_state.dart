@@ -1,15 +1,5 @@
 class VoiceState {
+  final bool loading;
 
-
- final bool loading;
-
-
- const VoiceState({
-
- this.loading=false,
-
- });
-
-
+  const VoiceState({this.loading = false});
 }
-
