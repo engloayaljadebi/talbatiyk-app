@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:talbatiyk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
 
+import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../products/presentation/pages/products_page.dart';
-import '../widgets/home_bottom_navigation.dart';
 
+/// الصفحة الأساسية التي تحتوي على أقسام التطبيق.
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -13,36 +15,61 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  int currentIndex = 0;
+  /// رقم الصفحة المحددة حاليًا.
+  int _currentIndex = 0;
 
-  late final List<Widget> pages = [
-    HomePage(),
+  /// صفحات التطبيق، ويجب أن يتطابق ترتيبها مع عناصر الشريط.
+  late final List<Widget> _pages = [
+    const HomePage(),
     ProductsPage(),
-    _TemporaryPage(title: 'السلة'),
-    OrdersPage(),
-    _TemporaryPage(title: 'حسابي'),
+    const CartPage(),
+    const OrdersPage(),
+    const _TemporaryPage(title: 'حسابي'),
   ];
+
+  /// تغيير الصفحة الحالية.
+  void _changePage(int index) {
+    if (_currentIndex == index) return;
+
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Scaffold(
-      body: IndexedStack(index: currentIndex, children: pages),
-      bottomNavigationBar: HomeBottomNavigation(
-        currentIndex: currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+      // يسمح للشريط بالظهور عائمًا فوق محتوى الصفحات.
+      extendBody: true,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: IndexedStack(index: _currentIndex, children: _pages),
+          ),
+
+          /// تحديد موقع الشريط وعرضه من هذا الملف فقط.
+          Positioned(
+            left: 15,
+            right: 15,
+            bottom: bottomInset + 8,
+            child: HomeBottomNavigation(
+              currentIndex: _currentIndex,
+              onDestinationSelected: _changePage,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
+/// صفحة مؤقتة للسلة والحساب.
 class _TemporaryPage extends StatelessWidget {
-  final String title;
-
   const _TemporaryPage({required this.title});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {

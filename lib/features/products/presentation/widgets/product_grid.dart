@@ -11,7 +11,7 @@ class ProductGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
       itemCount: products.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -22,12 +22,7 @@ class ProductGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final product = products[index];
 
-        return ProductCard(
-          product: product,
-          quantity: product.quantity,
-          onAdd: () {},
-          onRemove: () {},
-        );
+        return ProductCard(key: ValueKey(product.id), product: product);
       },
     );
   }
