@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:talbatiyk/core/network/api_client.dart';
 import 'package:talbatiyk/features/products/data/datasources/remote/products_remote_datasource.dart';
 
 void main() {
@@ -39,7 +40,7 @@ void main() {
   });
 }
 
-class _FakeProductsApiClient implements ProductsApiClient {
+class _FakeProductsApiClient implements ApiClient {
   _FakeProductsApiClient(this.response);
 
   final Object? response;
@@ -52,5 +53,14 @@ class _FakeProductsApiClient implements ProductsApiClient {
   }) async {
     requestedPath = path;
     return response;
+  }
+
+  @override
+  Future<Object?> post(
+    String path, {
+    Object? body,
+    Map<String, Object?>? queryParameters,
+  }) {
+    throw UnsupportedError('POST is not used by this test.');
   }
 }

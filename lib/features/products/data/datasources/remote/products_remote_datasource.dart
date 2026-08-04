@@ -1,15 +1,8 @@
+import '../../../../../core/network/api_client.dart';
 import '../../dto/products_dto.dart';
 import '../../mappers/products_mapper.dart';
 import '../../models/products_model.dart';
 import '../products_datasource.dart';
-
-/// Small transport contract that can later be implemented with Dio or http.
-abstract interface class ProductsApiClient {
-  Future<Object?> get(
-    String path, {
-    Map<String, Object?>? queryParameters,
-  });
-}
 
 class ProductsRemoteDataSource implements ProductsDataSource {
   const ProductsRemoteDataSource({
@@ -17,7 +10,7 @@ class ProductsRemoteDataSource implements ProductsDataSource {
     this.endpoint = '/products',
   });
 
-  final ProductsApiClient client;
+  final ApiClient client;
   final String endpoint;
 
   @override

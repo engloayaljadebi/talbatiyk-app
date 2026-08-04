@@ -47,7 +47,7 @@ products in the ordering flow.
 
 ## Switching to the backend
 
-1. Implement `ProductsApiClient` using the selected HTTP package.
+1. Implement the shared `ApiClient` using the selected HTTP package.
 2. Create `ProductsRemoteDataSource(client: apiClient)`.
 3. Override `productsDataSourceProvider` at the app's `ProviderScope`.
 
