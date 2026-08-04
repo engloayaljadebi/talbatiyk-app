@@ -3,7 +3,9 @@ import 'package:talbatiyk/features/products/domain/entities/products_entity.dart
 import 'package:talbatiyk/features/products/presentation/widgets/product_card.dart';
 
 class FeaturedProductsSection extends StatelessWidget {
-  const FeaturedProductsSection({super.key});
+  const FeaturedProductsSection({super.key, this.onViewAll});
+
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +55,7 @@ class FeaturedProductsSection extends StatelessWidget {
                 'المنتجات المميزة ⭐',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              TextButton(onPressed: () {}, child: const Text('عرض الكل')),
+              TextButton(onPressed: onViewAll, child: const Text('عرض الكل')),
             ],
           ),
         ),

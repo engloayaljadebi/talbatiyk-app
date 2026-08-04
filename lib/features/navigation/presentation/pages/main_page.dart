@@ -20,7 +20,7 @@ class _MainPageState extends State<MainPage> {
 
   /// صفحات التطبيق، ويجب أن يتطابق ترتيبها مع عناصر الشريط.
   late final List<Widget> _pages = [
-    const HomePage(),
+    HomePage(onViewProducts: () => _changePage(1)),
     ProductsPage(),
     const CartPage(),
     const OrdersPage(),
