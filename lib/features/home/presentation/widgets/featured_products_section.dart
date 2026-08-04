@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/product_card.dart';
 
@@ -8,9 +7,9 @@ class FeaturedProductsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final products = [
+    const products = [
       ProductEntity(
-        id: '1',
+        id: 'featured-iphone-15-pro',
         name: 'iPhone 15 Pro',
         price: 390000,
         imageUrl: 'assets/images/jp1.jpeg',
@@ -19,9 +18,8 @@ class FeaturedProductsSection extends StatelessWidget {
         isAvailable: true,
         discount: 60,
       ),
-
       ProductEntity(
-        id: '2',
+        id: 'featured-samsung-galaxy-s25',
         name: 'Samsung Galaxy S25',
         price: 330000,
         imageUrl:
@@ -31,13 +29,11 @@ class FeaturedProductsSection extends StatelessWidget {
         isAvailable: true,
         discount: 50,
       ),
-
       ProductEntity(
-        id: '3',
+        id: 'featured-anker-wireless-headphones',
         name: 'سماعة لاسلكية',
         price: 18000,
         imageUrl: 'assets/images/jp3.jpeg',
-
         category: 'سماعات',
         brand: 'Anker',
         isAvailable: true,
@@ -47,53 +43,37 @@ class FeaturedProductsSection extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
             children: [
               const Text(
                 'المنتجات المميزة ⭐',
-
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-
               TextButton(onPressed: () {}, child: const Text('عرض الكل')),
             ],
           ),
         ),
-
         const SizedBox(height: 12),
-
         SizedBox(
           height: 330,
-
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-
             scrollDirection: Axis.horizontal,
-
             itemCount: products.length,
-
             itemBuilder: (context, index) {
+              final product = products[index];
+
               return SizedBox(
                 width: 190,
-
                 child: Padding(
                   padding: const EdgeInsets.only(left: 12),
-
                   child: ProductCard(
-                    product: products[index],
-
-                    quantity: 0,
-
-                    onAdd: () {},
-
-                    onRemove: () {},
+                    key: ValueKey(product.id),
+                    product: product,
                   ),
                 ),
               );

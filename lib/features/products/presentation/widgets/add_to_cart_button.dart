@@ -12,17 +12,12 @@ class AddToCartButton extends StatelessWidget {
       height: 38,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-
         icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-
         label: const Text('إضافة'),
-
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
+          backgroundColor: const Color(0xFFE53935),
           foregroundColor: Colors.white,
-
           elevation: 0,
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

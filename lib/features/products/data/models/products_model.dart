@@ -1,37 +1,31 @@
-import '../../domain/entities/products_entity.dart';
-
-class ProductModel extends ProductEntity {
+class ProductModel {
   const ProductModel({
-    required super.id,
-    required super.name,
-    required super.price,
-    required super.imageUrl,
-    required super.category,
-    required super.brand,
-    required super.isAvailable,
-    super.description,
-    super.colors,
-    super.quantity,
-    super.discount,
-    super.rating,
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.imageUrl,
+    required this.category,
+    required this.brand,
+    required this.isAvailable,
+    this.description = '',
+    this.colors = const [],
+    this.quantity = 0,
+    this.discount = 0,
+    this.rating = 0,
   });
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
-    return ProductModel(
-      id: json['id'],
-      name: json['name'],
-      price: (json['price'] as num).toDouble(),
-      imageUrl: json['imageUrl'],
-      category: json['category'],
-      brand: json['brand'],
-      isAvailable: json['isAvailable'],
-      description: json['description'] ?? '',
-      colors: List<String>.from(json['colors'] ?? []),
-      quantity: json['quantity'] ?? 0,
-      discount: (json['discount'] ?? 0).toDouble(),
-      rating: (json['rating'] ?? 0).toDouble(),
-    );
-  }
+  final String id;
+  final String name;
+  final double price;
+  final String imageUrl;
+  final String category;
+  final String brand;
+  final bool isAvailable;
+  final String description;
+  final List<String> colors;
+  final int quantity;
+  final double discount;
+  final double rating;
 
   Map<String, dynamic> toJson() {
     return {

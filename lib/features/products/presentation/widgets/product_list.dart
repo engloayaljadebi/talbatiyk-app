@@ -11,18 +11,13 @@ class ProductList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
       itemCount: products.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = products[index];
 
-        return ProductCard(
-          product: product,
-          quantity: product.quantity,
-          onAdd: () {},
-          onRemove: () {},
-        );
+        return ProductCard(key: ValueKey(product.id), product: product);
       },
     );
   }

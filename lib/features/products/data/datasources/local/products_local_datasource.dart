@@ -1,6 +1,10 @@
+import '../products_datasource.dart';
 import '../../models/products_model.dart';
 
-class ProductsLocalDataSource {
+class ProductsLocalDataSource implements ProductsDataSource {
+  const ProductsLocalDataSource();
+
+  @override
   Future<List<ProductModel>> getProducts() async {
     return const [
       ProductModel(

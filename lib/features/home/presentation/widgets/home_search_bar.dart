@@ -28,7 +28,7 @@ class HomeSearchBar extends StatelessWidget {
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.1),
 
             blurRadius: 20,
 
@@ -88,7 +88,7 @@ class HomeSearchBar extends StatelessWidget {
 
               boxShadow: [
                 BoxShadow(
-                  color: Colors.red.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.1),
 
                   blurRadius: 10,
 

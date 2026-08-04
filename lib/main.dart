@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:talbatiyk/features/navigation/presentation/pages/main_page.dart';
 
 import 'core/theme/app_theme.dart';
-import 'features/home/presentation/pages/home_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const TalbatiykApp());
+  runApp(const ProviderScope(child: TalbatiykApp()));
 }
 
 class TalbatiykApp extends StatelessWidget {
@@ -24,7 +25,7 @@ class TalbatiykApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         );
       },
-      home: const HomePage(),
+      home: const MainPage(),
     );
   }
 }

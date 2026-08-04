@@ -1,23 +1,32 @@
 import '../../domain/entities/products_entity.dart';
 import '../../domain/repositories/products_repository.dart';
-import '../datasources/local/products_local_datasource.dart';
+import '../datasources/products_datasource.dart';
+import '../mappers/products_mapper.dart';
 
 class ProductsRepositoryImpl implements ProductsRepository {
-  ProductsRepositoryImpl(this.local);
+  ProductsRepositoryImpl(this.dataSource);
 
-  final ProductsLocalDataSource local;
+  final ProductsDataSource dataSource;
 
   @override
   Future<List<ProductEntity>> getProducts() async {
-    return await local.getProducts();
+    final models = await dataSource.getProducts();
+
+    return List<ProductEntity>.unmodifiable(
+      models.map(ProductsMapper.toEntity),
+    );
   }
 
   @override
   Future<List<ProductEntity>> searchProducts(String query) async {
-    final products = await local.getProducts();
+    final products = await getProducts();
+    final normalizedQuery = query.trim().toLowerCase();
 
     return products.where((item) {
-      return item.name.toLowerCase().contains(query.toLowerCase());
+      return item.name.toLowerCase().contains(normalizedQuery) ||
+          item.brand.toLowerCase().contains(normalizedQuery) ||
+          item.category.toLowerCase().contains(normalizedQuery) ||
+          item.description.toLowerCase().contains(normalizedQuery);
     }).toList();
   }
 
@@ -29,7 +38,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     double? maxPrice,
     bool? available,
   }) async {
-    var products = await local.getProducts();
+    var products = await getProducts();
 
     if (category != null && category.isNotEmpty) {
       products = products.where((e) => e.category == category).toList();
