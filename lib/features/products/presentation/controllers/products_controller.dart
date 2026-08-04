@@ -1,21 +1,15 @@
 import 'package:flutter/foundation.dart';
 
-import '../../data/datasources/local/products_local_datasource.dart';
-import '../../data/repositories/products_repository_impl.dart';
 import '../../domain/entities/products_entity.dart';
 import '../../domain/usecases/products_usecase.dart';
 import '../state/products_state.dart';
 
 class ProductsController extends ChangeNotifier {
-  ProductsController() {
-    _useCase = ProductsUseCase(
-      ProductsRepositoryImpl(ProductsLocalDataSource()),
-    );
-
-    loadProducts();
+  ProductsController(this._useCase, {bool autoLoad = true}) {
+    if (autoLoad) loadProducts();
   }
 
-  late final ProductsUseCase _useCase;
+  final ProductsUseCase _useCase;
 
   List<ProductEntity> _allProducts = [];
 
