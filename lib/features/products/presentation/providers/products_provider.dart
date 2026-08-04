@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:talbatiyk/core/database/database_provider.dart';
 
 import '../../data/datasources/local/products_local_datasource.dart';
 import '../../data/datasources/products_datasource.dart';
@@ -7,20 +8,27 @@ import '../../domain/repositories/products_repository.dart';
 import '../../domain/usecases/products_usecase.dart';
 import '../controllers/products_controller.dart';
 
-/// Override this provider with a remote data source when the API client becomes
-/// available. The UI and controller do not need to change.
+/// يوفر مصدر المنتجات المستخدم حاليًا.
+///
+/// نستخدم قاعدة البيانات المحلية الآن، ويمكن لاحقًا إضافة المصدر البعيد
+/// دون تغيير صفحات المنتجات أو الـController.
 final productsDataSourceProvider = Provider<ProductsDataSource>((ref) {
-  return const ProductsLocalDataSource();
+  final database = ref.watch(appDatabaseProvider);
+
+  return ProductsLocalDataSource(database);
 });
 
+/// يربط مصدر البيانات بطبقة Repository.
 final productsRepositoryProvider = Provider<ProductsRepository>((ref) {
   return ProductsRepositoryImpl(ref.watch(productsDataSourceProvider));
 });
 
+/// يوفر العمليات التي تستطيع الواجهة تنفيذها على المنتجات.
 final productsUseCaseProvider = Provider<ProductsUseCase>((ref) {
   return ProductsUseCase(ref.watch(productsRepositoryProvider));
 });
 
+/// يدير حالة المنتجات والبحث والفلترة داخل الواجهة.
 final productsProvider = ChangeNotifierProvider<ProductsController>((ref) {
   return ProductsController(ref.watch(productsUseCaseProvider));
 });

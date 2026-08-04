@@ -3,6 +3,7 @@ import '../../domain/repositories/products_repository.dart';
 import '../datasources/products_datasource.dart';
 import '../mappers/products_mapper.dart';
 
+/// تنفيذ Repository الذي يعزل الواجهة عن مصادر البيانات.
 class ProductsRepositoryImpl implements ProductsRepository {
   ProductsRepositoryImpl(this.dataSource);
 
@@ -15,6 +16,28 @@ class ProductsRepositoryImpl implements ProductsRepository {
     return List<ProductEntity>.unmodifiable(
       models.map(ProductsMapper.toEntity),
     );
+  }
+
+  @override
+  Future<ProductEntity> createProduct(ProductEntity product) async {
+    final source = dataSource;
+
+    /// نتحقق أن مصدر البيانات الحالي يدعم عمليات الكتابة.
+    if (source is! ProductsWritableDataSource) {
+      throw UnsupportedError('مصدر المنتجات الحالي لا يدعم إضافة المنتجات.');
+    }
+
+    /// نحول Entity إلى Model قبل إرساله إلى طبقة البيانات.
+    final model = ProductsMapper.fromEntity(product);
+
+    /// بعد التحقق السابق أصبح التحويل آمنًا، ونستطيع استخدام دالة الكتابة.
+    final writableSource = source as ProductsWritableDataSource;
+
+    /// المصدر المحلي يحفظ المنتج ويضيفه إلى طابور المزامنة.
+    final savedModel = await writableSource.createProduct(model);
+
+    /// نعيد المنتج كـEntity حتى لا تتعامل الواجهة مع نماذج البيانات.
+    return ProductsMapper.toEntity(savedModel);
   }
 
   @override

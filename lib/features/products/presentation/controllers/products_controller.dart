@@ -84,6 +84,18 @@ class ProductsController extends ChangeNotifier {
     }
   }
 
+  /// يحفظ منتجًا جديدًا محليًا ثم يعيد تحميل قائمة المنتجات.
+  ///
+  /// عند الحفظ يكون المنتج بحالة pendingCreate حتى تتم مزامنته مع السحابة.
+  Future<ProductEntity> createProduct(ProductEntity product) async {
+    final createdProduct = await _useCase.createProduct(product);
+
+    /// إعادة التحميل تجعل المنتج الجديد يظهر فورًا في الواجهة.
+    await loadProducts();
+
+    return createdProduct;
+  }
+
   void search(String value) {
     state = state.copyWith(search: value);
     _applyCurrentFilters();

@@ -38,7 +38,8 @@ class ProductCard extends ConsumerWidget {
             SizedBox(
               height: 120,
               width: double.infinity,
-              child: ProductImage(imageUrl: product.imageUrl),
+              // نعطي الأولوية للصورة المحلية، ثم نستخدم رابط السحابة عند توفره.
+              child: ProductImage(imageUrl: product.displayImagePath),
             ),
             Padding(
               padding: const EdgeInsets.all(10),

@@ -33,7 +33,8 @@ class ProductDetailsPage extends ConsumerWidget {
               height: 290,
               color: Colors.white,
               padding: const EdgeInsets.all(24),
-              child: ProductImage(imageUrl: product.imageUrl),
+              // يعرض الصورة المحلية أولًا، ثم صورة السحابة عند عدم وجودها.
+              child: ProductImage(imageUrl: product.displayImagePath),
             ),
           ),
           SliverPadding(
@@ -318,13 +319,15 @@ class _ColorsCard extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: colors.map((color) {
-              return Chip(
-                label: Text(color),
-                backgroundColor: const Color(0xFFF4F4F6),
-                side: BorderSide.none,
-              );
-            }).toList(growable: false),
+            children: colors
+                .map((color) {
+                  return Chip(
+                    label: Text(color),
+                    backgroundColor: const Color(0xFFF4F4F6),
+                    side: BorderSide.none,
+                  );
+                })
+                .toList(growable: false),
           ),
         ],
       ),
@@ -413,10 +416,7 @@ class _UnavailableAction extends StatelessWidget {
       ),
       child: const Text(
         'المنتج غير متوفر',
-        style: TextStyle(
-          color: Color(0xFF8E8E93),
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(color: Color(0xFF8E8E93), fontWeight: FontWeight.w600),
       ),
     );
   }
