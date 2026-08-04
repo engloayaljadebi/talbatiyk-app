@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
+import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/product_image.dart';
 
 class CartPage extends ConsumerWidget {
@@ -12,6 +15,7 @@ class CartPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
+    final orders = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
@@ -48,6 +52,8 @@ class CartPage extends ConsumerWidget {
                   _CartSummary(
                     totalQuantity: cart.totalQuantity,
                     totalPrice: cart.totalPrice,
+                    isSubmitting: orders.state.isSubmitting,
+                    onSubmit: () => _submitOrder(context, ref, cart),
                   ),
                 ],
               ),
@@ -82,6 +88,49 @@ class CartPage extends ConsumerWidget {
     if (shouldClear) {
       ref.read(cartProvider).clear();
     }
+  }
+
+  Future<void> _submitOrder(
+    BuildContext context,
+    WidgetRef ref,
+    CartController cart,
+  ) async {
+    if (cart.isEmpty) return;
+
+    final request = CreateOrderRequest(
+      items: cart.items.map((item) {
+        return OrderItemEntity(
+          productId: item.product.id,
+          productName: item.product.name,
+          unitPrice: item.product.price,
+          quantity: item.quantity,
+          imageUrl: item.product.imageUrl,
+        );
+      }).toList(growable: false),
+    );
+    final orders = ref.read(ordersProvider);
+    final createdOrder = await orders.createOrder(request);
+
+    if (!context.mounted) return;
+
+    if (createdOrder == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            orders.state.errorMessage ?? 'تعذر إرسال الطلبية، حاول مرة أخرى',
+          ),
+        ),
+      );
+      return;
+    }
+
+    cart.clear();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('تم إرسال الطلبية #${createdOrder.id} بنجاح'),
+        backgroundColor: Colors.green.shade700,
+      ),
+    );
   }
 }
 
@@ -248,10 +297,17 @@ class _QuantityButton extends StatelessWidget {
 }
 
 class _CartSummary extends StatelessWidget {
-  const _CartSummary({required this.totalQuantity, required this.totalPrice});
+  const _CartSummary({
+    required this.totalQuantity,
+    required this.totalPrice,
+    required this.isSubmitting,
+    required this.onSubmit,
+  });
 
   final int totalQuantity;
   final double totalPrice;
+  final bool isSubmitting;
+  final VoidCallback onSubmit;
 
   @override
   Widget build(BuildContext context) {
@@ -303,15 +359,18 @@ class _CartSummary extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: FilledButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('الخطوة التالية ستكون إنشاء وإرسال الطلبية'),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.send_rounded),
-              label: const Text('إرسال الطلبية'),
+              onPressed: isSubmitting ? null : onSubmit,
+              icon: isSubmitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.send_rounded),
+              label: Text(isSubmitting ? 'جاري الإرسال...' : 'إرسال الطلبية'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935),
                 foregroundColor: Colors.white,

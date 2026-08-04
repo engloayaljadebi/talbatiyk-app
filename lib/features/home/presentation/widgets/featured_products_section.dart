@@ -9,7 +9,7 @@ class FeaturedProductsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     const products = [
       ProductEntity(
-        id: '1',
+        id: 'featured-iphone-15-pro',
         name: 'iPhone 15 Pro',
         price: 390000,
         imageUrl: 'assets/images/jp1.jpeg',
@@ -19,7 +19,7 @@ class FeaturedProductsSection extends StatelessWidget {
         discount: 60,
       ),
       ProductEntity(
-        id: '2',
+        id: 'featured-samsung-galaxy-s25',
         name: 'Samsung Galaxy S25',
         price: 330000,
         imageUrl:
@@ -30,7 +30,7 @@ class FeaturedProductsSection extends StatelessWidget {
         discount: 50,
       ),
       ProductEntity(
-        id: '3',
+        id: 'featured-anker-wireless-headphones',
         name: 'سماعة لاسلكية',
         price: 18000,
         imageUrl: 'assets/images/jp3.jpeg',
