@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 
 import '../../domain/entities/products_entity.dart';
+import '../pages/product_details_page.dart';
 import 'add_to_cart_button.dart';
 import 'product_image.dart';
 import 'product_price.dart';
@@ -23,63 +24,77 @@ class ProductCard extends ConsumerWidget {
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 120,
-            width: double.infinity,
-            child: ProductImage(imageUrl: product.imageUrl),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product.brand,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                ProductPrice(price: product.price),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 36,
-                  child: !product.isAvailable
-                      ? const _UnavailableButton()
-                      : quantity == 0
-                      ? AddToCartButton(
-                          onPressed: () {
-                            ref.read(cartProvider).addProduct(product);
-                          },
-                        )
-                      : QuantitySelector(
-                          quantity: quantity,
-                          onAdd: () {
-                            ref.read(cartProvider).addProduct(product);
-                          },
-                          onRemove: () {
-                            ref.read(cartProvider).decreaseProduct(product.id);
-                          },
-                        ),
-                ),
-              ],
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ProductDetailsPage(product: product),
             ),
-          ),
-        ],
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 120,
+              width: double.infinity,
+              child: ProductImage(imageUrl: product.imageUrl),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.brand,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.blueGrey,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ProductPrice(price: product.price),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 36,
+                    child: !product.isAvailable
+                        ? const _UnavailableButton()
+                        : quantity == 0
+                        ? AddToCartButton(
+                            onPressed: () {
+                              ref.read(cartProvider).addProduct(product);
+                            },
+                          )
+                        : QuantitySelector(
+                            quantity: quantity,
+                            onAdd: () {
+                              ref.read(cartProvider).addProduct(product);
+                            },
+                            onRemove: () {
+                              ref
+                                  .read(cartProvider)
+                                  .decreaseProduct(product.id);
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
