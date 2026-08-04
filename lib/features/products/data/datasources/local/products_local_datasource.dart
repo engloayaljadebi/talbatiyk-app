@@ -135,6 +135,176 @@ class ProductsLocalDataSource
     return pendingProduct;
   }
 
+  /// يحدّث المنتج محليًا ويسجل العملية المناسبة في طابور المزامنة.
+  @override
+  Future<ProductModel> updateProduct(ProductModel product) async {
+    final now = DateTime.now();
+
+    final currentRecord = await (database.select(
+      database.productRecords,
+    )..where((table) => table.id.equals(product.id))).getSingleOrNull();
+
+    if (currentRecord == null) {
+      throw StateError('المنتج غير موجود: ${product.id}');
+    }
+
+    final createOperationId = 'product:create:${product.id}';
+
+    final pendingCreateOperation = await (database.select(
+      database.syncOperations,
+    )..where((table) => table.id.equals(createOperationId))).getSingleOrNull();
+
+    // إذا لم يُرفع المنتج من قبل، نبقي العملية إنشاء بدل إرسال إنشاء ثم تعديل.
+    final isWaitingForCreate = pendingCreateOperation != null;
+
+    final nextSyncStatus = isWaitingForCreate
+        ? ProductSyncStatus.pendingCreate
+        : ProductSyncStatus.pendingUpdate;
+
+    final updatedProduct = ProductModel(
+      id: product.id,
+      supplierId: product.supplierId,
+      supplierName: product.supplierName,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      localImagePath: product.localImagePath,
+      category: product.category,
+      brand: product.brand,
+      isAvailable: product.isAvailable,
+      description: product.description,
+      colors: product.colors,
+      quantity: product.quantity,
+      discount: product.discount,
+      rating: product.rating,
+      syncStatus: nextSyncStatus,
+      syncError: null,
+      createdAt: product.createdAt ?? currentRecord.createdAt,
+      updatedAt: now,
+    );
+
+    await database.transaction(() async {
+      // نحدّث سجل المنتج داخل قاعدة البيانات المحلية.
+      await (database.update(
+        database.productRecords,
+      )..where((table) => table.id.equals(product.id))).write(
+        ProductRecordsCompanion(
+          supplierId: Value(updatedProduct.supplierId),
+          supplierName: Value(updatedProduct.supplierName),
+          name: Value(updatedProduct.name),
+          price: Value(updatedProduct.price),
+          category: Value(updatedProduct.category),
+          brand: Value(updatedProduct.brand),
+          description: Value(updatedProduct.description),
+          colorsJson: Value(jsonEncode(updatedProduct.colors)),
+          quantity: Value(updatedProduct.quantity),
+          isAvailable: Value(updatedProduct.isAvailable),
+          discount: Value(updatedProduct.discount),
+          rating: Value(updatedProduct.rating),
+          localImagePath: Value(updatedProduct.localImagePath),
+          remoteImageUrl: Value(
+            updatedProduct.imageUrl.trim().isEmpty
+                ? null
+                : updatedProduct.imageUrl,
+          ),
+          syncStatus: Value(updatedProduct.syncStatus.name),
+          syncError: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
+
+      final operation = isWaitingForCreate ? 'create' : 'update';
+      final operationId = 'product:$operation:${product.id}';
+
+      // نحفظ أحدث نسخة فقط من بيانات المنتج داخل طابور المزامنة.
+      await database
+          .into(database.syncOperations)
+          .insertOnConflictUpdate(
+            SyncOperationsCompanion.insert(
+              id: operationId,
+              entityType: 'product',
+              entityId: product.id,
+              operation: operation,
+              payloadJson: jsonEncode(updatedProduct.toJson()),
+              createdAt: now,
+            ),
+          );
+    });
+
+    return updatedProduct;
+  }
+
+  /// يحذف المنتج محليًا ويسجل حذفه للسحابة عند الحاجة.
+  @override
+  Future<void> deleteProduct(String productId) async {
+    final now = DateTime.now();
+
+    final currentRecord = await (database.select(
+      database.productRecords,
+    )..where((table) => table.id.equals(productId))).getSingleOrNull();
+
+    // الحذف عملية آمنة ويمكن استدعاؤها أكثر من مرة.
+    if (currentRecord == null) {
+      return;
+    }
+
+    final createOperationId = 'product:create:$productId';
+
+    final pendingCreateOperation = await (database.select(
+      database.syncOperations,
+    )..where((table) => table.id.equals(createOperationId))).getSingleOrNull();
+
+    await database.transaction(() async {
+      if (pendingCreateOperation != null) {
+        // المنتج لم يصل للسحابة، لذلك نحذفه نهائيًا ونلغي عملية إنشائه.
+        await (database.delete(
+          database.syncOperations,
+        )..where((table) => table.entityId.equals(productId))).go();
+
+        await (database.delete(
+          database.productRecords,
+        )..where((table) => table.id.equals(productId))).go();
+
+        return;
+      }
+
+      // المنتج موجود سحابيًا، لذلك نخفيه محليًا حتى تُرسل عملية الحذف.
+      await (database.update(
+        database.productRecords,
+      )..where((table) => table.id.equals(productId))).write(
+        ProductRecordsCompanion(
+          syncStatus: Value(ProductSyncStatus.pendingDelete.name),
+          syncError: const Value(null),
+          updatedAt: Value(now),
+          deletedAt: Value(now),
+        ),
+      );
+
+      // لم نعد بحاجة إلى عملية تعديل إذا قرر المورد حذف المنتج.
+      await (database.delete(
+        database.syncOperations,
+      )..where((table) => table.id.equals('product:update:$productId'))).go();
+
+      // نسجل عملية الحذف التي سترسل للسحابة عند عودة الإنترنت.
+      await database
+          .into(database.syncOperations)
+          .insertOnConflictUpdate(
+            SyncOperationsCompanion.insert(
+              id: 'product:delete:$productId',
+              entityType: 'product',
+              entityId: productId,
+              operation: 'delete',
+              payloadJson: jsonEncode({
+                'id': productId,
+                'supplierId': currentRecord.supplierId,
+                'deletedAt': now.toIso8601String(),
+              }),
+              createdAt: now,
+            ),
+          );
+    });
+  }
+
   /// يضيف البيانات التجريبية عند فتح قاعدة بيانات فارغة فقط.
   Future<void> _seedInitialProductsIfNeeded() async {
     final existingProduct = await (database.select(

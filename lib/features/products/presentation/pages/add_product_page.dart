@@ -8,18 +8,26 @@ import '../../../../core/storage/product_image_storage.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
 
-/// شاشة إضافة منتج جديد وحفظه محليًا قبل مزامنته مع السحابة.
+/// شاشة واحدة تُستخدم لإضافة منتج جديد أو تعديل منتج موجود.
 class AddProductPage extends ConsumerStatefulWidget {
   const AddProductPage({
     super.key,
+    this.product,
 
-    /// قيم مؤقتة حتى نربط نظام تسجيل الدخول وحساب المورد.
+    // قيم مؤقتة حتى نربط تسجيل الدخول وحساب المورد.
     this.supplierId = 'local-supplier',
     this.supplierName = 'المورد الحالي',
   });
 
+  /// إذا كانت القيمة null فالصفحة في وضع الإضافة.
+  /// وإذا احتوت على منتج فالصفحة في وضع التعديل.
+  final ProductEntity? product;
+
   final String supplierId;
   final String supplierName;
+
+  /// يحدد هل الصفحة تعدّل منتجًا موجودًا.
+  bool get isEditing => product != null;
 
   @override
   ConsumerState<AddProductPage> createState() => _AddProductPageState();
@@ -39,8 +47,35 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   final _imageStorage = ProductImageStorage();
 
   String? _selectedImagePath;
+
+  /// يحتفظ برابط الصورة السحابية القديمة عند تعديل المنتج.
+  String _remoteImageUrl = '';
+
   bool _isAvailable = true;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final product = widget.product;
+
+    // في وضع الإضافة تبقى الحقول فارغة بالقيم الافتراضية.
+    if (product == null) {
+      return;
+    }
+
+    // في وضع التعديل نملأ الحقول تلقائيًا ببيانات المنتج الحالية.
+    _nameController.text = product.name;
+    _categoryController.text = product.category;
+    _brandController.text = product.brand;
+    _priceController.text = product.price.toString();
+    _quantityController.text = product.quantity.toString();
+    _descriptionController.text = product.description;
+    _selectedImagePath = product.localImagePath;
+    _remoteImageUrl = product.imageUrl;
+    _isAvailable = product.isAvailable;
+  }
 
   @override
   void dispose() {
@@ -97,6 +132,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
 
       setState(() {
         _selectedImagePath = imagePath;
+
+        // الصورة المحلية الجديدة ستحل محل رابط الصورة القديمة بعد المزامنة.
+        _remoteImageUrl = '';
       });
     } catch (_) {
       if (!mounted) return;
@@ -107,7 +145,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     }
   }
 
-  /// يتحقق من الحقول ثم يحفظ المنتج داخل SQLite وطابور المزامنة.
+  /// يتحقق من الحقول ثم ينشئ المنتج أو يحفظ تعديلاته محليًا.
   Future<void> _saveProduct() async {
     final isValid = _formKey.currentState?.validate() ?? false;
 
@@ -118,26 +156,39 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     final price = double.parse(
       _priceController.text.trim().replaceAll(',', '.'),
     );
-
     final quantity = int.parse(_quantityController.text.trim());
     final now = DateTime.now();
+    final existingProduct = widget.product;
 
     final product = ProductEntity(
-      /// UUID يمنع تكرار المنتج عند إعادة محاولة المزامنة.
-      id: const Uuid().v4(),
-      supplierId: widget.supplierId,
-      supplierName: widget.supplierName,
+      // عند التعديل نحافظ على المعرف، وعند الإضافة ننشئ UUID جديدًا.
+      id: existingProduct?.id ?? const Uuid().v4(),
+
+      // نحافظ على صاحب المنتج الأصلي عند التعديل.
+      supplierId: existingProduct?.supplierId ?? widget.supplierId,
+      supplierName: existingProduct?.supplierName ?? widget.supplierName,
       name: _nameController.text.trim(),
       price: price,
-      imageUrl: '',
+
+      // نبقي الصورة الحالية ما لم يختر المورد صورة أخرى أو يحذفها.
+      imageUrl: _remoteImageUrl,
       localImagePath: _selectedImagePath,
       category: _categoryController.text.trim(),
       brand: _brandController.text.trim(),
       isAvailable: _isAvailable,
       description: _descriptionController.text.trim(),
       quantity: quantity,
-      syncStatus: ProductSyncStatus.pendingCreate,
-      createdAt: now,
+
+      // نحافظ على الحقول التي لا يعدلها النموذج الحالي.
+      colors: existingProduct?.colors ?? const [],
+      discount: existingProduct?.discount ?? 0,
+      rating: existingProduct?.rating ?? 0,
+
+      // المصدر المحلي يحدد pendingCreate أو pendingUpdate تلقائيًا.
+      syncStatus:
+          existingProduct?.syncStatus ?? ProductSyncStatus.pendingCreate,
+      syncError: null,
+      createdAt: existingProduct?.createdAt ?? now,
       updatedAt: now,
     );
 
@@ -146,9 +197,12 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     });
 
     try {
-      final savedProduct = await ref
-          .read(productsProvider)
-          .createProduct(product);
+      final controller = ref.read(productsProvider);
+
+      // نستخدم الإنشاء للمنتج الجديد والتعديل للمنتج الموجود.
+      final savedProduct = widget.isEditing
+          ? await controller.updateProduct(product)
+          : await controller.createProduct(product);
 
       if (!mounted) return;
 
@@ -156,13 +210,15 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         _isSaving = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ المنتج وسيُرفع عند توفر الإنترنت.'),
-        ),
-      );
+      final message = widget.isEditing
+          ? 'تم حفظ تعديلات المنتج وستُزامن عند توفر الإنترنت.'
+          : 'تم حفظ المنتج وسيُرفع عند توفر الإنترنت.';
 
-      /// نعيد المنتج المحفوظ إلى الصفحة السابقة.
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+
+      // نعيد النسخة المحفوظة إلى الصفحة السابقة.
       Navigator.of(context).pop(savedProduct);
     } catch (error) {
       if (!mounted) return;
@@ -171,9 +227,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         _isSaving = false;
       });
 
+      final action = widget.isEditing ? 'تعديل' : 'حفظ';
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('تعذر حفظ المنتج: $error')));
+      ).showSnackBar(SnackBar(content: Text('تعذر $action المنتج: $error')));
     }
   }
 
@@ -227,12 +285,71 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     );
   }
 
+  /// يعرض الصورة المحلية أو السحابية الحالية للمنتج.
+  Widget _buildImagePreview() {
+    final localPath = _selectedImagePath;
+    final remoteUrl = _remoteImageUrl.trim();
+
+    if (localPath == null && remoteUrl.isEmpty) {
+      return _buildImagePlaceholder();
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (localPath != null)
+          Image.file(
+            File(localPath),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildImagePlaceholder();
+            },
+          )
+        else
+          Image.network(
+            remoteUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildImagePlaceholder();
+            },
+          ),
+        Positioned(
+          top: 8,
+          left: 8,
+          child: IconButton.filled(
+            tooltip: 'حذف الصورة',
+            onPressed: () {
+              setState(() {
+                // نحذف اختيار الصورة المحلية ورابط الصورة السحابية.
+                _selectedImagePath = null;
+                _remoteImageUrl = '';
+              });
+            },
+            icon: const Icon(Icons.close),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// يظهر عندما لا توجد صورة للمنتج.
+  Widget _buildImagePlaceholder() {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.add_photo_alternate_outlined, size: 54, color: Colors.grey),
+        SizedBox(height: 10),
+        Text('اضغط لإضافة صورة المنتج'),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
-        title: const Text('إضافة منتج'),
+        title: Text(widget.isEditing ? 'تعديل المنتج' : 'إضافة منتج'),
         centerTitle: true,
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
@@ -243,7 +360,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
-            /// يعرض اسم المورد الذي سيُسجل المنتج باسمه.
+            // يعرض اسم المورد صاحب المنتج.
             Card(
               elevation: 0,
               child: ListTile(
@@ -251,12 +368,14 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                   child: Icon(Icons.storefront_outlined),
                 ),
                 title: const Text('صاحب المنتج'),
-                subtitle: Text(widget.supplierName),
+                subtitle: Text(
+                  widget.product?.supplierName ?? widget.supplierName,
+                ),
               ),
             ),
             const SizedBox(height: 14),
 
-            /// معاينة الصورة المحلية قبل حفظ المنتج.
+            // معاينة الصورة المحلية أو السحابية قبل الحفظ.
             GestureDetector(
               onTap: _openImageOptions,
               child: Container(
@@ -267,41 +386,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: _selectedImagePath == null
-                    ? const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            size: 54,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 10),
-                          Text('اضغط لإضافة صورة المنتج'),
-                        ],
-                      )
-                    : Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.file(
-                            File(_selectedImagePath!),
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            child: IconButton.filled(
-                              tooltip: 'حذف الصورة',
-                              onPressed: () {
-                                setState(() {
-                                  _selectedImagePath = null;
-                                });
-                              },
-                              icon: const Icon(Icons.close),
-                            ),
-                          ),
-                        ],
-                      ),
+                child: _buildImagePreview(),
               ),
             ),
             const SizedBox(height: 16),
@@ -396,8 +481,18 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.save_outlined),
-            label: Text(_isSaving ? 'جارٍ الحفظ...' : 'حفظ المنتج'),
+                : Icon(
+                    widget.isEditing
+                        ? Icons.edit_outlined
+                        : Icons.save_outlined,
+                  ),
+            label: Text(
+              _isSaving
+                  ? 'جارٍ الحفظ...'
+                  : widget.isEditing
+                  ? 'حفظ التعديلات'
+                  : 'حفظ المنتج',
+            ),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               backgroundColor: const Color(0xFFE53935),

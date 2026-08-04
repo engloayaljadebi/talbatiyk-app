@@ -3,11 +3,25 @@ import '../../domain/repositories/products_repository.dart';
 import '../datasources/products_datasource.dart';
 import '../mappers/products_mapper.dart';
 
-/// تنفيذ Repository الذي يعزل الواجهة عن مصادر البيانات.
+/// تنفيذ المستودع الذي يعزل الواجهة وطبقة الأعمال عن مصادر البيانات.
 class ProductsRepositoryImpl implements ProductsRepository {
   ProductsRepositoryImpl(this.dataSource);
 
   final ProductsDataSource dataSource;
+
+  /// يعيد مصدر البيانات القابل للكتابة بعد التأكد من دعمه للعمليات.
+  ProductsWritableDataSource get _writableDataSource {
+    final source = dataSource;
+
+    if (source is! ProductsWritableDataSource) {
+      throw UnsupportedError(
+        'مصدر المنتجات الحالي لا يدعم إنشاء المنتجات أو تعديلها أو حذفها.',
+      );
+    }
+
+    // أصبح التحويل آمنًا بعد التحقق السابق.
+    return source as ProductsWritableDataSource;
+  }
 
   @override
   Future<List<ProductEntity>> getProducts() async {
@@ -20,24 +34,31 @@ class ProductsRepositoryImpl implements ProductsRepository {
 
   @override
   Future<ProductEntity> createProduct(ProductEntity product) async {
-    final source = dataSource;
-
-    /// نتحقق أن مصدر البيانات الحالي يدعم عمليات الكتابة.
-    if (source is! ProductsWritableDataSource) {
-      throw UnsupportedError('مصدر المنتجات الحالي لا يدعم إضافة المنتجات.');
-    }
-
-    /// نحول Entity إلى Model قبل إرساله إلى طبقة البيانات.
+    // نحول كيان المنتج إلى نموذج تفهمه طبقة البيانات.
     final model = ProductsMapper.fromEntity(product);
 
-    /// بعد التحقق السابق أصبح التحويل آمنًا، ونستطيع استخدام دالة الكتابة.
-    final writableSource = source as ProductsWritableDataSource;
+    // المصدر المحلي يحفظ المنتج ويضيف عملية الإنشاء إلى طابور المزامنة.
+    final savedModel = await _writableDataSource.createProduct(model);
 
-    /// المصدر المحلي يحفظ المنتج ويضيفه إلى طابور المزامنة.
-    final savedModel = await writableSource.createProduct(model);
-
-    /// نعيد المنتج كـEntity حتى لا تتعامل الواجهة مع نماذج البيانات.
+    // نعيد Entity حتى لا تتعامل الواجهة مع نماذج طبقة البيانات.
     return ProductsMapper.toEntity(savedModel);
+  }
+
+  @override
+  Future<ProductEntity> updateProduct(ProductEntity product) async {
+    // نحول المنتج المعدّل إلى نموذج بيانات.
+    final model = ProductsMapper.fromEntity(product);
+
+    // نحفظ التعديل محليًا ونسجل عملية المزامنة المناسبة.
+    final updatedModel = await _writableDataSource.updateProduct(model);
+
+    return ProductsMapper.toEntity(updatedModel);
+  }
+
+  @override
+  Future<void> deleteProduct(String productId) {
+    // ينفذ المصدر المحلي الحذف المنطقي أو النهائي حسب حالة المزامنة.
+    return _writableDataSource.deleteProduct(productId);
   }
 
   @override
@@ -64,23 +85,33 @@ class ProductsRepositoryImpl implements ProductsRepository {
     var products = await getProducts();
 
     if (category != null && category.isNotEmpty) {
-      products = products.where((e) => e.category == category).toList();
+      products = products.where((item) {
+        return item.category == category;
+      }).toList();
     }
 
     if (brand != null && brand.isNotEmpty) {
-      products = products.where((e) => e.brand == brand).toList();
+      products = products.where((item) {
+        return item.brand == brand;
+      }).toList();
     }
 
     if (minPrice != null) {
-      products = products.where((e) => e.price >= minPrice).toList();
+      products = products.where((item) {
+        return item.price >= minPrice;
+      }).toList();
     }
 
     if (maxPrice != null) {
-      products = products.where((e) => e.price <= maxPrice).toList();
+      products = products.where((item) {
+        return item.price <= maxPrice;
+      }).toList();
     }
 
     if (available != null) {
-      products = products.where((e) => e.isAvailable == available).toList();
+      products = products.where((item) {
+        return item.isAvailable == available;
+      }).toList();
     }
 
     return products;

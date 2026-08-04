@@ -96,6 +96,28 @@ class ProductsController extends ChangeNotifier {
     return createdProduct;
   }
 
+  /// يحدّث المنتج محليًا ثم يعيد تحميل القائمة.
+  ///
+  /// سيظهر التعديل مباشرة حتى عندما يكون الجهاز بدون إنترنت.
+  Future<ProductEntity> updateProduct(ProductEntity product) async {
+    final updatedProduct = await _useCase.updateProduct(product);
+
+    // إعادة التحميل تعرض أحدث بيانات محفوظة في قاعدة البيانات.
+    await loadProducts();
+
+    return updatedProduct;
+  }
+
+  /// يحذف المنتج محليًا ثم يحدّث القائمة المعروضة.
+  ///
+  /// إذا كان المنتج متزامنًا، يبقى سجل الحذف في طابور المزامنة.
+  Future<void> deleteProduct(String productId) async {
+    await _useCase.deleteProduct(productId);
+
+    // المنتج المحذوف لن يظهر لأن المصدر المحلي يستبعد deletedAt.
+    await loadProducts();
+  }
+
   void search(String value) {
     state = state.copyWith(search: value);
     _applyCurrentFilters();
