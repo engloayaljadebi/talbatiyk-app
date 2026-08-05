@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbatiyk/features/cart/presentation/utils/cart_feedback.dart';
 
 import '../../domain/entities/products_entity.dart';
 import '../pages/product_details_page.dart';
@@ -76,13 +77,21 @@ class ProductCard extends ConsumerWidget {
                         : quantity == 0
                         ? AddToCartButton(
                             onPressed: () {
-                              ref.read(cartProvider).addProduct(product);
+                              final result = ref
+                                  .read(cartProvider)
+                                  .addProduct(product);
+
+                              showCartAddResultMessage(context, result);
                             },
                           )
                         : QuantitySelector(
                             quantity: quantity,
                             onAdd: () {
-                              ref.read(cartProvider).addProduct(product);
+                              final result = ref
+                                  .read(cartProvider)
+                                  .addProduct(product);
+
+                              showCartAddResultMessage(context, result);
                             },
                             onRemove: () {
                               ref

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../cart/presentation/utils/cart_feedback.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
 import '../widgets/add_to_cart_button.dart';
@@ -126,7 +127,9 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
         product: _product,
         quantity: quantity,
         onAdd: () {
-          ref.read(cartProvider).addProduct(_product);
+          final result = ref.read(cartProvider).addProduct(_product);
+
+          showCartAddResultMessage(context, result);
         },
         onRemove: () {
           ref.read(cartProvider).decreaseProduct(_product.id);

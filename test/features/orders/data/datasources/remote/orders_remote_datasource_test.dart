@@ -17,9 +17,7 @@ void main() {
     });
 
     test('posts the request and parses the created order', () async {
-      final client = _FakeApiClient(postResponse: {
-        'data': _orderJson(),
-      });
+      final client = _FakeApiClient(postResponse: {'data': _orderJson()});
       final dataSource = OrdersRemoteDataSource(client: client);
       final request = CreateOrderModel(
         items: const [

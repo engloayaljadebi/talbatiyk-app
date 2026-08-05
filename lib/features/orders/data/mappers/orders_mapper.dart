@@ -2,18 +2,23 @@ import '../../domain/entities/orders_entity.dart';
 import '../dto/orders_dto.dart';
 import '../models/orders_model.dart';
 
+/// يحوّل بيانات الطلبات بين DTO وModel وEntity.
 class OrdersMapper {
+  /// تحويل استجابة الـ API إلى نموذج بيانات.
   static OrderModel toModel(OrderDto dto) {
     return OrderModel(
       id: dto.id,
       status: dto.status,
       items: dto.items.map(_dtoItemToModel).toList(growable: false),
       createdAt: dto.createdAt,
+      supplier: dto.supplier == null
+          ? null
+          : _dtoSupplierToModel(dto.supplier!),
       notes: dto.notes,
     );
   }
 
-  /// تحويل حالة الطلب من Domain إلى القيمة المستخدمة في التخزين والـ API.
+  /// تحويل حالة الطلب إلى القيمة المستخدمة في التخزين والـ API.
   static String statusToDataValue(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending:
@@ -33,21 +38,41 @@ class OrdersMapper {
     }
   }
 
+  /// تحويل نموذج البيانات إلى كيان تستخدمه الواجهة.
   static OrderEntity toEntity(OrderModel model) {
     return OrderEntity(
       id: model.id,
       status: _statusToEntity(model.status),
       items: model.items.map(_modelItemToEntity).toList(growable: false),
       createdAt: model.createdAt,
+      supplier: model.supplier == null
+          ? null
+          : _modelSupplierToEntity(model.supplier!),
       notes: model.notes,
     );
   }
 
+  /// تحويل طلب الإنشاء من Domain إلى نموذج مصدر البيانات.
   static CreateOrderModel toCreateModel(CreateOrderRequest request) {
     return CreateOrderModel(
       items: request.items.map(_entityItemToModel).toList(growable: false),
+      supplier: request.supplier == null
+          ? null
+          : _entitySupplierToModel(request.supplier!),
       notes: request.notes,
     );
+  }
+
+  static OrderSupplierModel _dtoSupplierToModel(OrderSupplierDto dto) {
+    return OrderSupplierModel(id: dto.id, name: dto.name);
+  }
+
+  static OrderSupplierEntity _modelSupplierToEntity(OrderSupplierModel model) {
+    return OrderSupplierEntity(id: model.id, name: model.name);
+  }
+
+  static OrderSupplierModel _entitySupplierToModel(OrderSupplierEntity entity) {
+    return OrderSupplierModel(id: entity.id, name: entity.name);
   }
 
   static OrderItemModel _dtoItemToModel(OrderItemDto dto) {

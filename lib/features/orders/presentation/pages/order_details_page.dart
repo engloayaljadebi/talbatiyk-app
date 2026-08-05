@@ -25,9 +25,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/orders_entity.dart';
+import '../controllers/orders_controller.dart';
 import '../extensions/order_status_presentation.dart';
 import '../providers/orders_provider.dart';
-import '../controllers/orders_controller.dart';
 
 /// صفحة التفاصيل الكاملة لطلبية واحدة.
 /// صفحة التفاصيل الكاملة لطلبية واحدة.
@@ -90,7 +90,7 @@ class OrderDetailsPage extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // سيستقبل بيانات المورد الفعلية بعد تحديد استجابة الـ API.
-          const _SupplierCard(),
+          _SupplierCard(supplier: currentOrder.supplier),
           const SizedBox(height: 16),
 
           _OrderItemsCard(items: currentOrder.items),
@@ -153,7 +153,7 @@ class OrderDetailsPage extends ConsumerWidget {
   /// إلغاء الطلبية بعد عرض رسالة تحذير.
   Future<void> _cancelOrder({
     required BuildContext context,
-    required dynamic controller,
+    required OrdersController controller,
     required OrderEntity order,
   }) async {
     final bool confirmed = await _showConfirmationDialog(
@@ -607,22 +607,67 @@ class _ProgressStep extends StatelessWidget {
 ///
 /// البيانات غير موجودة حاليًا داخل OrderEntity، لذلك لا نعرض
 /// بيانات افتراضية قد تكون غير صحيحة.
+/// بطاقة بيانات المورد المرتبط بالطلبية.
+///
+/// تعرض الاسم والمعرّف المحفوظين وقت إنشاء الطلبية.
+/// البيانات قد تكون غير موجودة في الطلبيات القديمة.
 class _SupplierCard extends StatelessWidget {
-  const _SupplierCard();
+  const _SupplierCard({required this.supplier});
+
+  final OrderSupplierEntity? supplier;
 
   @override
   Widget build(BuildContext context) {
-    return const _SectionCard(
+    final String supplierName = supplier?.name.trim() ?? '';
+
+    final String supplierId = supplier?.id.trim() ?? '';
+
+    final bool hasSupplierData = supplier?.hasData ?? false;
+
+    return _SectionCard(
       title: 'بيانات المورد',
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionIcon(icon: Icons.storefront_outlined),
-          SizedBox(width: 12),
+          const _SectionIcon(icon: Icons.storefront_outlined),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'ستظهر بيانات المورد هنا بعد ربط الطلبية بالمورد عبر الـ API',
-              style: TextStyle(color: AppColors.textSecondary, height: 1.5),
-            ),
+            child: hasSupplierData
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        supplierName.isNotEmpty
+                            ? supplierName
+                            : 'مورد غير مسمى',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (supplierId.isNotEmpty) ...[
+                        const SizedBox(height: 7),
+                        Text(
+                          'معرّف المورد: $supplierId',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  )
+                : const Text(
+                    'بيانات المورد غير متوفرة لهذه الطلبية',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
           ),
         ],
       ),

@@ -7,6 +7,14 @@ import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/product_image.dart';
 
+/// صفحة سلة المشتريات.
+///
+/// المهام:
+/// - عرض المنتجات الموجودة داخل السلة.
+/// - التحكم في الكميات.
+/// - حذف منتج أو تفريغ السلة.
+/// - التحقق أن المنتجات تتبع موردًا واحدًا.
+/// - إنشاء الطلبية وإرسال بيانات المورد معها.
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
@@ -14,8 +22,8 @@ class CartPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartProvider);
-    final orders = ref.watch(ordersProvider);
+    final CartController cart = ref.watch(cartProvider);
+    final ordersController = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
@@ -29,7 +37,9 @@ class CartPage extends ConsumerWidget {
             IconButton(
               tooltip: 'تفريغ السلة',
               icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: () => _confirmClearCart(context, ref),
+              onPressed: () {
+                _confirmClearCart(context, ref);
+              },
             ),
         ],
       ),
@@ -39,10 +49,16 @@ class CartPage extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
               child: Column(
                 children: [
+                  if (cart.supplierName.isNotEmpty) ...[
+                    _SupplierBanner(supplierName: cart.supplierName),
+                    const SizedBox(height: 12),
+                  ],
                   Expanded(
                     child: ListView.separated(
                       itemCount: cart.items.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) {
+                        return const SizedBox(height: 12);
+                      },
                       itemBuilder: (context, index) {
                         return _CartItemCard(item: cart.items[index]);
                       },
@@ -52,8 +68,10 @@ class CartPage extends ConsumerWidget {
                   _CartSummary(
                     totalQuantity: cart.totalQuantity,
                     totalPrice: cart.totalPrice,
-                    isSubmitting: orders.state.isSubmitting,
-                    onSubmit: () => _submitOrder(context, ref, cart),
+                    isSubmitting: ordersController.state.isSubmitting,
+                    onSubmit: () {
+                      _submitOrder(context, ref, cart);
+                    },
                   ),
                 ],
               ),
@@ -61,21 +79,26 @@ class CartPage extends ConsumerWidget {
     );
   }
 
+  /// عرض رسالة تأكيد قبل تفريغ السلة.
   Future<void> _confirmClearCart(BuildContext context, WidgetRef ref) async {
-    final shouldClear =
+    final bool shouldClear =
         await showDialog<bool>(
           context: context,
-          builder: (dialogContext) {
+          builder: (BuildContext dialogContext) {
             return AlertDialog(
               title: const Text('تفريغ السلة'),
               content: const Text('هل تريد حذف جميع المنتجات من السلة؟'),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
+                  onPressed: () {
+                    Navigator.pop(dialogContext, false);
+                  },
                   child: const Text('إلغاء'),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.pop(dialogContext, true),
+                  onPressed: () {
+                    Navigator.pop(dialogContext, true);
+                  },
                   style: FilledButton.styleFrom(backgroundColor: _primaryColor),
                   child: const Text('حذف'),
                 ),
@@ -90,16 +113,45 @@ class CartPage extends ConsumerWidget {
     }
   }
 
+  /// إنشاء طلبية من منتجات السلة.
   Future<void> _submitOrder(
     BuildContext context,
     WidgetRef ref,
     CartController cart,
   ) async {
-    if (cart.isEmpty) return;
+    if (cart.isEmpty) {
+      return;
+    }
 
-    final request = CreateOrderRequest(
+    // حماية إضافية للتأكد أن جميع المنتجات
+    // تتبع موردًا واحدًا.
+    if (!cart.hasSingleSupplier) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('يجب أن تحتوي الطلبية على منتجات من مورد واحد فقط'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+      return;
+    }
+
+    final String supplierId = cart.supplierId;
+    final String supplierName = cart.supplierName;
+
+    // المورد اختياري لدعم المنتجات القديمة التي
+    // لا تحتوي على بيانات مورد.
+    final OrderSupplierEntity? supplier =
+        supplierId.isNotEmpty || supplierName.isNotEmpty
+        ? OrderSupplierEntity(id: supplierId, name: supplierName)
+        : null;
+
+    final CreateOrderRequest request = CreateOrderRequest(
+      supplier: supplier,
       items: cart.items
-          .map((item) {
+          .map((CartItemEntity item) {
             return OrderItemEntity(
               productId: item.product.id,
               productName: item.product.name,
@@ -110,32 +162,90 @@ class CartPage extends ConsumerWidget {
           })
           .toList(growable: false),
     );
-    final orders = ref.read(ordersProvider);
-    final createdOrder = await orders.createOrder(request);
 
-    if (!context.mounted) return;
+    final ordersController = ref.read(ordersProvider);
+
+    final OrderEntity? createdOrder = await ordersController.createOrder(
+      request,
+    );
+
+    if (!context.mounted) {
+      return;
+    }
 
     if (createdOrder == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            orders.state.errorMessage ?? 'تعذر إرسال الطلبية، حاول مرة أخرى',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              ordersController.state.errorMessage ??
+                  'تعذر إرسال الطلبية، حاول مرة أخرى',
+            ),
+            backgroundColor: Colors.red.shade700,
           ),
-        ),
-      );
+        );
+
       return;
     }
 
     cart.clear();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم إرسال الطلبية #${createdOrder.id} بنجاح'),
-        backgroundColor: Colors.green.shade700,
-      ),
-    );
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('تم إرسال الطلبية #${createdOrder.id} بنجاح'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
   }
 }
 
+/// بطاقة صغيرة تعرض مورد الطلبية الحالية.
+class _SupplierBanner extends StatelessWidget {
+  const _SupplierBanner({required this.supplierName});
+
+  final String supplierName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFEBEE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _primaryBorderColor),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.storefront_outlined,
+            color: Color(0xFFE53935),
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'المورد: $supplierName',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFE53935),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const Color _primaryBorderColor = Color(0xFFFFCDD2);
+}
+
+/// واجهة السلة الفارغة.
 class _EmptyCart extends StatelessWidget {
   const _EmptyCart();
 
@@ -177,6 +287,7 @@ class _EmptyCart extends StatelessWidget {
   }
 }
 
+/// بطاقة منتج واحد داخل السلة.
 class _CartItemCard extends ConsumerWidget {
   const _CartItemCard({required this.item});
 
@@ -200,7 +311,7 @@ class _CartItemCard extends ConsumerWidget {
             child: SizedBox(
               width: 82,
               height: 82,
-              child: ProductImage(imageUrl: product.imageUrl),
+              child: ProductImage(imageUrl: product.displayImagePath),
             ),
           ),
           const SizedBox(width: 12),
@@ -222,6 +333,15 @@ class _CartItemCard extends ConsumerWidget {
                   product.brand,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
+                if (product.supplierName.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    product.supplierName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Text(
                   '${_formatPrice(item.totalPrice)} ر.ي',
@@ -236,6 +356,7 @@ class _CartItemCard extends ConsumerWidget {
           Column(
             children: [
               IconButton(
+                tooltip: 'حذف المنتج',
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 onPressed: () {
@@ -280,6 +401,7 @@ class _CartItemCard extends ConsumerWidget {
   }
 }
 
+/// زر زيادة أو تقليل كمية المنتج.
 class _QuantityButton extends StatelessWidget {
   const _QuantityButton({required this.icon, required this.onPressed});
 
@@ -298,6 +420,7 @@ class _QuantityButton extends StatelessWidget {
   }
 }
 
+/// ملخص الكمية والإجمالي وزر إرسال الطلبية.
 class _CartSummary extends StatelessWidget {
   const _CartSummary({
     required this.totalQuantity,
@@ -388,9 +511,11 @@ class _CartSummary extends StatelessWidget {
   }
 }
 
+/// تنسيق السعر دون أصفار عشرية غير ضرورية.
 String _formatPrice(double price) {
   if (price == price.truncateToDouble()) {
     return price.toStringAsFixed(0);
   }
+
   return price.toStringAsFixed(2);
 }
