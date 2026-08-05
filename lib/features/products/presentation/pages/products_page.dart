@@ -7,6 +7,7 @@ import '../widgets/product_filter_sheet.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/product_list.dart';
 import '../widgets/view_toggle.dart';
+import 'add_product_page.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   const ProductsPage({super.key});
@@ -20,6 +21,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
 
   @override
   void dispose() {
+    // التخلص من متحكم البحث عند إغلاق الصفحة.
     _searchController.dispose();
     super.dispose();
   }
@@ -37,12 +39,16 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         actions: [
+          // يفتح صفحة إضافة منتج جديد.
+          IconButton(
+            tooltip: 'إضافة منتج',
+            onPressed: _openAddProductPage,
+            icon: const Icon(Icons.add_business_outlined),
+          ),
           ViewToggle(isGrid: state.isGrid, onChanged: controller.changeView),
           FilterButton(
             isActive: controller.hasActiveFilters,
-            onPressed: () {
-              _openFilters();
-            },
+            onPressed: _openFilters,
           ),
         ],
       ),
@@ -141,6 +147,16 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     return state.isGrid
         ? ProductGrid(products: state.products)
         : ProductList(products: state.products);
+  }
+
+  /// يفتح صفحة إضافة المنتج.
+  ///
+  /// عند حفظ المنتج، يقوم ProductsController بتحديث قائمة المنتجات،
+  /// ولذلك سيظهر المنتج مباشرة بعد الرجوع إلى هذه الصفحة.
+  Future<void> _openAddProductPage() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const AddProductPage()),
+    );
   }
 
   Future<void> _openFilters() async {

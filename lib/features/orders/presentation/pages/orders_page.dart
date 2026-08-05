@@ -38,7 +38,8 @@ class OrdersPage extends ConsumerWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           itemCount: state.orders.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          // إضافة مسافة بين الطلبات دون استخدام معاملات الفاصل.
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             return _OrderCard(order: state.orders[index]);
           },

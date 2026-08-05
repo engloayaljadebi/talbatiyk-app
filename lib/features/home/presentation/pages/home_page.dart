@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:talbatiyk/features/home/presentation/widgets/widgets.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.onViewProducts});
+
+  final VoidCallback onViewProducts;
 
   @override
   Widget build(BuildContext context) {
@@ -11,14 +13,18 @@ class HomePage extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
-          slivers: const [
-            SliverToBoxAdapter(child: HomeSearchBar()),
-            SliverToBoxAdapter(child: BannerSlider()),
-            SliverToBoxAdapter(child: CategoriesSection()),
-            SliverToBoxAdapter(child: FeaturedProductsSection()),
-            SliverToBoxAdapter(child: LatestProductsSection()),
-            SliverToBoxAdapter(child: CartSummary()),
-            SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+          slivers: [
+            const SliverToBoxAdapter(child: HomeSearchBar()),
+            const SliverToBoxAdapter(child: BannerSlider()),
+            const SliverToBoxAdapter(child: CategoriesSection()),
+            SliverToBoxAdapter(
+              child: FeaturedProductsSection(onViewAll: onViewProducts),
+            ),
+            SliverToBoxAdapter(
+              child: LatestProductsSection(onViewAll: onViewProducts),
+            ),
+            const SliverToBoxAdapter(child: CartSummary()),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
           ],
         ),
       ),

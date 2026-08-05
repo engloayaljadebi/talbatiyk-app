@@ -42,7 +42,7 @@ class CartPage extends ConsumerWidget {
                   Expanded(
                     child: ListView.separated(
                       itemCount: cart.items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         return _CartItemCard(item: cart.items[index]);
                       },
@@ -98,15 +98,17 @@ class CartPage extends ConsumerWidget {
     if (cart.isEmpty) return;
 
     final request = CreateOrderRequest(
-      items: cart.items.map((item) {
-        return OrderItemEntity(
-          productId: item.product.id,
-          productName: item.product.name,
-          unitPrice: item.product.price,
-          quantity: item.quantity,
-          imageUrl: item.product.imageUrl,
-        );
-      }).toList(growable: false),
+      items: cart.items
+          .map((item) {
+            return OrderItemEntity(
+              productId: item.product.id,
+              productName: item.product.name,
+              unitPrice: item.product.price,
+              quantity: item.quantity,
+              imageUrl: item.product.imageUrl,
+            );
+          })
+          .toList(growable: false),
     );
     final orders = ref.read(ordersProvider);
     final createdOrder = await orders.createOrder(request);
