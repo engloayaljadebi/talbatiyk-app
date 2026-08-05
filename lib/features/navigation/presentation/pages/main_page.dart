@@ -1,12 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:talbatiyk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
+// محتوى الملف:
+// - إدارة أقسام التطبيق الخمسة.
+// - التنقل بين الرئيسية والمنتجات والسلة والطلبات والحساب.
+// - الاحتفاظ بحالة كل صفحة باستخدام IndexedStack.
+// - عرض شريط التنقل السفلي بشكل عائم.
 
+import 'package:flutter/material.dart';
+
+import '../../../account/presentation/pages/account_page.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../products/presentation/pages/products_page.dart';
+import '../widgets/home_bottom_navigation.dart';
 
-/// الصفحة الأساسية التي تحتوي على أقسام التطبيق.
+/// الصفحة الأساسية التي تحتوي على أقسام التطبيق الخمسة.
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -15,21 +22,32 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  /// رقم الصفحة المحددة حاليًا.
+  /// رقم القسم المحدد حاليًا.
   int _currentIndex = 0;
 
-  /// صفحات التطبيق، ويجب أن يتطابق ترتيبها مع عناصر الشريط.
+  /// صفحات التطبيق.
+  ///
+  /// يجب أن يتطابق ترتيب الصفحات مع ترتيب عناصر
+  /// شريط التنقل السفلي.
   late final List<Widget> _pages = [
-    HomePage(onViewProducts: () => _changePage(1)),
+    HomePage(
+      // ينقل المستخدم إلى قسم المنتجات.
+      onViewProducts: () => _changePage(1),
+    ),
     ProductsPage(),
     const CartPage(),
     const OrdersPage(),
-    const _TemporaryPage(title: 'حسابي'),
+    const AccountPage(),
   ];
 
-  /// تغيير الصفحة الحالية.
+  /// ينتقل إلى القسم المطلوب.
+  ///
+  /// يمنع إعادة بناء الواجهة إذا ضغط المستخدم
+  /// على القسم المفتوح حاليًا.
   void _changePage(int index) {
-    if (_currentIndex == index) return;
+    if (_currentIndex == index) {
+      return;
+    }
 
     setState(() {
       _currentIndex = index;
@@ -38,18 +56,20 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // مساحة شريط النظام أسفل شاشة الهاتف.
     final double bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      // يسمح للشريط بالظهور عائمًا فوق محتوى الصفحات.
+      // يسمح لشريط التنقل بالظهور عائمًا فوق محتوى الصفحات.
       extendBody: true,
       body: Stack(
         children: [
+          // يحتفظ بحالة الصفحات عند التنقل بينها.
           Positioned.fill(
             child: IndexedStack(index: _currentIndex, children: _pages),
           ),
 
-          /// تحديد موقع الشريط وعرضه من هذا الملف فقط.
+          // شريط التنقل السفلي العائم.
           Positioned(
             left: 15,
             right: 15,
@@ -60,26 +80,6 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// صفحة مؤقتة للسلة والحساب.
-class _TemporaryPage extends StatelessWidget {
-  const _TemporaryPage({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          '$title قيد التطوير',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
       ),
     );
   }

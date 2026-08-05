@@ -1,25 +1,27 @@
-import 'package:flutter/material.dart';
+// محتوى الملف:
+// - إنشاء Router الرئيسي للتطبيق.
+// - تحديد أول صفحة تظهر عند التشغيل.
+// - تسجيل مسارات التطبيق المركزية.
+//
+// MainPage تدير حاليًا:
+// - الرئيسية.
+// - المنتجات.
+// - السلة.
+// - الطلبات.
+// - الحساب.
+
 import 'package:go_router/go_router.dart';
 
+import '../../features/navigation/presentation/pages/main_page.dart';
 import 'route_names.dart';
 
+/// نظام التنقل الرئيسي لتطبيق طلبيتك.
 final GoRouter appRouter = GoRouter(
-  initialLocation: RouteNames.splash,
+  initialLocation: RouteNames.main,
   routes: [
     GoRoute(
-      path: RouteNames.splash,
-      builder: (context, state) =>
-          const Scaffold(body: Center(child: Text("Splash"))),
-    ),
-    GoRoute(
-      path: RouteNames.home,
-      builder: (context, state) =>
-          const Scaffold(body: Center(child: Text("Home"))),
-    ),
-    GoRoute(
-      path: RouteNames.products,
-      builder: (context, state) =>
-          const Scaffold(body: Center(child: Text("Products"))),
+      path: RouteNames.main,
+      builder: (context, state) => const MainPage(),
     ),
   ],
 );
