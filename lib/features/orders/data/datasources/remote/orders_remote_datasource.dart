@@ -9,6 +9,15 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     required this.client,
     this.endpoint = '/orders',
   });
+  @override
+  Future<OrderModel> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) {
+    throw UnsupportedError(
+      'Order status API endpoint has not been configured yet.',
+    );
+  }
 
   final ApiClient client;
   final String endpoint;
