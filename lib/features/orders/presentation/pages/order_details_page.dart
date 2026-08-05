@@ -21,20 +21,33 @@
 // - _OrderSummaryCard: الإجمالي النهائي.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/orders_entity.dart';
 import '../extensions/order_status_presentation.dart';
+import '../providers/orders_provider.dart';
+import '../controllers/orders_controller.dart';
 
 /// صفحة التفاصيل الكاملة لطلبية واحدة.
-class OrderDetailsPage extends StatelessWidget {
+/// صفحة التفاصيل الكاملة لطلبية واحدة.
+///
+/// تراقب OrdersController حتى تتحدث حالة الطلبية فورًا
+/// دون الحاجة إلى إغلاق الصفحة وفتحها مرة أخرى.
+class OrderDetailsPage extends ConsumerWidget {
   const OrderDetailsPage({super.key, required this.order});
 
-  /// الطلب الذي سيتم عرض تفاصيله.
+  /// النسخة الأولية من الطلبية عند فتح الصفحة.
   final OrderEntity order;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(ordersProvider);
+
+    // قراءة النسخة الأحدث من الطلبية الموجودة داخل الحالة.
+    final OrderEntity currentOrder =
+        controller.findOrderById(order.id) ?? order;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -47,24 +60,292 @@ class OrderDetailsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
-          _OrderHeaderCard(order: order),
+          _OrderHeaderCard(order: currentOrder),
           const SizedBox(height: 16),
 
-          _OrderProgressCard(status: order.status),
+          _OrderProgressCard(status: currentOrder.status),
+          const SizedBox(height: 16),
+
+          _OrderActionsCard(
+            order: currentOrder,
+
+            // نقل الطلبية إلى المرحلة التالية.
+            onAdvance: () {
+              _advanceOrderStatus(
+                context: context,
+                controller: controller,
+                order: currentOrder,
+              );
+            },
+
+            // إلغاء الطلبية بعد التأكيد.
+            onCancel: () {
+              _cancelOrder(
+                context: context,
+                controller: controller,
+                order: currentOrder,
+              );
+            },
+          ),
           const SizedBox(height: 16),
 
           // سيستقبل بيانات المورد الفعلية بعد تحديد استجابة الـ API.
           const _SupplierCard(),
           const SizedBox(height: 16),
 
-          _OrderItemsCard(items: order.items),
-          if (order.notes.trim().isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _OrderNotesCard(notes: order.notes),
-          ],
-          const SizedBox(height: 16),
+          _OrderItemsCard(items: currentOrder.items),
 
-          _OrderSummaryCard(order: order),
+          if (currentOrder.notes.trim().isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _OrderNotesCard(notes: currentOrder.notes),
+          ],
+
+          const SizedBox(height: 16),
+          _OrderSummaryCard(order: currentOrder),
+        ],
+      ),
+    );
+  }
+
+  /// نقل الطلبية إلى المرحلة التالية بعد موافقة المستخدم.
+  Future<void> _advanceOrderStatus({
+    required BuildContext context,
+    required OrdersController controller,
+    required OrderEntity order,
+  }) async {
+    final OrderStatus? nextStatus = order.status.nextStatus;
+
+    if (nextStatus == null) {
+      return;
+    }
+
+    final bool confirmed = await _showConfirmationDialog(
+      context: context,
+      title: 'تحديث حالة الطلبية',
+      message:
+          'سيتم تغيير حالة الطلبية من '
+          '"${order.status.label}" إلى "${nextStatus.label}".',
+      confirmLabel: order.status.nextActionLabel ?? 'تحديث الحالة',
+      confirmColor: nextStatus.color,
+    );
+
+    if (!confirmed || !context.mounted) {
+      return;
+    }
+
+    final bool success = await controller.updateOrderStatus(
+      orderId: order.id,
+      newStatus: nextStatus,
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    _showResultMessage(
+      context: context,
+      success: success,
+      successMessage: 'تم تحديث حالة الطلبية إلى "${nextStatus.label}"',
+      errorMessage: controller.state.errorMessage ?? 'تعذر تحديث حالة الطلبية',
+    );
+  }
+
+  /// إلغاء الطلبية بعد عرض رسالة تحذير.
+  Future<void> _cancelOrder({
+    required BuildContext context,
+    required dynamic controller,
+    required OrderEntity order,
+  }) async {
+    final bool confirmed = await _showConfirmationDialog(
+      context: context,
+      title: 'إلغاء الطلبية',
+      message:
+          'هل أنت متأكد من إلغاء الطلبية؟ '
+          'لن تتمكن من تغيير حالتها بعد الإلغاء.',
+      confirmLabel: 'إلغاء الطلبية',
+      confirmColor: AppColors.error,
+    );
+
+    if (!confirmed || !context.mounted) {
+      return;
+    }
+
+    final bool success = await controller.updateOrderStatus(
+      orderId: order.id,
+      newStatus: OrderStatus.cancelled,
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    _showResultMessage(
+      context: context,
+      success: success,
+      successMessage: 'تم إلغاء الطلبية',
+      errorMessage: controller.state.errorMessage ?? 'تعذر إلغاء الطلبية',
+    );
+  }
+
+  /// عرض نافذة تأكيد قبل تنفيذ تغيير حساس.
+  Future<bool> _showConfirmationDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Color confirmColor,
+  }) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('تراجع'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: confirmColor,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: Text(confirmLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
+  }
+
+  /// إظهار نتيجة عملية تحديث الحالة.
+  void _showResultMessage({
+    required BuildContext context,
+    required bool success,
+    required String successMessage,
+    required String errorMessage,
+  }) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(success ? successMessage : errorMessage),
+          backgroundColor: success ? AppColors.success : AppColors.error,
+        ),
+      );
+  }
+}
+
+/// بطاقة التحكم في حالة الطلبية.
+///
+/// تظهر زر المرحلة التالية وزر الإلغاء ما دامت
+/// الطلبية لم تصل إلى حالة نهائية.
+class _OrderActionsCard extends StatelessWidget {
+  const _OrderActionsCard({
+    required this.order,
+    required this.onAdvance,
+    required this.onCancel,
+  });
+
+  final OrderEntity order;
+  final VoidCallback onAdvance;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final OrderStatus status = order.status;
+
+    if (status.isFinal) {
+      return _SectionCard(
+        title: 'إدارة الطلبية',
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: status.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(status.icon, color: status.color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                status == OrderStatus.delivered
+                    ? 'اكتملت هذه الطلبية وتم تسليمها بنجاح.'
+                    : 'تم إلغاء هذه الطلبية ولا يمكن تغيير حالتها.',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final String? actionLabel = status.nextActionLabel;
+    final IconData? actionIcon = status.nextActionIcon;
+
+    return _SectionCard(
+      title: 'إدارة الطلبية',
+      child: Column(
+        children: [
+          if (actionLabel != null && actionIcon != null)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onAdvance,
+                icon: Icon(actionIcon),
+                label: Text(actionLabel),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 10),
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onCancel,
+              icon: const Icon(Icons.cancel_outlined),
+              label: const Text('إلغاء الطلبية'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                minimumSize: const Size.fromHeight(48),
+                side: const BorderSide(color: AppColors.error),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
         ],
       ),
     );

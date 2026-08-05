@@ -94,4 +94,42 @@ extension OrderStatusPresentation on OrderStatus {
   bool get isCancelled {
     return this == OrderStatus.cancelled;
   }
+
+  /// النص الذي يظهر داخل زر الانتقال للمرحلة التالية.
+  String? get nextActionLabel {
+    switch (this) {
+      case OrderStatus.pending:
+        return 'تأكيد الطلبية';
+      case OrderStatus.confirmed:
+        return 'بدء تجهيز الطلبية';
+      case OrderStatus.preparing:
+        return 'تحديدها جاهزة للتسليم';
+      case OrderStatus.readyForDelivery:
+        return 'بدء توصيل الطلبية';
+      case OrderStatus.outForDelivery:
+        return 'تأكيد استلام الطلبية';
+      case OrderStatus.delivered:
+      case OrderStatus.cancelled:
+        return null;
+    }
+  }
+
+  /// الأيقونة التي تظهر داخل زر المرحلة التالية.
+  IconData? get nextActionIcon {
+    switch (this) {
+      case OrderStatus.pending:
+        return Icons.verified_outlined;
+      case OrderStatus.confirmed:
+        return Icons.inventory_2_outlined;
+      case OrderStatus.preparing:
+        return Icons.task_alt_rounded;
+      case OrderStatus.readyForDelivery:
+        return Icons.local_shipping_outlined;
+      case OrderStatus.outForDelivery:
+        return Icons.check_circle_outline_rounded;
+      case OrderStatus.delivered:
+      case OrderStatus.cancelled:
+        return null;
+    }
+  }
 }

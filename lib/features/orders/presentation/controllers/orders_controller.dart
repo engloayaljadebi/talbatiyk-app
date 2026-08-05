@@ -4,24 +4,113 @@ import '../../domain/entities/orders_entity.dart';
 import '../../domain/usecases/orders_usecase.dart';
 import '../state/orders_state.dart';
 
+/// المتحكم المسؤول عن إدارة الطلبيات وحالات واجهتها.
+///
+/// المهام:
+/// - تحميل الطلبيات.
+/// - إنشاء طلبية جديدة.
+/// - البحث عن طلبية.
+/// - تحديث حالة الطلبية عبر طبقات المشروع.
+/// - معالجة حالات التحميل والأخطاء.
 class OrdersController extends ChangeNotifier {
   OrdersController(this._useCase, {bool autoLoad = true}) {
-    if (autoLoad) loadOrders();
+    if (autoLoad) {
+      loadOrders();
+    }
   }
 
   final OrdersUseCase _useCase;
 
   OrdersState state = const OrdersState();
 
+  /// البحث عن طلبية بواسطة المعرّف.
+  OrderEntity? findOrderById(String orderId) {
+    for (final OrderEntity order in state.orders) {
+      if (order.id == orderId) {
+        return order;
+      }
+    }
+
+    return null;
+  }
+
+  /// تحديث حالة الطلبية من خلال:
+  ///
+  /// Controller → UseCase → Repository → DataSource
+  Future<bool> updateOrderStatus({
+    required String orderId,
+    required OrderStatus newStatus,
+  }) async {
+    // منع تشغيل أكثر من عملية تحديث في الوقت نفسه.
+    if (state.isUpdatingOrder) {
+      return false;
+    }
+
+    final OrderEntity? currentOrder = findOrderById(orderId);
+
+    if (currentOrder == null) {
+      state = state.copyWith(errorMessage: 'تعذر العثور على الطلبية المطلوبة');
+      notifyListeners();
+      return false;
+    }
+
+    // التحقق من أن الانتقال بين الحالتين مسموح.
+    if (!currentOrder.status.canTransitionTo(newStatus)) {
+      state = state.copyWith(
+        errorMessage: 'لا يمكن تغيير الطلبية إلى هذه الحالة',
+      );
+      notifyListeners();
+      return false;
+    }
+
+    state = state.copyWith(updatingOrderId: orderId, clearErrorMessage: true);
+    notifyListeners();
+
+    try {
+      final OrderEntity updatedOrder = await _useCase.updateOrderStatus(
+        orderId: orderId,
+        status: newStatus,
+      );
+
+      final List<OrderEntity> updatedOrders = state.orders
+          .map((order) {
+            if (order.id == updatedOrder.id) {
+              return updatedOrder;
+            }
+
+            return order;
+          })
+          .toList(growable: false);
+
+      state = state.copyWith(
+        orders: List<OrderEntity>.unmodifiable(updatedOrders),
+        clearUpdatingOrderId: true,
+        clearErrorMessage: true,
+      );
+
+      notifyListeners();
+      return true;
+    } catch (_) {
+      state = state.copyWith(
+        clearUpdatingOrderId: true,
+        errorMessage: 'تعذر تحديث حالة الطلبية، حاول مرة أخرى',
+      );
+
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// تحميل جميع الطلبيات.
   Future<void> loadOrders() async {
     state = state.copyWith(isLoading: true, clearErrorMessage: true);
     notifyListeners();
 
     try {
-      final orders = await _useCase.getOrders();
+      final List<OrderEntity> orders = await _useCase.getOrders();
 
       state = state.copyWith(
-        orders: orders,
+        orders: List<OrderEntity>.unmodifiable(orders),
         isLoading: false,
         clearErrorMessage: true,
       );
@@ -35,8 +124,11 @@ class OrdersController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// إنشاء طلبية جديدة.
   Future<OrderEntity?> createOrder(CreateOrderRequest request) async {
-    if (state.isSubmitting) return null;
+    if (state.isSubmitting) {
+      return null;
+    }
 
     state = state.copyWith(
       isSubmitting: true,
@@ -46,10 +138,11 @@ class OrdersController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final order = await _useCase.createOrder(request);
-      final orders = [
+      final OrderEntity order = await _useCase.createOrder(request);
+
+      final List<OrderEntity> orders = [
         order,
-        ...state.orders.where((item) => item.id != order.id),
+        ...state.orders.where((OrderEntity item) => item.id != order.id),
       ];
 
       state = state.copyWith(
@@ -58,6 +151,7 @@ class OrdersController extends ChangeNotifier {
         lastCreatedOrder: order,
         clearErrorMessage: true,
       );
+
       notifyListeners();
       return order;
     } catch (_) {
@@ -65,6 +159,7 @@ class OrdersController extends ChangeNotifier {
         isSubmitting: false,
         errorMessage: 'تعذر إرسال الطلبية، حاول مرة أخرى',
       );
+
       notifyListeners();
       return null;
     }

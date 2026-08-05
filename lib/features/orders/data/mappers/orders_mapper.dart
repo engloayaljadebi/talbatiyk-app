@@ -13,6 +13,26 @@ class OrdersMapper {
     );
   }
 
+  /// تحويل حالة الطلب من Domain إلى القيمة المستخدمة في التخزين والـ API.
+  static String statusToDataValue(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'pending';
+      case OrderStatus.confirmed:
+        return 'confirmed';
+      case OrderStatus.preparing:
+        return 'preparing';
+      case OrderStatus.readyForDelivery:
+        return 'ready_for_delivery';
+      case OrderStatus.outForDelivery:
+        return 'out_for_delivery';
+      case OrderStatus.delivered:
+        return 'delivered';
+      case OrderStatus.cancelled:
+        return 'cancelled';
+    }
+  }
+
   static OrderEntity toEntity(OrderModel model) {
     return OrderEntity(
       id: model.id,

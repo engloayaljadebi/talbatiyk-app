@@ -10,14 +10,16 @@ class OrderItemDto {
   factory OrderItemDto.fromJson(Map<String, dynamic> json) {
     return OrderItemDto(
       productId: _requiredString(json, const ['productId', 'product_id']),
-      productName: _requiredString(
-        json,
-        const ['productName', 'product_name', 'name'],
-      ),
-      unitPrice: _requiredDouble(
-        json,
-        const ['unitPrice', 'unit_price', 'price'],
-      ),
+      productName: _requiredString(json, const [
+        'productName',
+        'product_name',
+        'name',
+      ]),
+      unitPrice: _requiredDouble(json, const [
+        'unitPrice',
+        'unit_price',
+        'price',
+      ]),
       quantity: _requiredInt(json, const ['quantity']),
       imageUrl: _optionalString(json, const ['imageUrl', 'image_url']),
     );
@@ -49,19 +51,20 @@ class OrderDto {
     return OrderDto(
       id: _requiredString(json, const ['id']),
       status: _requiredString(json, const ['status']),
-      items: itemsValue.map((item) {
-        if (item is! Map) {
-          throw const FormatException('Each order item must be a JSON object.');
-        }
+      items: itemsValue
+          .map((item) {
+            if (item is! Map) {
+              throw const FormatException(
+                'Each order item must be a JSON object.',
+              );
+            }
 
-        return OrderItemDto.fromJson(
-          item.map((key, value) => MapEntry(key.toString(), value)),
-        );
-      }).toList(growable: false),
-      createdAt: _requiredDateTime(
-        json,
-        const ['createdAt', 'created_at'],
-      ),
+            return OrderItemDto.fromJson(
+              item.map((key, value) => MapEntry(key.toString(), value)),
+            );
+          })
+          .toList(growable: false),
+      createdAt: _requiredDateTime(json, const ['createdAt', 'created_at']),
       notes: _optionalString(json, const ['notes']),
     );
   }
