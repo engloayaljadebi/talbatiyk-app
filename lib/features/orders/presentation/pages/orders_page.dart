@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/orders_entity.dart';
+// خصائص العرض المشتركة لحالات الطلب.
+import '../extensions/order_status_presentation.dart';
 import '../providers/orders_provider.dart';
+// صفحة تفاصيل الطلبية.
+import 'order_details_page.dart';
 
 class OrdersPage extends ConsumerWidget {
   const OrdersPage({super.key});
@@ -41,7 +45,20 @@ class OrdersPage extends ConsumerWidget {
           // إضافة مسافة بين الطلبات دون استخدام معاملات الفاصل.
           separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
-            return _OrderCard(order: state.orders[index]);
+            final OrderEntity order = state.orders[index];
+
+            return _OrderCard(
+              order: order,
+
+              // فتح تفاصيل الطلبية المحددة.
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => OrderDetailsPage(order: order),
+                  ),
+                );
+              },
+            );
           },
         ),
       );
@@ -61,92 +78,101 @@ class OrdersPage extends ConsumerWidget {
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order});
+  const _OrderCard({required this.order, required this.onTap});
 
+  /// بيانات الطلب المعروض.
   final OrderEntity order;
+
+  /// يعمل عند الضغط على بطاقة الطلب.
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final status = _OrderStatusPresentation.from(order.status);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    final OrderStatus status = order.status;
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
       ),
-      child: Column(
-        children: [
-          Row(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: [
-              Expanded(
-                child: Text(
-                  'طلبية #${order.id}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'طلبية #${order.id}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: status.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status.label,
-                  style: TextStyle(
-                    color: status.color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: status.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      status.label,
+                      style: TextStyle(
+                        color: status.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 6),
+                  Text('${order.totalQuantity} منتج'),
+                  const Spacer(),
+                  Text(
+                    '${_formatPrice(order.totalPrice)} ر.ي',
+                    style: const TextStyle(
+                      color: Color(0xFFE53935),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatDate(order.createdAt),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(
-                Icons.inventory_2_outlined,
-                size: 18,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 6),
-              Text('${order.totalQuantity} منتج'),
-              const Spacer(),
-              Text(
-                '${_formatPrice(order.totalPrice)} ر.ي',
-                style: const TextStyle(
-                  color: Color(0xFFE53935),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                _formatDate(order.createdAt),
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -199,32 +225,6 @@ class _OrdersMessage extends StatelessWidget {
       ),
     );
   }
-}
-
-class _OrderStatusPresentation {
-  const _OrderStatusPresentation(this.label, this.color);
-
-  factory _OrderStatusPresentation.from(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.pending:
-        return const _OrderStatusPresentation('قيد المراجعة', Colors.orange);
-      case OrderStatus.confirmed:
-        return const _OrderStatusPresentation('تم التأكيد', Colors.blue);
-      case OrderStatus.preparing:
-        return const _OrderStatusPresentation('قيد التجهيز', Colors.indigo);
-      case OrderStatus.readyForDelivery:
-        return const _OrderStatusPresentation('جاهزة للتسليم', Colors.teal);
-      case OrderStatus.outForDelivery:
-        return const _OrderStatusPresentation('في الطريق', Colors.purple);
-      case OrderStatus.delivered:
-        return const _OrderStatusPresentation('تم التسليم', Colors.green);
-      case OrderStatus.cancelled:
-        return const _OrderStatusPresentation('ملغاة', Colors.red);
-    }
-  }
-
-  final String label;
-  final Color color;
 }
 
 String _formatDate(DateTime date) {
