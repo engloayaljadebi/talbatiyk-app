@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'generators/feature_generator.dart';
 
 void main(List<String> args) {
