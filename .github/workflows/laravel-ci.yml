@@ -1,0 +1,78 @@
+name: Laravel CI
+
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - ".github/workflows/laravel-ci.yml"
+
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - "server/**"
+      - ".github/workflows/laravel-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: talbatiyk_testing
+          POSTGRES_USER: talbatiyk_app
+          POSTGRES_PASSWORD: ci_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U talbatiyk_app -d talbatiyk_testing"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: talbatiyk_testing
+      DB_USERNAME: talbatiyk_app
+      DB_PASSWORD: ci_test_password
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Check code style
+        run: vendor/bin/pint --test
+
+      - name: Verify PostgreSQL migrations
+        run: php artisan migrate:fresh --env=testing --force
+
+      - name: Run Laravel tests
+        run: php artisan test --env=testing
