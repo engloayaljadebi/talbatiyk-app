@@ -1,5 +1,18 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Bootstrap التطبيق
+|--------------------------------------------------------------------------
+|
+| المسؤوليات:
+| - تسجيل مسارات Laravel.
+| - تسجيل Middleware المخصصة.
+| - إعداد معالجة الاستثناءات.
+|
+*/
+
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +25,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        /*
+         * Alias موحد لحماية API من الحسابات
+         * suspended أو disabled.
+         */
+        $middleware->alias([
+            'active.user' => EnsureUserIsActive::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->create();
