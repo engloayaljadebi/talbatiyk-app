@@ -29,9 +29,11 @@ namespace App\Http\Controllers\Api\V1\Business;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Business\CreateBusinessRequest;
+use App\Http\Requests\Api\V1\Business\UpdateBusinessRequest;
 use App\Http\Resources\Api\V1\BusinessResource;
 use App\Services\Business\BusinessOnboardingService;
 use App\Services\Business\BusinessQueryService;
+use App\Services\Business\BusinessUpdateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -42,6 +44,7 @@ class BusinessController extends Controller
     public function __construct(
         private readonly BusinessOnboardingService $businessOnboardingService,
         private readonly BusinessQueryService $businessQueryService,
+        private readonly BusinessUpdateService $businessUpdateService,
     ) {}
 
     /**
@@ -89,5 +92,27 @@ class BusinessController extends Controller
         return (new BusinessResource($business))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
+    }
+
+    /**
+     * تعديل البيانات الأساسية لنشاط تجاري.
+     *
+     * يسمح بالتعديل فقط للمستخدم الذي:
+     * - لديه عضوية active.
+     * - يحمل دور owner أو manager.
+     *
+     * BusinessAccessService يتولى التحقق من الصلاحيات.
+     */
+    public function update(
+        UpdateBusinessRequest $request,
+        string $business,
+    ): BusinessResource {
+        $businessModel = $this->businessUpdateService->update(
+            $request->user(),
+            $business,
+            $request->validated(),
+        );
+
+        return new BusinessResource($businessModel);
     }
 }
