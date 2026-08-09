@@ -6,16 +6,22 @@
 |--------------------------------------------------------------------------
 |
 | Endpoints:
+| GET  /api/v1/businesses
+| GET  /api/v1/businesses/{business}
 | POST /api/v1/businesses
 |
 | المسؤوليات:
-| - استقبال طلب إنشاء النشاط بعد التحقق من البيانات.
-| - تمرير المستخدم والبيانات إلى BusinessOnboardingService.
-| - إعادة BusinessResource بحالة HTTP 201.
+| - قراءة الأنشطة التي يملك المستخدم عضوية نشطة فيها.
+| - قراءة نشاط واحد للمستخدم الحالي.
+| - استقبال طلب إنشاء نشاط جديد.
+| - إبقاء منطق الأعمال وقواعد الوصول داخل الخدمات.
 |
-| ملاحظة:
-| منطق إنشاء النشاط لا يوضع داخل Controller.
-| جميع عمليات قاعدة البيانات موجودة في BusinessOnboardingService.
+| الخدمات:
+| - BusinessQueryService:
+|   مسؤول عن قراءة الأنشطة وتطبيق نطاق العضوية النشطة.
+|
+| - BusinessOnboardingService:
+|   مسؤول عن إنشاء النشاط وجميع البيانات المرتبطة به ذريًا.
 |
 */
 
@@ -25,14 +31,50 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Business\CreateBusinessRequest;
 use App\Http\Resources\Api\V1\BusinessResource;
 use App\Services\Business\BusinessOnboardingService;
+use App\Services\Business\BusinessQueryService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class BusinessController extends Controller
 {
     public function __construct(
         private readonly BusinessOnboardingService $businessOnboardingService,
+        private readonly BusinessQueryService $businessQueryService,
     ) {}
+
+    /**
+     * إرجاع جميع الأنشطة التي لدى المستخدم
+     * الحالي عضوية نشطة فيها.
+     */
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $businesses = $this->businessQueryService->forUser(
+            $request->user(),
+        );
+
+        return BusinessResource::collection($businesses);
+    }
+
+    /**
+     * قراءة نشاط واحد بشرط أن تكون للمستخدم
+     * الحالي عضوية نشطة فيه.
+     *
+     * عند عدم وجود النشاط أو عدم امتلاك العضوية
+     * سيعيد BusinessQueryService استجابة 404.
+     */
+    public function show(
+        Request $request,
+        string $business,
+    ): BusinessResource {
+        $businessModel = $this->businessQueryService->findForUser(
+            $request->user(),
+            $business,
+        );
+
+        return new BusinessResource($businessModel);
+    }
 
     /**
      * إنشاء نشاط تجاري جديد للمستخدم الحالي.

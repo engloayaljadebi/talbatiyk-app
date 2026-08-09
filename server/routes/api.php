@@ -1,3 +1,4 @@
+```php
 <?php
 
 /*
@@ -66,9 +67,9 @@ Route::prefix('v1')->group(function (): void {
     | Businesses
     |--------------------------------------------------------------------------
     |
-    | عمليات الأنشطة التجارية تحتاج:
-    | - مستخدمًا مسجل الدخول.
-    | - حسابًا نشطًا.
+    | جميع عمليات الأنشطة التجارية تحتاج:
+    | - Token صالحًا.
+    | - حساب مستخدم active.
     |
     */
 
@@ -76,6 +77,23 @@ Route::prefix('v1')->group(function (): void {
         'auth:sanctum',
         'active.user',
     ])->group(function (): void {
+        /*
+         * قائمة الأنشطة التي لدى المستخدم
+         * عضوية نشطة فيها.
+         */
+        Route::get('/businesses', [BusinessController::class, 'index']);
+
+        /*
+         * تفاصيل نشاط واحد.
+         *
+         * BusinessQueryService يتأكد من أن
+         * المستخدم لديه عضوية active في النشاط.
+         */
+        Route::get('/businesses/{business}', [BusinessController::class, 'show']);
+
+        /*
+         * إنشاء نشاط تجاري جديد.
+         */
         Route::post('/businesses', [BusinessController::class, 'store']);
     });
 });
