@@ -82,7 +82,16 @@ Route::prefix('v1')->group(function (): void {
          * عضوية نشطة فيها.
          */
         Route::get('/businesses', [BusinessController::class, 'index']);
-
+        /*
+         * تعديل البيانات الأساسية لنشاط واحد.
+         *
+         * BusinessAccessService يتأكد أن المستخدم
+         * owner أو manager داخل النشاط.
+         */
+        Route::patch(
+            '/businesses/{business}',
+            [BusinessController::class, 'update'],
+        );
         /*
          * تفاصيل نشاط واحد.
          *
