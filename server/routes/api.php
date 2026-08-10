@@ -17,6 +17,7 @@
 */
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use Illuminate\Support\Facades\Route;
@@ -139,7 +140,83 @@ Route::prefix('v1')->group(function (): void {
                 '/businesses/{business}/locations',
                 [BusinessLocationController::class, 'store'],
             );
+            /*
+            |--------------------------------------------------------------------------
+            | Business Contacts
+            |--------------------------------------------------------------------------
+            |
+            | وسائل الاتصال العامة الخاصة بالنشاط.
+            |
+            */
 
+            Route::get(
+                '/businesses/{business}/contacts',
+                [BusinessContactController::class, 'indexBusiness'],
+            );
+
+            Route::post(
+                '/businesses/{business}/contacts',
+                [BusinessContactController::class, 'storeBusiness'],
+            );
+
+            Route::get(
+                '/businesses/{business}/contacts/{contact}',
+                [BusinessContactController::class, 'showBusiness'],
+            );
+
+            Route::patch(
+                '/businesses/{business}/contacts/{contact}',
+                [BusinessContactController::class, 'updateBusiness'],
+            );
+
+            Route::delete(
+                '/businesses/{business}/contacts/{contact}',
+                [BusinessContactController::class, 'destroyBusiness'],
+            );
+
+            Route::post(
+                '/businesses/{business}/contacts/{contact}/primary',
+                [BusinessContactController::class, 'setPrimaryBusiness'],
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Business Location Contacts
+            |--------------------------------------------------------------------------
+            |
+            | وسائل الاتصال الخاصة بفرع أو موقع معين.
+            |
+            */
+
+            Route::get(
+                '/businesses/{business}/locations/{location}/contacts',
+                [BusinessContactController::class, 'indexLocation'],
+            );
+
+            Route::post(
+                '/businesses/{business}/locations/{location}/contacts',
+                [BusinessContactController::class, 'storeLocation'],
+            );
+
+            Route::get(
+                '/businesses/{business}/locations/{location}/contacts/{contact}',
+                [BusinessContactController::class, 'showLocation'],
+            );
+
+            Route::patch(
+                '/businesses/{business}/locations/{location}/contacts/{contact}',
+                [BusinessContactController::class, 'updateLocation'],
+            );
+
+            Route::delete(
+                '/businesses/{business}/locations/{location}/contacts/{contact}',
+                [BusinessContactController::class, 'destroyLocation'],
+            );
+
+            Route::post(
+                '/businesses/{business}/locations/{location}/contacts/{contact}/primary',
+                [BusinessContactController::class, 'setPrimaryLocation'],
+            );
             /*
              * عرض موقع واحد.
              */
