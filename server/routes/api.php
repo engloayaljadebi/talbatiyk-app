@@ -1,4 +1,3 @@
-```php
 <?php
 
 /*
@@ -13,11 +12,13 @@
 | الأقسام الحالية:
 | - Auth API
 | - Business API
+| - Business Locations API
 |
 */
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
+use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -64,10 +65,10 @@ Route::prefix('v1')->group(function (): void {
 
     /*
     |--------------------------------------------------------------------------
-    | Businesses
+    | Authenticated Active User API
     |--------------------------------------------------------------------------
     |
-    | جميع عمليات الأنشطة التجارية تحتاج:
+    | جميع المسارات التالية تحتاج:
     | - Token صالحًا.
     | - حساب مستخدم active.
     |
@@ -78,10 +79,30 @@ Route::prefix('v1')->group(function (): void {
         'active.user',
     ])->group(function (): void {
         /*
+        |--------------------------------------------------------------------------
+        | Businesses
+        |--------------------------------------------------------------------------
+        */
+
+        /*
          * قائمة الأنشطة التي لدى المستخدم
          * عضوية نشطة فيها.
          */
         Route::get('/businesses', [BusinessController::class, 'index']);
+
+        /*
+         * إنشاء نشاط تجاري جديد.
+         */
+        Route::post('/businesses', [BusinessController::class, 'store']);
+
+        /*
+         * تفاصيل نشاط واحد.
+         *
+         * BusinessQueryService يتأكد من أن المستخدم
+         * لديه عضوية active في النشاط.
+         */
+        Route::get('/businesses/{business}', [BusinessController::class, 'show']);
+
         /*
          * تعديل البيانات الأساسية لنشاط واحد.
          *
@@ -92,17 +113,64 @@ Route::prefix('v1')->group(function (): void {
             '/businesses/{business}',
             [BusinessController::class, 'update'],
         );
-        /*
-         * تفاصيل نشاط واحد.
-         *
-         * BusinessQueryService يتأكد من أن
-         * المستخدم لديه عضوية active في النشاط.
-         */
-        Route::get('/businesses/{business}', [BusinessController::class, 'show']);
 
         /*
-         * إنشاء نشاط تجاري جديد.
-         */
-        Route::post('/businesses', [BusinessController::class, 'store']);
+        |--------------------------------------------------------------------------
+        | Business Locations
+        |--------------------------------------------------------------------------
+        |
+        | إدارة فروع ومتاجر ومكاتب ومخازن النشاط.
+        |
+        */
+
+        Route::scopeBindings()->group(function (): void {
+            /*
+             * عرض جميع مواقع النشاط.
+             */
+            Route::get(
+                '/businesses/{business}/locations',
+                [BusinessLocationController::class, 'index'],
+            );
+
+            /*
+             * إنشاء موقع جديد.
+             */
+            Route::post(
+                '/businesses/{business}/locations',
+                [BusinessLocationController::class, 'store'],
+            );
+
+            /*
+             * عرض موقع واحد.
+             */
+            Route::get(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'show'],
+            );
+
+            /*
+             * تعديل موقع موجود.
+             */
+            Route::patch(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'update'],
+            );
+
+            /*
+             * حذف موقع.
+             */
+            Route::delete(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'destroy'],
+            );
+
+            /*
+             * تعيين الموقع الرئيسي للنشاط.
+             */
+            Route::post(
+                '/businesses/{business}/locations/{location}/primary',
+                [BusinessLocationController::class, 'setPrimary'],
+            );
+        });
     });
 });
