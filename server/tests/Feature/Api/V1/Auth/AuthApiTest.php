@@ -343,6 +343,27 @@ class AuthApiTest extends TestCase
     }
 
     /**
+     * طلب API بدون Accept: application/json يجب أن يعيد 401 JSON.
+     *
+     * هذا الاختبار يمنع رجوع مشكلة:
+     * Route [login] not defined
+     *
+     * لأن تطبيق Flutter قد يرسل الطلب بدون Accept صريح،
+     * ومسارات API يجب ألا تحاول التحويل إلى صفحة Login.
+     */
+    public function test_guest_request_without_json_accept_header_returns_401_json(): void
+    {
+        $response = $this->get('/api/v1/auth/me');
+
+        $response
+            ->assertUnauthorized()
+            ->assertHeader('Content-Type', 'application/json')
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
+    }
+
+    /**
      * logout يلغي Token الحالي فقط.
      */
     public function test_logout_revokes_current_access_token(): void

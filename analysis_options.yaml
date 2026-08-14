@@ -9,6 +9,12 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+# الكود الموجود داخل talbatiyk_api يتم توليده تلقائيًا من OpenAPI.
+# لذلك لا ندخله ضمن تحليل التطبيق الرئيسي ولا نعدله يدويًا.
+analyzer:
+  exclude:
+    - packages/talbatiyk_api/**
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

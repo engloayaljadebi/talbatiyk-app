@@ -58,26 +58,32 @@ class UpdateBusinessContactRequest extends FormRequest
              * تغيير النوع قد يغيّر قواعد التكرار
              * والوسيلة الرئيسية، لذلك لا يسمح به.
              */
+            /** @hidden */
             'type' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'is_primary' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'verified_at' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'business_id' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'business_location_id' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'location_id' => [
                 'prohibited',
             ],

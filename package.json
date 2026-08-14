@@ -1,0 +1,28 @@
+{
+  "name": "talbatiyk",
+  "version": "1.0.0",
+  "description": "A new Flutter project.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/engloayaljadebi/talbatiyk-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/engloayaljadebi/talbatiyk-app/issues"
+  },
+  "homepage": "https://github.com/engloayaljadebi/talbatiyk-app#readme",
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.40.1"
+  }
+}
