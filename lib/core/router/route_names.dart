@@ -4,6 +4,9 @@
 
 /// أسماء المسارات المعتمدة داخل تطبيق طلبيتك.
 abstract final class RouteNames {
+  /// صفحة فحص واستعادة جلسة المستخدم.
+  static const String auth = '/auth';
+
   /// الصفحة الرئيسية التي تحتوي أقسام التطبيق الخمسة.
   static const String main = '/';
 

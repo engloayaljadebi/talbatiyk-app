@@ -1,25 +1,31 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Seeder الرئيسي لقاعدة البيانات
+|--------------------------------------------------------------------------
+|
+| المسؤوليات:
+| - تشغيل البيانات المرجعية الأساسية للنظام.
+| - عدم إنشاء مستخدمين تجريبيين تلقائيًا.
+| - إبقاء Seeders قابلة للتشغيل في التطوير والاختبارات وCI.
+|
+*/
+
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * تشغيل Seeders الأساسية.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            BusinessRoleSeeder::class,
+            BusinessCapabilitySeeder::class,
         ]);
     }
 }

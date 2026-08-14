@@ -5,8 +5,10 @@
 // - عرض شريط التنقل السفلي بشكل عائم.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../account/presentation/pages/account_page.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
@@ -14,14 +16,14 @@ import '../../../products/presentation/pages/products_page.dart';
 import '../widgets/home_bottom_navigation.dart';
 
 /// الصفحة الأساسية التي تحتوي على أقسام التطبيق الخمسة.
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   /// رقم القسم المحدد حاليًا.
   int _currentIndex = 0;
 
@@ -37,7 +39,11 @@ class _MainPageState extends State<MainPage> {
     ProductsPage(),
     const CartPage(),
     const OrdersPage(),
-    const AccountPage(),
+    AccountPage(
+      onLogout: () async {
+        await ref.read(authProvider).logout();
+      },
+    ),
   ];
 
   /// ينتقل إلى القسم المطلوب.
