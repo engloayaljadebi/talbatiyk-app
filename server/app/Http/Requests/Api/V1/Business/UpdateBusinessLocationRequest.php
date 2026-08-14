@@ -128,10 +128,12 @@ class UpdateBusinessLocationRequest extends FormRequest
                 ]),
             ],
 
+            /** @hidden */
             'is_primary' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'business_id' => [
                 'prohibited',
             ],

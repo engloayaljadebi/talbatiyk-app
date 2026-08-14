@@ -87,28 +87,27 @@ class CreateBusinessContactRequest extends FormRequest
              * يتم تعيين الوسيلة الرئيسية
              * عبر Endpoint مستقل.
              */
+            /** @hidden */
             'is_primary' => [
                 'prohibited',
             ],
 
-            /*
-             * التوثيق لا يمكن منحه من العميل.
-             */
+            /** @hidden */
             'verified_at' => [
                 'prohibited',
             ],
 
-            /*
-             * ملكية الوسيلة تحدد من URL فقط.
-             */
+            /** @hidden */
             'business_id' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'business_location_id' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'location_id' => [
                 'prohibited',
             ],

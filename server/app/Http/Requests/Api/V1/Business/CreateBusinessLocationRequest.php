@@ -126,10 +126,12 @@ class CreateBusinessLocationRequest extends FormRequest
              * الموقع الرئيسي يُدار بعملية مستقلة
              * لمنع وجود منطق متعارض.
              */
+            /** @hidden */
             'is_primary' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'business_id' => [
                 'prohibited',
             ],

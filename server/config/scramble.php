@@ -1,6 +1,7 @@
 <?php
 
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
+use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
 
 return [
     /*
@@ -42,44 +43,36 @@ return [
     ],
 
     'info' => [
-        'version' => '1.0.0',
+        'version' => env('API_VERSION', '1.0.0'),
 
         'description' => <<<'MD'
-    # Talbatiyk API
+   # Talbatiyk API
 
-    واجهة برمجة تطبيقات منصة **طلبيتك**.
+   واجهة برمجة تطبيقات منصة **طلبيتك**.
 
-    الإصدار الحالي:
+   الإصدار الحالي:
 
-    `v1`
+   `v1`
 
-    تشمل حاليًا:
+   تشمل حاليًا:
 
-    - إنشاء الحساب.
-    - تسجيل الدخول.
-    - قراءة المستخدم الحالي.
-    - تسجيل الخروج.
-    - Sanctum Bearer Token authentication.
+   - Authentication API.
+   - Business API.
+   - Business Locations API.
+   - Business Contacts API.
+   - Sanctum Bearer Token authentication.
 
-    سيتم توسيعها لاحقًا لتشمل:
+   سيتم توسيعها لاحقًا لتشمل:
 
-    - الأنشطة التجارية.
-    - الموردين والمتاجر.
-    - المنتجات.
-    - الطلبات.
-    - المزامنة مع تطبيق Flutter.
-    MD,
-        /*
-         * API version.
-         */
-        'version' => env('API_VERSION', '0.0.1'),
-
-        /*
-         * Description rendered on the home page of the API documentation (`/docs/api`).
-         */
-        'description' => '',
+   - القدرات التجارية.
+   - أوقات العمل.
+   - التوثيق.
+   - المتابعات.
+   - المنتجات.
+   - الطلبات.
+   - المزامنة مع تطبيق Flutter.
+   MD,
     ],
-
     'ui' => [
         'title' => null,
     ],
@@ -197,5 +190,6 @@ return [
      * ],
      */
     // 'security_strategy' => \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-    'security_strategy' => null,
+    'security_strategy' => MiddlewareAuthSecurityStrategy::class,
+
 ];

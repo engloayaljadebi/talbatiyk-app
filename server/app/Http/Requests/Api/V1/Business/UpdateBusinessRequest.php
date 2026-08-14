@@ -96,26 +96,42 @@ class UpdateBusinessRequest extends FormRequest
              * القيمة بصمت إذا حاول العميل إرسالها.
              */
 
+            /*
+            * ----------------------------------------------------------------
+            * حقول ممنوعة من Endpoint تعديل البيانات الأساسية
+            * ----------------------------------------------------------------
+            *
+            * هذه الحقول نبقيها ضمن Validation حتى يرفض Laravel
+            * إرسالها صراحة، لكن نخفيها من OpenAPI لأن العميل
+            * الرسمي لا يفترض أن يرسلها أصلًا.
+            */
+
+            /** @hidden */
             'status' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'capabilities' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'location' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'locations' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'contact' => [
                 'prohibited',
             ],
 
+            /** @hidden */
             'contacts' => [
                 'prohibited',
             ],
