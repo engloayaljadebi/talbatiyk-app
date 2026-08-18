@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:talbatiyk/features/home/presentation/widgets/widgets.dart';
 
+/// ---------------------------------------------------------------------------
+/// File: home_page.dart
+///
+/// المسؤولية:
+/// - تركيب محتوى الصفحة الرئيسية.
+/// - عرض الأقسام التي لها سلوك فعلي في المرحلة الحالية.
+///
+/// لا يحتوي:
+/// - Business logic.
+/// - Mock product/category data.
+/// - Network calls مباشرة.
+/// ---------------------------------------------------------------------------
 class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.onViewProducts});
 
@@ -9,23 +20,17 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HomeAppBar(),
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            const SliverToBoxAdapter(child: HomeSearchBar()),
-            const SliverToBoxAdapter(child: BannerSlider()),
-            const SliverToBoxAdapter(child: CategoriesSection()),
-            SliverToBoxAdapter(
-              child: FeaturedProductsSection(onViewAll: onViewProducts),
-            ),
-            SliverToBoxAdapter(
-              child: LatestProductsSection(onViewAll: onViewProducts),
-            ),
-            const SliverToBoxAdapter(child: CartSummary()),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-          ],
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+
+        // لا نظهر Actions غير منفذة في المرحلة الحالية.
+        // ستضاف الإشعارات والحساب عندما تصبح لها Navigation فعلية.
+        title: const Text(
+          'طلبيتك',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
     );

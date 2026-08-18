@@ -25,6 +25,7 @@
 |
 */
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -34,6 +35,18 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/states/auth_state.dart';
 import '../../features/navigation/presentation/pages/main_page.dart';
 import 'route_names.dart';
+
+/// Factory لصفحة المسار الرئيسي.
+///
+/// Production يستخدم MainPage الفعلية، بينما اختبارات Router
+/// تستطيع استبدالها بصفحة خفيفة حتى لا تشغّل Features غير مرتبطة
+/// باختبار التوجيه مثل Products وNetwork Images.
+typedef MainRoutePageFactory = Widget Function();
+
+final mainRoutePageFactoryProvider = Provider<MainRoutePageFactory>(
+  (ref) =>
+      () => const MainPage(),
+);
 
 /// يوفر Router واحدًا مرتبطًا بحالة المصادقة.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -129,7 +142,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.main,
         builder: (context, state) {
-          return const MainPage();
+          // نعزل إنشاء الصفحة عن منطق Router حتى تبقى اختبارات
+          // Auth Guard مستقلة عن Features الموجودة داخل MainPage.
+          return ref.read(mainRoutePageFactoryProvider)();
         },
       ),
     ],
