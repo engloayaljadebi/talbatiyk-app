@@ -81,6 +81,8 @@ class OrdersMapper {
       productName: dto.productName,
       unitPrice: dto.unitPrice,
       quantity: dto.quantity,
+      supplierId: dto.supplierId,
+      supplierName: dto.supplierName,
       imageUrl: dto.imageUrl,
     );
   }
@@ -91,6 +93,8 @@ class OrdersMapper {
       productName: model.productName,
       unitPrice: model.unitPrice,
       quantity: model.quantity,
+      supplierId: model.supplierId,
+      supplierName: model.supplierName,
       imageUrl: model.imageUrl,
     );
   }
@@ -101,6 +105,8 @@ class OrdersMapper {
       productName: entity.productName,
       unitPrice: entity.unitPrice,
       quantity: entity.quantity,
+      supplierId: entity.supplierId,
+      supplierName: entity.supplierName,
       imageUrl: entity.imageUrl,
     );
   }

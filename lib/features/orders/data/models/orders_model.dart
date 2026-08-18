@@ -17,6 +17,8 @@ class OrderItemModel {
     required this.productName,
     required this.unitPrice,
     required this.quantity,
+    required this.supplierId,
+    required this.supplierName,
     this.imageUrl = '',
   });
 
@@ -24,6 +26,8 @@ class OrderItemModel {
   final String productName;
   final double unitPrice;
   final int quantity;
+  final String supplierId;
+  final String supplierName;
   final String imageUrl;
 
   Map<String, dynamic> toJson() {
@@ -32,6 +36,8 @@ class OrderItemModel {
       'product_name': productName,
       'unit_price': unitPrice,
       'quantity': quantity,
+      'supplier_id': supplierId,
+      'supplier_name': supplierName,
       'image_url': imageUrl,
     };
   }

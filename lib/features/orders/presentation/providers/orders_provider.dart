@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/database/database_provider.dart';
 import '../../data/datasources/local/orders_local_datasource.dart';
 import '../../data/datasources/orders_datasource.dart';
 import '../../data/repositories/orders_repository_impl.dart';
@@ -9,7 +10,7 @@ import '../controllers/orders_controller.dart';
 
 /// Override this provider with a remote data source when the API is enabled.
 final ordersDataSourceProvider = Provider<OrdersDataSource>((ref) {
-  return OrdersLocalDataSource();
+  return OrdersLocalDataSource(ref.watch(appDatabaseProvider));
 });
 
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {

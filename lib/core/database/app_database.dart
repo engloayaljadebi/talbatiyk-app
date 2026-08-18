@@ -51,6 +51,45 @@ class ProductRecords extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class OrderRecords extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  DateTimeColumn get createdAt => dateTime()();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class OrderItemRecords extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get orderId =>
+      text().references(OrderRecords, #id, onDelete: KeyAction.cascade)();
+
+  TextColumn get productId => text()();
+
+  TextColumn get supplierId => text()();
+
+  TextColumn get supplierName => text().withDefault(const Constant(''))();
+
+  TextColumn get productName => text()();
+
+  RealColumn get unitPrice => real()();
+
+  IntColumn get quantity => integer()();
+
+  TextColumn get imageUrl => text().withDefault(const Constant(''))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 class SyncOperations extends Table {
   TextColumn get id => text()();
 
@@ -74,12 +113,28 @@ class SyncOperations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [ProductRecords, SyncOperations])
+@DriftDatabase(
+  tables: [ProductRecords, OrderRecords, OrderItemRecords, SyncOperations],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'talbatiyk'));
 
   /// مُنشئ مخصص للاختبارات يسمح باستخدام قاعدة بيانات مؤقتة.
   AppDatabase.forTesting(super.e);
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(orderRecords);
+          await m.createTable(orderItemRecords);
+        }
+      },
+    );
+  }
 }
