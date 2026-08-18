@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:talbatiyk/features/home/presentation/widgets/widgets.dart';
 
 /// ---------------------------------------------------------------------------
 /// File: home_page.dart
 ///
 /// المسؤولية:
 /// - تركيب محتوى الصفحة الرئيسية.
-/// - عرض الأقسام التي لها سلوك فعلي في المرحلة الحالية.
+/// - عرض الأقسام التي تعتمد على بيانات فعلية في المرحلة الحالية.
 ///
 /// لا يحتوي:
-/// - Business logic.
 /// - Mock product/category data.
 /// - Network calls مباشرة.
+/// - Business logic.
 /// ---------------------------------------------------------------------------
 class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.onViewProducts});
@@ -25,12 +26,21 @@ class HomePage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
-
-        // لا نظهر Actions غير منفذة في المرحلة الحالية.
-        // ستضاف الإشعارات والحساب عندما تصبح لها Navigation فعلية.
         title: const Text(
           'طلبيتك',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(child: BannerSlider()),
+            SliverToBoxAdapter(
+              child: LatestProductsSection(onViewAll: onViewProducts),
+            ),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+          ],
         ),
       ),
     );
