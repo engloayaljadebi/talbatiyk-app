@@ -1158,6 +1158,931 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   }
 }
 
+class $OrderRecordsTable extends OrderRecords
+    with TableInfo<$OrderRecordsTable, OrderRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OrderRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    status,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'order_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OrderRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OrderRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OrderRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OrderRecordsTable createAlias(String alias) {
+    return $OrderRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class OrderRecord extends DataClass implements Insertable<OrderRecord> {
+  final String id;
+  final String status;
+  final String notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const OrderRecord({
+    required this.id,
+    required this.status,
+    required this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['status'] = Variable<String>(status);
+    map['notes'] = Variable<String>(notes);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  OrderRecordsCompanion toCompanion(bool nullToAbsent) {
+    return OrderRecordsCompanion(
+      id: Value(id),
+      status: Value(status),
+      notes: Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory OrderRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OrderRecord(
+      id: serializer.fromJson<String>(json['id']),
+      status: serializer.fromJson<String>(json['status']),
+      notes: serializer.fromJson<String>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'status': serializer.toJson<String>(status),
+      'notes': serializer.toJson<String>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  OrderRecord copyWith({
+    String? id,
+    String? status,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => OrderRecord(
+    id: id ?? this.id,
+    status: status ?? this.status,
+    notes: notes ?? this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  OrderRecord copyWithCompanion(OrderRecordsCompanion data) {
+    return OrderRecord(
+      id: data.id.present ? data.id.value : this.id,
+      status: data.status.present ? data.status.value : this.status,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderRecord(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, status, notes, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OrderRecord &&
+          other.id == this.id &&
+          other.status == this.status &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
+  final Value<String> id;
+  final Value<String> status;
+  final Value<String> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const OrderRecordsCompanion({
+    this.id = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OrderRecordsCompanion.insert({
+    required String id,
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<OrderRecord> custom({
+    Expression<String>? id,
+    Expression<String>? status,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (status != null) 'status': status,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OrderRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? status,
+    Value<String>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return OrderRecordsCompanion(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OrderItemRecordsTable extends OrderItemRecords
+    with TableInfo<$OrderItemRecordsTable, OrderItemRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OrderItemRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _orderIdMeta = const VerificationMeta(
+    'orderId',
+  );
+  @override
+  late final GeneratedColumn<String> orderId = GeneratedColumn<String>(
+    'order_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES order_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _productIdMeta = const VerificationMeta(
+    'productId',
+  );
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+    'product_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
+    'supplierId',
+  );
+  @override
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
+    'supplier_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierNameMeta = const VerificationMeta(
+    'supplierName',
+  );
+  @override
+  late final GeneratedColumn<String> supplierName = GeneratedColumn<String>(
+    'supplier_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _productNameMeta = const VerificationMeta(
+    'productName',
+  );
+  @override
+  late final GeneratedColumn<String> productName = GeneratedColumn<String>(
+    'product_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitPriceMeta = const VerificationMeta(
+    'unitPrice',
+  );
+  @override
+  late final GeneratedColumn<double> unitPrice = GeneratedColumn<double>(
+    'unit_price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _imageUrlMeta = const VerificationMeta(
+    'imageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+    'image_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    orderId,
+    productId,
+    supplierId,
+    supplierName,
+    productName,
+    unitPrice,
+    quantity,
+    imageUrl,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'order_item_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OrderItemRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('order_id')) {
+      context.handle(
+        _orderIdMeta,
+        orderId.isAcceptableOrUnknown(data['order_id']!, _orderIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_orderIdMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(
+        _productIdMeta,
+        productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+        _supplierIdMeta,
+        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierIdMeta);
+    }
+    if (data.containsKey('supplier_name')) {
+      context.handle(
+        _supplierNameMeta,
+        supplierName.isAcceptableOrUnknown(
+          data['supplier_name']!,
+          _supplierNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('product_name')) {
+      context.handle(
+        _productNameMeta,
+        productName.isAcceptableOrUnknown(
+          data['product_name']!,
+          _productNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_productNameMeta);
+    }
+    if (data.containsKey('unit_price')) {
+      context.handle(
+        _unitPriceMeta,
+        unitPrice.isAcceptableOrUnknown(data['unit_price']!, _unitPriceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitPriceMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('image_url')) {
+      context.handle(
+        _imageUrlMeta,
+        imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OrderItemRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OrderItemRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      orderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}order_id'],
+      )!,
+      productId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_id'],
+      )!,
+      supplierId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_id'],
+      )!,
+      supplierName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_name'],
+      )!,
+      productName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_name'],
+      )!,
+      unitPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}unit_price'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      imageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_url'],
+      )!,
+    );
+  }
+
+  @override
+  $OrderItemRecordsTable createAlias(String alias) {
+    return $OrderItemRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
+  final String id;
+  final String orderId;
+  final String productId;
+  final String supplierId;
+  final String supplierName;
+  final String productName;
+  final double unitPrice;
+  final int quantity;
+  final String imageUrl;
+  const OrderItemRecord({
+    required this.id,
+    required this.orderId,
+    required this.productId,
+    required this.supplierId,
+    required this.supplierName,
+    required this.productName,
+    required this.unitPrice,
+    required this.quantity,
+    required this.imageUrl,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['order_id'] = Variable<String>(orderId);
+    map['product_id'] = Variable<String>(productId);
+    map['supplier_id'] = Variable<String>(supplierId);
+    map['supplier_name'] = Variable<String>(supplierName);
+    map['product_name'] = Variable<String>(productName);
+    map['unit_price'] = Variable<double>(unitPrice);
+    map['quantity'] = Variable<int>(quantity);
+    map['image_url'] = Variable<String>(imageUrl);
+    return map;
+  }
+
+  OrderItemRecordsCompanion toCompanion(bool nullToAbsent) {
+    return OrderItemRecordsCompanion(
+      id: Value(id),
+      orderId: Value(orderId),
+      productId: Value(productId),
+      supplierId: Value(supplierId),
+      supplierName: Value(supplierName),
+      productName: Value(productName),
+      unitPrice: Value(unitPrice),
+      quantity: Value(quantity),
+      imageUrl: Value(imageUrl),
+    );
+  }
+
+  factory OrderItemRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OrderItemRecord(
+      id: serializer.fromJson<String>(json['id']),
+      orderId: serializer.fromJson<String>(json['orderId']),
+      productId: serializer.fromJson<String>(json['productId']),
+      supplierId: serializer.fromJson<String>(json['supplierId']),
+      supplierName: serializer.fromJson<String>(json['supplierName']),
+      productName: serializer.fromJson<String>(json['productName']),
+      unitPrice: serializer.fromJson<double>(json['unitPrice']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      imageUrl: serializer.fromJson<String>(json['imageUrl']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'orderId': serializer.toJson<String>(orderId),
+      'productId': serializer.toJson<String>(productId),
+      'supplierId': serializer.toJson<String>(supplierId),
+      'supplierName': serializer.toJson<String>(supplierName),
+      'productName': serializer.toJson<String>(productName),
+      'unitPrice': serializer.toJson<double>(unitPrice),
+      'quantity': serializer.toJson<int>(quantity),
+      'imageUrl': serializer.toJson<String>(imageUrl),
+    };
+  }
+
+  OrderItemRecord copyWith({
+    String? id,
+    String? orderId,
+    String? productId,
+    String? supplierId,
+    String? supplierName,
+    String? productName,
+    double? unitPrice,
+    int? quantity,
+    String? imageUrl,
+  }) => OrderItemRecord(
+    id: id ?? this.id,
+    orderId: orderId ?? this.orderId,
+    productId: productId ?? this.productId,
+    supplierId: supplierId ?? this.supplierId,
+    supplierName: supplierName ?? this.supplierName,
+    productName: productName ?? this.productName,
+    unitPrice: unitPrice ?? this.unitPrice,
+    quantity: quantity ?? this.quantity,
+    imageUrl: imageUrl ?? this.imageUrl,
+  );
+  OrderItemRecord copyWithCompanion(OrderItemRecordsCompanion data) {
+    return OrderItemRecord(
+      id: data.id.present ? data.id.value : this.id,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      supplierId: data.supplierId.present
+          ? data.supplierId.value
+          : this.supplierId,
+      supplierName: data.supplierName.present
+          ? data.supplierName.value
+          : this.supplierName,
+      productName: data.productName.present
+          ? data.productName.value
+          : this.productName,
+      unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderItemRecord(')
+          ..write('id: $id, ')
+          ..write('orderId: $orderId, ')
+          ..write('productId: $productId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('productName: $productName, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('quantity: $quantity, ')
+          ..write('imageUrl: $imageUrl')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    orderId,
+    productId,
+    supplierId,
+    supplierName,
+    productName,
+    unitPrice,
+    quantity,
+    imageUrl,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OrderItemRecord &&
+          other.id == this.id &&
+          other.orderId == this.orderId &&
+          other.productId == this.productId &&
+          other.supplierId == this.supplierId &&
+          other.supplierName == this.supplierName &&
+          other.productName == this.productName &&
+          other.unitPrice == this.unitPrice &&
+          other.quantity == this.quantity &&
+          other.imageUrl == this.imageUrl);
+}
+
+class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
+  final Value<String> id;
+  final Value<String> orderId;
+  final Value<String> productId;
+  final Value<String> supplierId;
+  final Value<String> supplierName;
+  final Value<String> productName;
+  final Value<double> unitPrice;
+  final Value<int> quantity;
+  final Value<String> imageUrl;
+  final Value<int> rowid;
+  const OrderItemRecordsCompanion({
+    this.id = const Value.absent(),
+    this.orderId = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.supplierId = const Value.absent(),
+    this.supplierName = const Value.absent(),
+    this.productName = const Value.absent(),
+    this.unitPrice = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OrderItemRecordsCompanion.insert({
+    required String id,
+    required String orderId,
+    required String productId,
+    required String supplierId,
+    this.supplierName = const Value.absent(),
+    required String productName,
+    required double unitPrice,
+    required int quantity,
+    this.imageUrl = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       orderId = Value(orderId),
+       productId = Value(productId),
+       supplierId = Value(supplierId),
+       productName = Value(productName),
+       unitPrice = Value(unitPrice),
+       quantity = Value(quantity);
+  static Insertable<OrderItemRecord> custom({
+    Expression<String>? id,
+    Expression<String>? orderId,
+    Expression<String>? productId,
+    Expression<String>? supplierId,
+    Expression<String>? supplierName,
+    Expression<String>? productName,
+    Expression<double>? unitPrice,
+    Expression<int>? quantity,
+    Expression<String>? imageUrl,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (orderId != null) 'order_id': orderId,
+      if (productId != null) 'product_id': productId,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (supplierName != null) 'supplier_name': supplierName,
+      if (productName != null) 'product_name': productName,
+      if (unitPrice != null) 'unit_price': unitPrice,
+      if (quantity != null) 'quantity': quantity,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OrderItemRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? orderId,
+    Value<String>? productId,
+    Value<String>? supplierId,
+    Value<String>? supplierName,
+    Value<String>? productName,
+    Value<double>? unitPrice,
+    Value<int>? quantity,
+    Value<String>? imageUrl,
+    Value<int>? rowid,
+  }) {
+    return OrderItemRecordsCompanion(
+      id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
+      productId: productId ?? this.productId,
+      supplierId: supplierId ?? this.supplierId,
+      supplierName: supplierName ?? this.supplierName,
+      productName: productName ?? this.productName,
+      unitPrice: unitPrice ?? this.unitPrice,
+      quantity: quantity ?? this.quantity,
+      imageUrl: imageUrl ?? this.imageUrl,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (orderId.present) {
+      map['order_id'] = Variable<String>(orderId.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
+    }
+    if (supplierName.present) {
+      map['supplier_name'] = Variable<String>(supplierName.value);
+    }
+    if (productName.present) {
+      map['product_name'] = Variable<String>(productName.value);
+    }
+    if (unitPrice.present) {
+      map['unit_price'] = Variable<double>(unitPrice.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderItemRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('orderId: $orderId, ')
+          ..write('productId: $productId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('productName: $productName, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('quantity: $quantity, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncOperationsTable extends SyncOperations
     with TableInfo<$SyncOperationsTable, SyncOperation> {
   @override
@@ -1737,6 +2662,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ProductRecordsTable productRecords = $ProductRecordsTable(this);
+  late final $OrderRecordsTable orderRecords = $OrderRecordsTable(this);
+  late final $OrderItemRecordsTable orderItemRecords = $OrderItemRecordsTable(
+    this,
+  );
   late final $SyncOperationsTable syncOperations = $SyncOperationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1744,8 +2673,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     productRecords,
+    orderRecords,
+    orderItemRecords,
     syncOperations,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'order_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('order_item_records', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$ProductRecordsTableCreateCompanionBuilder =
@@ -2272,6 +3213,719 @@ typedef $$ProductRecordsTableProcessedTableManager =
       ProductRecord,
       PrefetchHooks Function()
     >;
+typedef $$OrderRecordsTableCreateCompanionBuilder =
+    OrderRecordsCompanion Function({
+      required String id,
+      Value<String> status,
+      Value<String> notes,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$OrderRecordsTableUpdateCompanionBuilder =
+    OrderRecordsCompanion Function({
+      Value<String> id,
+      Value<String> status,
+      Value<String> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$OrderRecordsTableReferences
+    extends BaseReferences<_$AppDatabase, $OrderRecordsTable, OrderRecord> {
+  $$OrderRecordsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$OrderItemRecordsTable, List<OrderItemRecord>>
+  _orderItemRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.orderItemRecords,
+    aliasName: 'order_records__id__order_item_records__order_id',
+  );
+
+  $$OrderItemRecordsTableProcessedTableManager get orderItemRecordsRefs {
+    final manager = $$OrderItemRecordsTableTableManager(
+      $_db,
+      $_db.orderItemRecords,
+    ).filter((f) => f.orderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _orderItemRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$OrderRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $OrderRecordsTable> {
+  $$OrderRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> orderItemRecordsRefs(
+    Expression<bool> Function($$OrderItemRecordsTableFilterComposer f) f,
+  ) {
+    final $$OrderItemRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.orderItemRecords,
+      getReferencedColumn: (t) => t.orderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OrderItemRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.orderItemRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OrderRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OrderRecordsTable> {
+  $$OrderRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OrderRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OrderRecordsTable> {
+  $$OrderRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> orderItemRecordsRefs<T extends Object>(
+    Expression<T> Function($$OrderItemRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$OrderItemRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.orderItemRecords,
+      getReferencedColumn: (t) => t.orderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OrderItemRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.orderItemRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OrderRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OrderRecordsTable,
+          OrderRecord,
+          $$OrderRecordsTableFilterComposer,
+          $$OrderRecordsTableOrderingComposer,
+          $$OrderRecordsTableAnnotationComposer,
+          $$OrderRecordsTableCreateCompanionBuilder,
+          $$OrderRecordsTableUpdateCompanionBuilder,
+          (OrderRecord, $$OrderRecordsTableReferences),
+          OrderRecord,
+          PrefetchHooks Function({bool orderItemRecordsRefs})
+        > {
+  $$OrderRecordsTableTableManager(_$AppDatabase db, $OrderRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OrderRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OrderRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OrderRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OrderRecordsCompanion(
+                id: id,
+                status: status,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> status = const Value.absent(),
+                Value<String> notes = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => OrderRecordsCompanion.insert(
+                id: id,
+                status: status,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OrderRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({orderItemRecordsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (orderItemRecordsRefs) db.orderItemRecords,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (orderItemRecordsRefs)
+                    await $_getPrefetchedData<
+                      OrderRecord,
+                      $OrderRecordsTable,
+                      OrderItemRecord
+                    >(
+                      currentTable: table,
+                      referencedTable: $$OrderRecordsTableReferences
+                          ._orderItemRecordsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$OrderRecordsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).orderItemRecordsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.orderId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OrderRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OrderRecordsTable,
+      OrderRecord,
+      $$OrderRecordsTableFilterComposer,
+      $$OrderRecordsTableOrderingComposer,
+      $$OrderRecordsTableAnnotationComposer,
+      $$OrderRecordsTableCreateCompanionBuilder,
+      $$OrderRecordsTableUpdateCompanionBuilder,
+      (OrderRecord, $$OrderRecordsTableReferences),
+      OrderRecord,
+      PrefetchHooks Function({bool orderItemRecordsRefs})
+    >;
+typedef $$OrderItemRecordsTableCreateCompanionBuilder =
+    OrderItemRecordsCompanion Function({
+      required String id,
+      required String orderId,
+      required String productId,
+      required String supplierId,
+      Value<String> supplierName,
+      required String productName,
+      required double unitPrice,
+      required int quantity,
+      Value<String> imageUrl,
+      Value<int> rowid,
+    });
+typedef $$OrderItemRecordsTableUpdateCompanionBuilder =
+    OrderItemRecordsCompanion Function({
+      Value<String> id,
+      Value<String> orderId,
+      Value<String> productId,
+      Value<String> supplierId,
+      Value<String> supplierName,
+      Value<String> productName,
+      Value<double> unitPrice,
+      Value<int> quantity,
+      Value<String> imageUrl,
+      Value<int> rowid,
+    });
+
+final class $$OrderItemRecordsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $OrderItemRecordsTable, OrderItemRecord> {
+  $$OrderItemRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $OrderRecordsTable _orderIdTable(_$AppDatabase db) => db.orderRecords
+      .createAlias('order_item_records__order_id__order_records__id');
+
+  $$OrderRecordsTableProcessedTableManager get orderId {
+    final $_column = $_itemColumn<String>('order_id')!;
+
+    final manager = $$OrderRecordsTableTableManager(
+      $_db,
+      $_db.orderRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_orderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$OrderItemRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $OrderItemRecordsTable> {
+  $$OrderItemRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$OrderRecordsTableFilterComposer get orderId {
+    final $$OrderRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.orderId,
+      referencedTable: $db.orderRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OrderRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.orderRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OrderItemRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OrderItemRecordsTable> {
+  $$OrderItemRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$OrderRecordsTableOrderingComposer get orderId {
+    final $$OrderRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.orderId,
+      referencedTable: $db.orderRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OrderRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.orderRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OrderItemRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OrderItemRecordsTable> {
+  $$OrderItemRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get productId =>
+      $composableBuilder(column: $table.productId, builder: (column) => column);
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get unitPrice =>
+      $composableBuilder(column: $table.unitPrice, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  $$OrderRecordsTableAnnotationComposer get orderId {
+    final $$OrderRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.orderId,
+      referencedTable: $db.orderRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OrderRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.orderRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OrderItemRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OrderItemRecordsTable,
+          OrderItemRecord,
+          $$OrderItemRecordsTableFilterComposer,
+          $$OrderItemRecordsTableOrderingComposer,
+          $$OrderItemRecordsTableAnnotationComposer,
+          $$OrderItemRecordsTableCreateCompanionBuilder,
+          $$OrderItemRecordsTableUpdateCompanionBuilder,
+          (OrderItemRecord, $$OrderItemRecordsTableReferences),
+          OrderItemRecord,
+          PrefetchHooks Function({bool orderId})
+        > {
+  $$OrderItemRecordsTableTableManager(
+    _$AppDatabase db,
+    $OrderItemRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OrderItemRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OrderItemRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OrderItemRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> orderId = const Value.absent(),
+                Value<String> productId = const Value.absent(),
+                Value<String> supplierId = const Value.absent(),
+                Value<String> supplierName = const Value.absent(),
+                Value<String> productName = const Value.absent(),
+                Value<double> unitPrice = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<String> imageUrl = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OrderItemRecordsCompanion(
+                id: id,
+                orderId: orderId,
+                productId: productId,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                productName: productName,
+                unitPrice: unitPrice,
+                quantity: quantity,
+                imageUrl: imageUrl,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String orderId,
+                required String productId,
+                required String supplierId,
+                Value<String> supplierName = const Value.absent(),
+                required String productName,
+                required double unitPrice,
+                required int quantity,
+                Value<String> imageUrl = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OrderItemRecordsCompanion.insert(
+                id: id,
+                orderId: orderId,
+                productId: productId,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                productName: productName,
+                unitPrice: unitPrice,
+                quantity: quantity,
+                imageUrl: imageUrl,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OrderItemRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({orderId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (orderId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.orderId,
+                                referencedTable:
+                                    $$OrderItemRecordsTableReferences
+                                        ._orderIdTable(db),
+                                referencedColumn:
+                                    $$OrderItemRecordsTableReferences
+                                        ._orderIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OrderItemRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OrderItemRecordsTable,
+      OrderItemRecord,
+      $$OrderItemRecordsTableFilterComposer,
+      $$OrderItemRecordsTableOrderingComposer,
+      $$OrderItemRecordsTableAnnotationComposer,
+      $$OrderItemRecordsTableCreateCompanionBuilder,
+      $$OrderItemRecordsTableUpdateCompanionBuilder,
+      (OrderItemRecord, $$OrderItemRecordsTableReferences),
+      OrderItemRecord,
+      PrefetchHooks Function({bool orderId})
+    >;
 typedef $$SyncOperationsTableCreateCompanionBuilder =
     SyncOperationsCompanion Function({
       required String id,
@@ -2562,6 +4216,10 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$ProductRecordsTableTableManager get productRecords =>
       $$ProductRecordsTableTableManager(_db, _db.productRecords);
+  $$OrderRecordsTableTableManager get orderRecords =>
+      $$OrderRecordsTableTableManager(_db, _db.orderRecords);
+  $$OrderItemRecordsTableTableManager get orderItemRecords =>
+      $$OrderItemRecordsTableTableManager(_db, _db.orderItemRecords);
   $$SyncOperationsTableTableManager get syncOperations =>
       $$SyncOperationsTableTableManager(_db, _db.syncOperations);
 }

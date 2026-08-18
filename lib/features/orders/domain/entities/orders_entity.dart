@@ -78,6 +78,8 @@ class OrderItemEntity {
     required this.productName,
     required this.unitPrice,
     required this.quantity,
+    required this.supplierId,
+    required this.supplierName,
     this.imageUrl = '',
   });
 
@@ -85,6 +87,14 @@ class OrderItemEntity {
   final String productName;
   final double unitPrice;
   final int quantity;
+
+  /// المورد الخاص بهذا المنتج داخل الطلبية.
+  ///
+  /// وجود المورد على مستوى العنصر يسمح للطلبية الواحدة
+  /// باحتواء منتجات من عدة موردين.
+  final String supplierId;
+  final String supplierName;
+
   final String imageUrl;
 
   double get totalPrice => unitPrice * quantity;

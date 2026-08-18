@@ -22,6 +22,8 @@ void main() {
       final request = CreateOrderModel(
         items: const [
           OrderItemModel(
+            supplierId: 'supplier-1',
+            supplierName: 'Supplier 1',
             productId: 'product-1',
             productName: 'شاحن سريع',
             unitPrice: 4500,
@@ -42,6 +44,8 @@ void main() {
             'product_name': 'شاحن سريع',
             'unit_price': 4500.0,
             'quantity': 2,
+            'supplier_id': 'supplier-1',
+            'supplier_name': 'Supplier 1',
             'image_url': '',
           },
         ],

@@ -13,6 +13,8 @@ class OrderItemDto {
     required this.productName,
     required this.unitPrice,
     required this.quantity,
+    this.supplierId = '',
+    this.supplierName = '',
     this.imageUrl = '',
   });
 
@@ -30,6 +32,22 @@ class OrderItemDto {
         'price',
       ]),
       quantity: _requiredInt(json, const ['quantity']),
+      supplierId: _optionalString(json, const [
+        'supplierId',
+        'supplier_id',
+        'vendorId',
+        'vendor_id',
+        'merchantId',
+        'merchant_id',
+      ]),
+      supplierName: _optionalString(json, const [
+        'supplierName',
+        'supplier_name',
+        'vendorName',
+        'vendor_name',
+        'merchantName',
+        'merchant_name',
+      ]),
       imageUrl: _optionalString(json, const ['imageUrl', 'image_url']),
     );
   }
@@ -38,6 +56,11 @@ class OrderItemDto {
   final String productName;
   final double unitPrice;
   final int quantity;
+
+  /// المورد محفوظ على مستوى العنصر لدعم طلبية واحدة متعددة الموردين.
+  final String supplierId;
+  final String supplierName;
+
   final String imageUrl;
 }
 

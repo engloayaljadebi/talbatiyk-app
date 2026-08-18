@@ -13,8 +13,8 @@ import 'package:talbatiyk/features/products/presentation/widgets/product_image.d
 /// - عرض المنتجات الموجودة داخل السلة.
 /// - التحكم في الكميات.
 /// - حذف منتج أو تفريغ السلة.
-/// - التحقق أن المنتجات تتبع موردًا واحدًا.
-/// - إنشاء الطلبية وإرسال بيانات المورد معها.
+/// - دعم منتجات من عدة موردين داخل الطلبية.
+/// - إرسال بيانات المورد الخاصة بكل عنصر من عناصر الطلبية.
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
@@ -114,6 +114,9 @@ class CartPage extends ConsumerWidget {
   }
 
   /// إنشاء طلبية من منتجات السلة.
+  ///
+  /// كل عنصر داخل الطلبية يحمل بيانات المورد الخاصة به،
+  /// لذلك يمكن إرسال منتجات من عدة موردين في نفس الطلب.
   Future<void> _submitOrder(
     BuildContext context,
     WidgetRef ref,
@@ -123,33 +126,7 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    // حماية إضافية للتأكد أن جميع المنتجات
-    // تتبع موردًا واحدًا.
-    if (!cart.hasSingleSupplier) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('يجب أن تحتوي الطلبية على منتجات من مورد واحد فقط'),
-            backgroundColor: Colors.red,
-          ),
-        );
-
-      return;
-    }
-
-    final String supplierId = cart.supplierId;
-    final String supplierName = cart.supplierName;
-
-    // المورد اختياري لدعم المنتجات القديمة التي
-    // لا تحتوي على بيانات مورد.
-    final OrderSupplierEntity? supplier =
-        supplierId.isNotEmpty || supplierName.isNotEmpty
-        ? OrderSupplierEntity(id: supplierId, name: supplierName)
-        : null;
-
     final CreateOrderRequest request = CreateOrderRequest(
-      supplier: supplier,
       items: cart.items
           .map((CartItemEntity item) {
             return OrderItemEntity(
@@ -157,6 +134,8 @@ class CartPage extends ConsumerWidget {
               productName: item.product.name,
               unitPrice: item.product.price,
               quantity: item.quantity,
+              supplierId: item.product.supplierId,
+              supplierName: item.product.supplierName,
               imageUrl: item.product.imageUrl,
             );
           })
