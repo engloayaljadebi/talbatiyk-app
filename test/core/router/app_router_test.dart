@@ -4,14 +4,16 @@
 |--------------------------------------------------------------------------
 |
 | محتويات الملف:
+| - اختبار أن Production Main Route يستخدم MainPage افتراضيًا.
 | - اختبار تحويل المستخدم غير المسجل إلى Login.
-| - اختبار تحويل المستخدم صاحب الجلسة الصالحة إلى MainPage.
+| - اختبار تحويل المستخدم صاحب الجلسة الصالحة إلى Main route.
 | - اختبار البقاء في AuthSessionPage عند فشل استعادة الجلسة.
-| - اختبار الانتقال من Login إلى MainPage بعد نجاح تسجيل الدخول.
+| - اختبار الانتقال من Login إلى Main route بعد نجاح تسجيل الدخول.
 |
 | الهدف:
 | إثبات أن GoRouter يتفاعل فعليًا مع AuthController
-| دون استخدام Laravel أو Secure Storage أو HTTP.
+| دون استخدام Laravel أو Secure Storage أو HTTP
+| ودون بناء MainPage الحقيقية داخل اختبارات Router.
 |
 */
 
@@ -37,14 +39,15 @@ void main() {
   );
 
   const session = AuthSessionEntity(user: user);
+
   Future<void> pumpRouterFrames(WidgetTester tester) async {
     /*
-   * نعطي GoRouter وقتًا لتنفيذ redirect
-   * وإنهاء انتقال الصفحة بالكامل.
-   *
-   * لا نستخدم pumpAndSettle لأن MainPage قد تستمر
-   * في جدولة Frames بسبب الصور والـProviders.
-   */
+     * نعطي GoRouter وقتًا لتنفيذ Redirect
+     * واستقرار انتقال الصفحة.
+     *
+     * نستخدم Pumps محددة حتى يبقى الاختبار
+     * متحكمًا في عدد Frames ولا يعتمد على Timers مستقبلية.
+     */
     await tester.pump();
 
     for (var index = 0; index < 12; index++) {
@@ -57,7 +60,26 @@ void main() {
     required FakeAuthRepository repository,
   }) async {
     final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        /*
+         * نعزل AuthRepository الحقيقي.
+         *
+         * اختبار Router لا يحتاج Laravel
+         * أو HTTP أو Secure Storage.
+         */
+        authRepositoryProvider.overrideWithValue(repository),
+
+        /*
+         * اختبار Router يهتم فقط بالوصول
+         * إلى المسار الرئيسي.
+         *
+         * لذلك لا نبني MainPage الحقيقية
+         * ولا Home ولا Products ولا Network Images.
+         */
+        mainRoutePageFactoryProvider.overrideWithValue(
+          () => const _TestMainPage(),
+        ),
+      ],
     );
 
     addTearDown(container.dispose);
@@ -72,11 +94,23 @@ void main() {
     );
 
     /*
-     * ننتظر انتهاء restoreSession وRedirect الناتج عنه.
+     * ننتظر انتهاء restoreSession
+     * والـRedirect الناتج عنه.
      */
     await pumpRouterFrames(tester);
+
     return container;
   }
+
+  test('main route factory uses MainPage by default', () {
+    final container = ProviderContainer();
+
+    addTearDown(container.dispose);
+
+    final page = container.read(mainRoutePageFactoryProvider)();
+
+    expect(page, isA<MainPage>());
+  });
 
   group('App Router Auth Guard', () {
     testWidgets('redirects unauthenticated user to LoginPage', (tester) async {
@@ -90,7 +124,7 @@ void main() {
 
       expect(find.byType(LoginPage), findsOneWidget);
 
-      expect(find.byType(MainPage), findsNothing);
+      expect(find.byType(_TestMainPage), findsNothing);
     });
 
     testWidgets('redirects authenticated user to MainPage', (tester) async {
@@ -102,7 +136,7 @@ void main() {
 
       await pumpRouter(tester: tester, repository: repository);
 
-      expect(find.byType(MainPage), findsOneWidget);
+      expect(find.byType(_TestMainPage), findsOneWidget);
 
       expect(find.byType(LoginPage), findsNothing);
     });
@@ -126,7 +160,7 @@ void main() {
 
       expect(find.byType(LoginPage), findsNothing);
 
-      expect(find.byType(MainPage), findsNothing);
+      expect(find.byType(_TestMainPage), findsNothing);
     });
 
     testWidgets('redirects from LoginPage to MainPage after successful login', (
@@ -143,8 +177,13 @@ void main() {
         repository: repository,
       );
 
-      // بعد restoreSession بدون Token نكون في Login.
+      /*
+         * بعد restoreSession بدون Session
+         * يجب أن نكون في LoginPage.
+         */
       expect(find.byType(LoginPage), findsOneWidget);
+
+      expect(find.byType(_TestMainPage), findsNothing);
 
       final result = await container
           .read(authProvider)
@@ -157,19 +196,38 @@ void main() {
       expect(result, isTrue);
 
       /*
-         * AuthController استدعى notifyListeners،
-         * ولذلك GoRouter سيعيد تقييم redirect.
+         * AuthController غيّر حالة المصادقة،
+         * ولذلك GoRouter سيعيد تقييم Redirect.
          */
       await pumpRouterFrames(tester);
 
-      expect(find.byType(MainPage), findsOneWidget);
+      expect(find.byType(_TestMainPage), findsOneWidget);
 
       expect(find.byType(LoginPage), findsNothing);
     });
   });
 }
 
+/// صفحة خفيفة تمثل الوجهة الرئيسية داخل اختبارات Router فقط.
+///
+/// وجود صفحة مستقلة يسمح لنا بالتأكد من نجاح Redirect
+/// بدون بناء MainPage الحقيقية وتشغيل Features غير مرتبطة بالاختبار.
+final class _TestMainPage extends StatelessWidget {
+  const _TestMainPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: Text('test-main-page')));
+  }
+}
+
 /// Repository وهمي لاختبار Router وحالة Auth فقط.
+///
+/// لا يستخدم:
+/// - Laravel
+/// - HTTP
+/// - Secure Storage
+/// - قاعدة البيانات الحقيقية
 final class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({
     required this.restoreResult,

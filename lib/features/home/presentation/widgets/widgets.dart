@@ -1,12 +1,5 @@
 export 'banner_slider.dart';
-export 'cart_bottom_bar.dart';
-export 'cart_summary.dart';
-export 'categories_section.dart';
-export 'category_list.dart';
-export 'featured_products_section.dart';
-export 'home_app_bar.dart';
-export 'home_search_bar.dart';
 export 'latest_products_section.dart';
+
 //export 'product_card.dart';
 //export 'product_list.dart';
-export 'search_box.dart';

@@ -1,3 +1,0 @@
-class HomeBinding {
-  void dependencies() {}
-}
