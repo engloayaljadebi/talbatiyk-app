@@ -98,6 +98,17 @@ class Business extends Model
     }
 
     /**
+     * عناصر الطلبات التي يكون هذا النشاط موردًا لها.
+     */
+    public function suppliedOrderItems(): HasMany
+    {
+        return $this->hasMany(
+            OrderItem::class,
+            'supplier_id',
+        );
+    }
+
+    /**
      * تحويل أنواع الحقول تلقائيًا.
      */
     protected function casts(): array

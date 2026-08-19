@@ -96,6 +96,14 @@ class User extends Authenticatable
         return $this->hasMany(Verification::class);
     }
 
+    /**
+     * الطلبات التي أنشأها المستخدم.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     protected function casts(): array
     {
         return [

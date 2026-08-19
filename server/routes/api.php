@@ -11,8 +11,10 @@
 |
 | الأقسام الحالية:
 | - Auth API
+| - Orders API
 | - Business API
 | - Business Locations API
+| - Business Contacts API
 |
 */
 
@@ -20,6 +22,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
+use App\Http\Controllers\Api\V1\Order\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -81,6 +84,14 @@ Route::prefix('v1')->group(function (): void {
     ])->group(function (): void {
         /*
         |--------------------------------------------------------------------------
+        | Orders
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/orders', [OrderController::class, 'store']);
+
+        /*
+        |--------------------------------------------------------------------------
         | Businesses
         |--------------------------------------------------------------------------
         */
@@ -102,7 +113,10 @@ Route::prefix('v1')->group(function (): void {
          * BusinessQueryService يتأكد من أن المستخدم
          * لديه عضوية active في النشاط.
          */
-        Route::get('/businesses/{business}', [BusinessController::class, 'show']);
+        Route::get(
+            '/businesses/{business}',
+            [BusinessController::class, 'show'],
+        );
 
         /*
          * تعديل البيانات الأساسية لنشاط واحد.
@@ -117,14 +131,24 @@ Route::prefix('v1')->group(function (): void {
 
         /*
         |--------------------------------------------------------------------------
-        | Business Locations
+        | Business Scoped Routes
         |--------------------------------------------------------------------------
         |
-        | إدارة فروع ومتاجر ومكاتب ومخازن النشاط.
+        | scopeBindings يضمن أن الموارد المتداخلة مثل Location
+        | تُحل ضمن الـ Business الأب الصحيح.
         |
         */
 
         Route::scopeBindings()->group(function (): void {
+            /*
+            |--------------------------------------------------------------------------
+            | Business Locations
+            |--------------------------------------------------------------------------
+            |
+            | إدارة فروع ومتاجر ومكاتب ومخازن النشاط.
+            |
+            */
+
             /*
              * عرض جميع مواقع النشاط.
              */
@@ -140,6 +164,39 @@ Route::prefix('v1')->group(function (): void {
                 '/businesses/{business}/locations',
                 [BusinessLocationController::class, 'store'],
             );
+
+            /*
+             * عرض موقع واحد.
+             */
+            Route::get(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'show'],
+            );
+
+            /*
+             * تعديل موقع موجود.
+             */
+            Route::patch(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'update'],
+            );
+
+            /*
+             * حذف موقع.
+             */
+            Route::delete(
+                '/businesses/{business}/locations/{location}',
+                [BusinessLocationController::class, 'destroy'],
+            );
+
+            /*
+             * تعيين الموقع الرئيسي للنشاط.
+             */
+            Route::post(
+                '/businesses/{business}/locations/{location}/primary',
+                [BusinessLocationController::class, 'setPrimary'],
+            );
+
             /*
             |--------------------------------------------------------------------------
             | Business Contacts
@@ -216,37 +273,6 @@ Route::prefix('v1')->group(function (): void {
             Route::post(
                 '/businesses/{business}/locations/{location}/contacts/{contact}/primary',
                 [BusinessContactController::class, 'setPrimaryLocation'],
-            );
-            /*
-             * عرض موقع واحد.
-             */
-            Route::get(
-                '/businesses/{business}/locations/{location}',
-                [BusinessLocationController::class, 'show'],
-            );
-
-            /*
-             * تعديل موقع موجود.
-             */
-            Route::patch(
-                '/businesses/{business}/locations/{location}',
-                [BusinessLocationController::class, 'update'],
-            );
-
-            /*
-             * حذف موقع.
-             */
-            Route::delete(
-                '/businesses/{business}/locations/{location}',
-                [BusinessLocationController::class, 'destroy'],
-            );
-
-            /*
-             * تعيين الموقع الرئيسي للنشاط.
-             */
-            Route::post(
-                '/businesses/{business}/locations/{location}/primary',
-                [BusinessLocationController::class, 'setPrimary'],
             );
         });
     });
