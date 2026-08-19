@@ -347,7 +347,12 @@ class OrderApiTest extends TestCase
             ->assertJsonPath(
                 'data.items.0.supplier_name',
                 $supplier->name,
-            );
+            )
+            // عقد OrderItem لا يكشف تفاصيل الربط الداخلي أو timestamps.
+            ->assertJsonMissingPath('data.items.0.order_id')
+            ->assertJsonMissingPath('data.items.0.created_at')
+            ->assertJsonMissingPath('data.items.0.updated_at')
+            ->assertJsonPath('data.items.0.unit_price', '100.00');
     }
 
     /**
