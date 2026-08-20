@@ -35,9 +35,14 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CreateBusinessRequestContactTypeEnum.serializer)
       ..add(CreateBusinessRequestLocation.serializer)
       ..add(CreateBusinessRequestLocationTypeEnum.serializer)
+      ..add(CreateOrderRequest.serializer)
+      ..add(CreateOrderRequestItemsInner.serializer)
       ..add(InlineObject.serializer)
       ..add(InlineObject1.serializer)
       ..add(LoginRequest.serializer)
+      ..add(OrderItemResource.serializer)
+      ..add(OrderResource.serializer)
+      ..add(OrderStore201Response.serializer)
       ..add(RegisterRequest.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
@@ -59,6 +64,13 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(BusinessResource)]),
           () => ListBuilder<BusinessResource>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(CreateOrderRequestItemsInner)]),
+          () => ListBuilder<CreateOrderRequestItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(OrderItemResource)]),
+          () => ListBuilder<OrderItemResource>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
