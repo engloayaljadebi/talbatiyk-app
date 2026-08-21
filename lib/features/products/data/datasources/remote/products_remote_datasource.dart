@@ -1,54 +1,50 @@
-import '../../../../../core/network/api_client.dart';
-import '../../dto/products_dto.dart';
+import 'package:talbatiyk/core/network/generated_api_client.dart';
+
 import '../../mappers/products_mapper.dart';
 import '../../models/products_model.dart';
 import '../products_datasource.dart';
 
-class ProductsRemoteDataSource implements ProductsDataSource {
-  const ProductsRemoteDataSource({
-    required this.client,
-    this.endpoint = '/products',
-  });
+/// Reads discoverable products from the generated OpenAPI client.
+///
+/// This source is intentionally read-only. Local product writes remain on the
+/// existing local datasource until their dedicated synchronization gate.
+final class ProductsRemoteDataSource implements ProductsDataSource {
+  ProductsRemoteDataSource(this._apiClient);
 
-  final ApiClient client;
-  final String endpoint;
+  static const int _perPage = 100;
+
+  final GeneratedApiClient _apiClient;
 
   @override
   Future<List<ProductModel>> getProducts() async {
-    final response = await client.get(endpoint);
-    final items = _extractItems(response);
+    final productsById = <String, ProductModel>{};
 
-    return List<ProductModel>.unmodifiable(
-      items.map((item) {
-        final dto = ProductDto.fromJson(_asJsonMap(item));
-        return ProductsMapper.toModel(dto);
-      }),
-    );
-  }
+    var page = 1;
 
-  List<Object?> _extractItems(Object? payload) {
-    if (payload is List) {
-      return payload.cast<Object?>();
-    }
+    while (true) {
+      final response = await _apiClient.products.productIndex(
+        page: page,
+        perPage: _perPage,
+      );
 
-    if (payload is Map) {
-      for (final key in const ['data', 'items', 'products']) {
-        if (payload.containsKey(key)) {
-          return _extractItems(payload[key]);
-        }
+      final responseBody = response.data;
+
+      if (responseBody == null) {
+        throw StateError('Product discovery response does not contain data.');
       }
+
+      for (final resource in responseBody.data) {
+        final product = ProductsMapper.fromResource(resource);
+        productsById[product.id] = product;
+      }
+
+      if (page >= responseBody.meta.lastPage) {
+        break;
+      }
+
+      page += 1;
     }
 
-    throw const FormatException(
-      'Products response must contain a list of products.',
-    );
-  }
-
-  Map<String, dynamic> _asJsonMap(Object? value) {
-    if (value is! Map) {
-      throw const FormatException('Each product must be a JSON object.');
-    }
-
-    return value.map((key, item) => MapEntry(key.toString(), item));
+    return List<ProductModel>.unmodifiable(productsById.values);
   }
 }

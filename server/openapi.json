@@ -1329,6 +1329,228 @@
                     }
                 }
             }
+        },
+        "/orders": {
+            "post": {
+                "operationId": "order.store",
+                "summary": "Create a new order for the authenticated user",
+                "tags": [
+                    "Order"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateOrderRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/products": {
+            "get": {
+                "operationId": "product.index",
+                "tags": [
+                    "Product"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `ProductResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProductResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1891,6 +2113,70 @@
                 ],
                 "title": "CreateBusinessRequest"
             },
+            "CreateOrderRequest": {
+                "type": "object",
+                "properties": {
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "product_id": {
+                                    "type": "string",
+                                    "maxLength": 255
+                                },
+                                "product_name": {
+                                    "type": "string",
+                                    "maxLength": 255
+                                },
+                                "unit_price": {
+                                    "type": "number",
+                                    "minimum": 0
+                                },
+                                "quantity": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "supplier_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "supplier_name": {
+                                    "type": "string",
+                                    "maxLength": 200
+                                },
+                                "image_url": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "maxLength": 2048
+                                }
+                            },
+                            "required": [
+                                "product_id",
+                                "product_name",
+                                "unit_price",
+                                "quantity",
+                                "supplier_id",
+                                "supplier_name"
+                            ]
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "items"
+                ],
+                "title": "CreateOrderRequest"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -1912,6 +2198,189 @@
                     "device_name"
                 ],
                 "title": "LoginRequest"
+            },
+            "OrderItemResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    },
+                    "product_name": {
+                        "type": "string"
+                    },
+                    "unit_price": {
+                        "type": "string",
+                        "description": "decimal cast \u0641\u064a Eloquent \u064a\u0639\u064a\u062f string \u0644\u0644\u062d\u0641\u0627\u0638 \u0639\u0644\u0649 \u0627\u0644\u062f\u0642\u0629."
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "supplier_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "supplier_name": {
+                        "type": "string"
+                    },
+                    "image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "product_id",
+                    "product_name",
+                    "unit_price",
+                    "quantity",
+                    "supplier_id",
+                    "supplier_name",
+                    "image_url"
+                ],
+                "title": "OrderItemResource"
+            },
+            "OrderResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "description": "OrderService \u064a\u062d\u0645\u0651\u0644 items \u0642\u0628\u0644 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0640 Resource\u060c\n\u0644\u0630\u0644\u0643 \u0627\u0644\u0639\u0646\u0627\u0635\u0631 \u062c\u0632\u0621 \u0625\u0644\u0632\u0627\u0645\u064a \u0645\u0646 Create Order response.",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderItemResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "notes",
+                    "items",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderResource"
+            },
+            "ProductResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "supplier_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "supplier_name": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "brand": {
+                        "type": "string"
+                    },
+                    "price": {
+                        "type": "number"
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "is_available": {
+                        "type": "boolean"
+                    },
+                    "image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "colors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "discount": {
+                        "type": "number"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "supplier_id",
+                    "supplier_name",
+                    "name",
+                    "description",
+                    "category",
+                    "brand",
+                    "price",
+                    "quantity",
+                    "is_available",
+                    "image_url",
+                    "colors",
+                    "discount",
+                    "rating",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "ProductResource"
             },
             "RegisterRequest": {
                 "type": "object",

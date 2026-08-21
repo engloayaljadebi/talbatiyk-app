@@ -115,6 +115,8 @@ Class | Method | HTTP request | Description
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationShow**](doc/BusinessLocationApi.md#businesslocationshow) | **GET** /businesses/{business}/locations/{location} | عرض موقع واحد تابع للنشاط
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationStore**](doc/BusinessLocationApi.md#businesslocationstore) | **POST** /businesses/{business}/locations | إنشاء موقع جديد
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationUpdate**](doc/BusinessLocationApi.md#businesslocationupdate) | **PATCH** /businesses/{business}/locations/{location} | تعديل موقع موجود
+[*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
+[*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
 
 
 ## Documentation For Models
@@ -140,9 +142,19 @@ Class | Method | HTTP request | Description
  - [CreateBusinessRequest](doc/CreateBusinessRequest.md)
  - [CreateBusinessRequestContact](doc/CreateBusinessRequestContact.md)
  - [CreateBusinessRequestLocation](doc/CreateBusinessRequestLocation.md)
+ - [CreateOrderRequest](doc/CreateOrderRequest.md)
+ - [CreateOrderRequestItemsInner](doc/CreateOrderRequestItemsInner.md)
  - [InlineObject](doc/InlineObject.md)
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
+ - [OrderItemResource](doc/OrderItemResource.md)
+ - [OrderResource](doc/OrderResource.md)
+ - [OrderStore201Response](doc/OrderStore201Response.md)
+ - [ProductIndex200Response](doc/ProductIndex200Response.md)
+ - [ProductIndex200ResponseLinks](doc/ProductIndex200ResponseLinks.md)
+ - [ProductIndex200ResponseMeta](doc/ProductIndex200ResponseMeta.md)
+ - [ProductIndex200ResponseMetaLinksInner](doc/ProductIndex200ResponseMetaLinksInner.md)
+ - [ProductResource](doc/ProductResource.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [RegisterRequestContactValue](doc/RegisterRequestContactValue.md)
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)

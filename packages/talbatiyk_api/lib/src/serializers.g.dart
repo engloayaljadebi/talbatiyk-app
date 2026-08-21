@@ -35,9 +35,19 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CreateBusinessRequestContactTypeEnum.serializer)
       ..add(CreateBusinessRequestLocation.serializer)
       ..add(CreateBusinessRequestLocationTypeEnum.serializer)
+      ..add(CreateOrderRequest.serializer)
+      ..add(CreateOrderRequestItemsInner.serializer)
       ..add(InlineObject.serializer)
       ..add(InlineObject1.serializer)
       ..add(LoginRequest.serializer)
+      ..add(OrderItemResource.serializer)
+      ..add(OrderResource.serializer)
+      ..add(OrderStore201Response.serializer)
+      ..add(ProductIndex200Response.serializer)
+      ..add(ProductIndex200ResponseLinks.serializer)
+      ..add(ProductIndex200ResponseMeta.serializer)
+      ..add(ProductIndex200ResponseMetaLinksInner.serializer)
+      ..add(ProductResource.serializer)
       ..add(RegisterRequest.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
@@ -59,6 +69,23 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(BusinessResource)]),
           () => ListBuilder<BusinessResource>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(CreateOrderRequestItemsInner)]),
+          () => ListBuilder<CreateOrderRequestItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(OrderItemResource)]),
+          () => ListBuilder<OrderItemResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ProductIndex200ResponseMetaLinksInner)]),
+          () => ListBuilder<ProductIndex200ResponseMetaLinksInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(ProductResource)]),
+          () => ListBuilder<ProductResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

@@ -35,9 +35,19 @@ import 'package:talbatiyk_api/src/model/create_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/create_business_request.dart';
 import 'package:talbatiyk_api/src/model/create_business_request_contact.dart';
 import 'package:talbatiyk_api/src/model/create_business_request_location.dart';
+import 'package:talbatiyk_api/src/model/create_order_request.dart';
+import 'package:talbatiyk_api/src/model/create_order_request_items_inner.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
+import 'package:talbatiyk_api/src/model/order_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_resource.dart';
+import 'package:talbatiyk_api/src/model/order_store201_response.dart';
+import 'package:talbatiyk_api/src/model/product_index200_response.dart';
+import 'package:talbatiyk_api/src/model/product_index200_response_links.dart';
+import 'package:talbatiyk_api/src/model/product_index200_response_meta.dart';
+import 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inner.dart';
+import 'package:talbatiyk_api/src/model/product_resource.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
@@ -70,9 +80,19 @@ part 'serializers.g.dart';
   CreateBusinessRequest,
   CreateBusinessRequestContact,
   CreateBusinessRequestLocation,
+  CreateOrderRequest,
+  CreateOrderRequestItemsInner,
   InlineObject,
   InlineObject1,
   LoginRequest,
+  OrderItemResource,
+  OrderResource,
+  OrderStore201Response,
+  ProductIndex200Response,
+  ProductIndex200ResponseLinks,
+  ProductIndex200ResponseMeta,
+  ProductIndex200ResponseMetaLinksInner,
+  ProductResource,
   RegisterRequest,
   RegisterRequestContactValue,
   UpdateBusinessContactRequest,

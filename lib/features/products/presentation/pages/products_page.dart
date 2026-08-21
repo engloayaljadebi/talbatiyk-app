@@ -7,7 +7,6 @@ import '../widgets/product_filter_sheet.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/product_list.dart';
 import '../widgets/view_toggle.dart';
-import 'add_product_page.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   const ProductsPage({super.key});
@@ -28,7 +27,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = ref.watch(productsProvider);
+    final controller = ref.watch(productDiscoveryProvider);
     final state = controller.state;
 
     return Scaffold(
@@ -39,12 +38,6 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         actions: [
-          // يفتح صفحة إضافة منتج جديد.
-          IconButton(
-            tooltip: 'إضافة منتج',
-            onPressed: _openAddProductPage,
-            icon: const Icon(Icons.add_business_outlined),
-          ),
           ViewToggle(isGrid: state.isGrid, onChanged: controller.changeView),
           FilterButton(
             isActive: controller.hasActiveFilters,
@@ -115,7 +108,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
   }
 
   Widget _buildContent() {
-    final controller = ref.read(productsProvider);
+    final controller = ref.read(productDiscoveryProvider);
     final state = controller.state;
 
     if (state.isLoading) {
@@ -152,15 +145,8 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
   /// يفتح صفحة إضافة المنتج.
   ///
   /// عند حفظ المنتج، يقوم ProductsController بتحديث قائمة المنتجات،
-  /// ولذلك سيظهر المنتج مباشرة بعد الرجوع إلى هذه الصفحة.
-  Future<void> _openAddProductPage() async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => const AddProductPage()),
-    );
-  }
-
   Future<void> _openFilters() async {
-    final controller = ref.read(productsProvider);
+    final controller = ref.read(productDiscoveryProvider);
     final state = controller.state;
 
     if (controller.minimumPrice == 0 && controller.maximumPrice == 0) {
@@ -199,7 +185,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
 
   void _clearAll() {
     _searchController.clear();
-    ref.read(productsProvider).clearAll();
+    ref.read(productDiscoveryProvider).clearAll();
   }
 }
 
