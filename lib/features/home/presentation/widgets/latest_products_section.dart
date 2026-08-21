@@ -11,7 +11,7 @@ class LatestProductsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(productsProvider);
+    final controller = ref.watch(productDiscoveryProvider);
     final state = controller.state;
     final products = controller.latestProducts;
 

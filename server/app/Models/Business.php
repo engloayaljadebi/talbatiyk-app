@@ -117,4 +117,12 @@ class Business extends Model
             'deleted_at' => 'datetime',
         ];
     }
+
+    /**
+     * المنتجات التي يوفرها هذا النشاط بصفته مورداً.
+     */
+    public function suppliedProducts(): HasMany
+    {
+        return $this->hasMany(Product::class, 'supplier_id');
+    }
 }

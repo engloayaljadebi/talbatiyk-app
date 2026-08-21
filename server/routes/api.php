@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -89,6 +90,11 @@ Route::prefix('v1')->group(function (): void {
         */
 
         Route::post('/orders', [OrderController::class, 'store']);
+
+        /*
+         | Products Discovery
+         */
+        Route::get('/products', [ProductController::class, 'index']);
 
         /*
         |--------------------------------------------------------------------------

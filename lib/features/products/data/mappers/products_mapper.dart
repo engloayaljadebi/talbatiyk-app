@@ -1,9 +1,43 @@
+import 'package:talbatiyk_api/talbatiyk_api.dart';
+
 import '../../domain/entities/products_entity.dart';
 import '../dto/products_dto.dart';
 import '../models/products_model.dart';
 
 /// يحول بيانات المنتج بين DTO وModel وEntity دون فقدان المعلومات.
 class ProductsMapper {
+  /// Maps the generated OpenAPI ProductResource into the app data model.
+  static ProductModel fromResource(ProductResource resource) {
+    return ProductModel(
+      id: resource.id,
+      supplierId: resource.supplierId,
+      supplierName: resource.supplierName,
+      name: resource.name,
+      price: resource.price.toDouble(),
+      imageUrl: resource.imageUrl ?? '',
+      category: resource.category,
+      brand: resource.brand,
+      isAvailable: resource.isAvailable,
+      description: resource.description ?? '',
+      colors: List<String>.unmodifiable(resource.colors),
+      quantity: resource.quantity,
+      discount: resource.discount.toDouble(),
+      rating: resource.rating.toDouble(),
+      createdAt: _parseDateTime(resource.createdAt),
+      updatedAt: _parseDateTime(resource.updatedAt),
+    );
+  }
+
+  static DateTime? _parseDateTime(String? value) {
+    final normalized = value?.trim();
+
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+
+    return DateTime.tryParse(normalized);
+  }
+
   /// يحول استجابة الـAPI إلى نموذج بيانات.
   ///
   /// بيانات المورد والمزامنة لها قيم افتراضية حاليًا، وسنضيفها إلى

@@ -46,6 +46,9 @@ final class GeneratedApiClient {
   /// Business contacts endpoints.
   BusinessContactApi get businessContacts => client.getBusinessContactApi();
 
+  /// Product discovery endpoints.
+  ProductApi get products => client.getProductApi();
+
   /// يربط Sanctum Personal Access Token بالطلبات المحمية.
   void setAccessToken(String token) {
     client.setBearerAuth(_bearerSecurityName, token);
