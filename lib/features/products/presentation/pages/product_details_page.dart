@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
 import '../widgets/product_image.dart';
@@ -106,6 +107,11 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                 _ProductInformation(product: _product),
                 const SizedBox(height: 14),
                 _ProductIdentityCard(product: _product),
+                if (!_canManageProduct &&
+                    _product.supplierId.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _SupplierFollowCard(businessId: _product.supplierId.trim()),
+                ],
                 const SizedBox(height: 14),
                 _DescriptionCard(description: _product.description),
                 if (_product.colors.isNotEmpty) ...[
@@ -395,6 +401,115 @@ class _ProductIdentityCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _IdentityRow(label: 'معرف المنتج', value: product.id),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupplierFollowCard extends ConsumerWidget {
+  const _SupplierFollowCard({required this.businessId});
+
+  final String businessId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(supplierFollowProvider(businessId));
+    final isFollowing = controller.isFollowing;
+    final errorMessage = controller.errorMessage;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'متابعة المورد',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'تابع المورد للاحتفاظ بعلاقة متابعة مباشرة معه داخل طلبيتك.',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (controller.isLoading && isFollowing == null)
+            const Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 10),
+                  Text('جارٍ التحقق من حالة المتابعة...'),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonalIcon(
+                onPressed: controller.canToggle
+                    ? () async {
+                        await controller.toggle();
+                      }
+                    : null,
+                icon: controller.isUpdating
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        isFollowing == true
+                            ? Icons.check_circle_outline
+                            : Icons.person_add_alt_1,
+                      ),
+                label: Text(
+                  controller.isUpdating
+                      ? 'جارٍ التحديث...'
+                      : isFollowing == true
+                      ? 'تتم المتابعة'
+                      : 'متابعة المورد',
+                ),
+              ),
+            ),
+          if (errorMessage != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: controller.isLoading || controller.isUpdating
+                  ? null
+                  : () async {
+                      if (isFollowing == null) {
+                        await controller.loadStatus();
+                      } else {
+                        await controller.toggle();
+                      }
+                    },
+              icon: const Icon(Icons.refresh),
+              label: const Text('إعادة المحاولة'),
+            ),
+          ],
         ],
       ),
     );

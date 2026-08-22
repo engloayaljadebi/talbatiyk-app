@@ -44,6 +44,11 @@ doc/ProductIndex200ResponseMetaLinksInner.md
 doc/ProductResource.md
 doc/RegisterRequest.md
 doc/RegisterRequestContactValue.md
+doc/SupplierFollowApi.md
+doc/SupplierFollowShow200Response.md
+doc/SupplierFollowShow200ResponseData.md
+doc/SupplierFollowStore422Response.md
+doc/SupplierFollowStore422ResponseErrors.md
 doc/UpdateBusinessContactRequest.md
 doc/UpdateBusinessLocationRequest.md
 doc/UpdateBusinessRequest.md
@@ -56,6 +61,7 @@ lib/src/api/business_contact_api.dart
 lib/src/api/business_location_api.dart
 lib/src/api/order_api.dart
 lib/src/api/product_api.dart
+lib/src/api/supplier_follow_api.dart
 lib/src/api_util.dart
 lib/src/auth/api_key_auth.dart
 lib/src/auth/auth.dart
@@ -100,6 +106,10 @@ lib/src/model/product_index200_response_meta_links_inner.dart
 lib/src/model/product_resource.dart
 lib/src/model/register_request.dart
 lib/src/model/register_request_contact_value.dart
+lib/src/model/supplier_follow_show200_response.dart
+lib/src/model/supplier_follow_show200_response_data.dart
+lib/src/model/supplier_follow_store422_response.dart
+lib/src/model/supplier_follow_store422_response_errors.dart
 lib/src/model/update_business_contact_request.dart
 lib/src/model/update_business_location_request.dart
 lib/src/model/update_business_request.dart
@@ -150,6 +160,11 @@ test/product_index200_response_test.dart
 test/product_resource_test.dart
 test/register_request_contact_value_test.dart
 test/register_request_test.dart
+test/supplier_follow_api_test.dart
+test/supplier_follow_show200_response_data_test.dart
+test/supplier_follow_show200_response_test.dart
+test/supplier_follow_store422_response_errors_test.dart
+test/supplier_follow_store422_response_test.dart
 test/update_business_contact_request_test.dart
 test/update_business_location_request_test.dart
 test/update_business_request_test.dart

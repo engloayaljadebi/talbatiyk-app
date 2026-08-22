@@ -50,6 +50,10 @@ import 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inn
 import 'package:talbatiyk_api/src/model/product_resource.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
+import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
+import 'package:talbatiyk_api/src/model/supplier_follow_store422_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_follow_store422_response_errors.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_request.dart';
@@ -95,6 +99,10 @@ part 'serializers.g.dart';
   ProductResource,
   RegisterRequest,
   RegisterRequestContactValue,
+  SupplierFollowShow200Response,
+  SupplierFollowShow200ResponseData,
+  SupplierFollowStore422Response,
+  SupplierFollowStore422ResponseErrors,
   UpdateBusinessContactRequest,
   UpdateBusinessLocationRequest,
   UpdateBusinessRequest,
