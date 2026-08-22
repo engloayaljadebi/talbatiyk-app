@@ -117,6 +117,9 @@ Class | Method | HTTP request | Description
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationUpdate**](doc/BusinessLocationApi.md#businesslocationupdate) | **PATCH** /businesses/{business}/locations/{location} | تعديل موقع موجود
 [*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
 [*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
+[*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
+[*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
+[*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowStore**](doc/SupplierFollowApi.md#supplierfollowstore) | **POST** /businesses/{business}/follow | متابعة المورد
 
 
 ## Documentation For Models
@@ -157,6 +160,10 @@ Class | Method | HTTP request | Description
  - [ProductResource](doc/ProductResource.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [RegisterRequestContactValue](doc/RegisterRequestContactValue.md)
+ - [SupplierFollowShow200Response](doc/SupplierFollowShow200Response.md)
+ - [SupplierFollowShow200ResponseData](doc/SupplierFollowShow200ResponseData.md)
+ - [SupplierFollowStore422Response](doc/SupplierFollowStore422Response.md)
+ - [SupplierFollowStore422ResponseErrors](doc/SupplierFollowStore422ResponseErrors.md)
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)

@@ -7,6 +7,8 @@ import 'package:talbatiyk/features/products/presentation/pages/products_page.dar
 import 'package:talbatiyk/features/products/presentation/providers/products_provider.dart';
 import 'package:talbatiyk/features/products/presentation/state/products_state.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/product_card.dart';
+import 'package:talbatiyk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
+import 'package:talbatiyk/features/supplier_follow/presentation/providers/supplier_follow_provider.dart';
 
 void main() {
   testWidgets(
@@ -14,6 +16,9 @@ void main() {
     (tester) async {
       final container = ProviderContainer(
         overrides: [
+          supplierFollowRepositoryProvider.overrideWithValue(
+            _FakeSupplierFollowRepository(),
+          ),
           productDiscoveryDataSourceProvider.overrideWithValue(
             const _FakeProductsDataSource([
               ProductModel(
@@ -136,4 +141,15 @@ final class _FakeProductsDataSource implements ProductsDataSource {
 
   @override
   Future<List<ProductModel>> getProducts() async => products;
+}
+
+final class _FakeSupplierFollowRepository implements SupplierFollowRepository {
+  @override
+  Future<bool> isFollowing(String businessId) async => false;
+
+  @override
+  Future<bool> follow(String businessId) async => true;
+
+  @override
+  Future<bool> unfollow(String businessId) async => false;
 }

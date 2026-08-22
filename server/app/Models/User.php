@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -94,6 +95,21 @@ class User extends Authenticatable
     public function verifications(): HasMany
     {
         return $this->hasMany(Verification::class);
+    }
+
+    /**
+     * الأنشطة التجارية التي يتابعها المستخدم.
+     * صلاحية النشاط كمورد فعّال تُفحص عند إنشاء Follow،
+     * ولا تُكرر داخل تعريف علاقة Eloquent نفسها.
+     */
+    public function followedBusinesses(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Business::class,
+            'business_follows',
+            'user_id',
+            'business_id',
+        )->withTimestamps();
     }
 
     /**

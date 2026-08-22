@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
+use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -95,7 +96,29 @@ Route::prefix('v1')->group(function (): void {
          | Products Discovery
          */
         Route::get('/products', [ProductController::class, 'index']);
+        /*
+|--------------------------------------------------------------------------
+| Supplier Follow
+|--------------------------------------------------------------------------
+|
+| المتابعة تخص Business المورد نفسه ولا تتحكم في Product Discovery.
+|
+*/
 
+        Route::get(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'show'],
+        );
+
+        Route::post(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'store'],
+        );
+
+        Route::delete(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'destroy'],
+        );
         /*
         |--------------------------------------------------------------------------
         | Businesses

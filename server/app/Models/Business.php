@@ -90,6 +90,22 @@ class Business extends Model
     }
 
     /**
+     * المستخدمون الذين يتابعون هذا النشاط.
+     *
+     * العلاقة تمثل Follow فقط؛ أهلية النشاط كمورد
+     * تُدار في Follow Service وليس داخل الـModel.
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'business_follows',
+            'business_id',
+            'user_id',
+        )->withTimestamps();
+    }
+
+    /**
      * عمليات التوثيق الخاصة بالنشاط التجاري.
      */
     public function verifications(): HasMany

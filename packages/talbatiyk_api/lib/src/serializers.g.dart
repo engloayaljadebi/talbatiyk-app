@@ -51,6 +51,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RegisterRequest.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
+      ..add(SupplierFollowShow200Response.serializer)
+      ..add(SupplierFollowShow200ResponseData.serializer)
+      ..add(SupplierFollowStore422Response.serializer)
+      ..add(SupplierFollowStore422ResponseErrors.serializer)
       ..add(UpdateBusinessContactRequest.serializer)
       ..add(UpdateBusinessLocationRequest.serializer)
       ..add(UpdateBusinessLocationRequestStatusEnum.serializer)
@@ -83,6 +87,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ProductResource)]),
           () => ListBuilder<ProductResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

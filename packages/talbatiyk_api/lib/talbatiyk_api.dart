@@ -16,6 +16,7 @@ export 'package:talbatiyk_api/src/api/business_contact_api.dart';
 export 'package:talbatiyk_api/src/api/business_location_api.dart';
 export 'package:talbatiyk_api/src/api/order_api.dart';
 export 'package:talbatiyk_api/src/api/product_api.dart';
+export 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
 
 export 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 export 'package:talbatiyk_api/src/model/auth_me200_response.dart';
@@ -53,6 +54,10 @@ export 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inn
 export 'package:talbatiyk_api/src/model/product_resource.dart';
 export 'package:talbatiyk_api/src/model/register_request.dart';
 export 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
+export 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
+export 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
+export 'package:talbatiyk_api/src/model/supplier_follow_store422_response.dart';
+export 'package:talbatiyk_api/src/model/supplier_follow_store422_response_errors.dart';
 export 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 export 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 export 'package:talbatiyk_api/src/model/update_business_request.dart';
