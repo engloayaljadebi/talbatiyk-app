@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../cart/presentation/providers/cart_provider.dart';
-import '../../../cart/presentation/utils/cart_feedback.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
-import '../widgets/add_to_cart_button.dart';
 import '../widgets/product_image.dart';
-import '../widgets/quantity_selector.dart';
 import 'add_product_page.dart';
 
 enum _ProductAction { edit, delete }
@@ -41,10 +37,6 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final quantity = ref.watch(
-      cartProvider.select((cart) => cart.quantityOf(_product.id)),
-    );
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
@@ -113,6 +105,8 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                 const SizedBox(height: 14),
                 _ProductInformation(product: _product),
                 const SizedBox(height: 14),
+                _ProductIdentityCard(product: _product),
+                const SizedBox(height: 14),
                 _DescriptionCard(description: _product.description),
                 if (_product.colors.isNotEmpty) ...[
                   const SizedBox(height: 14),
@@ -122,18 +116,6 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: _ProductCartBar(
-        product: _product,
-        quantity: quantity,
-        onAdd: () {
-          final result = ref.read(cartProvider).addProduct(_product);
-
-          showCartAddResultMessage(context, result);
-        },
-        onRemove: () {
-          ref.read(cartProvider).decreaseProduct(_product.id);
-        },
       ),
     );
   }
@@ -374,6 +356,85 @@ class _ProductInformation extends StatelessWidget {
   }
 }
 
+class _ProductIdentityCard extends StatelessWidget {
+  const _ProductIdentityCard({required this.product});
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) {
+    final supplierName = product.supplierName.trim();
+    final supplierId = product.supplierId.trim();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'المورد',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 14),
+
+          // بيانات المورد تأتي من Product Discovery contract نفسه،
+          // لذلك لا نحتاج إلى Request إضافي لعرض التفاصيل الحالية.
+          _IdentityRow(
+            label: 'اسم المورد',
+            value: supplierName.isEmpty ? 'غير متوفر' : supplierName,
+          ),
+          const SizedBox(height: 10),
+          _IdentityRow(
+            label: 'معرف المورد',
+            value: supplierId.isEmpty ? 'غير متوفر' : supplierId,
+          ),
+          const SizedBox(height: 10),
+          _IdentityRow(label: 'معرف المنتج', value: product.id),
+        ],
+      ),
+    );
+  }
+}
+
+class _IdentityRow extends StatelessWidget {
+  const _IdentityRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SelectableText(
+            value,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _InformationItem extends StatelessWidget {
   const _InformationItem({
     required this.icon,
@@ -481,93 +542,6 @@ class _ColorsCard extends StatelessWidget {
                 .toList(growable: false),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductCartBar extends StatelessWidget {
-  const _ProductCartBar({
-    required this.product,
-    required this.quantity,
-    required this.onAdd,
-    required this.onRemove,
-  });
-
-  final ProductEntity product;
-  final int quantity;
-  final VoidCallback onAdd;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 12,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'السعر',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '${_formatPrice(product.price)} ر.ي',
-                      style: const TextStyle(
-                        color: Color(0xFFE53935),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 190,
-                child: !product.isAvailable
-                    ? const _UnavailableAction()
-                    : quantity == 0
-                    ? AddToCartButton(onPressed: onAdd)
-                    : QuantitySelector(
-                        quantity: quantity,
-                        onAdd: onAdd,
-                        onRemove: onRemove,
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UnavailableAction extends StatelessWidget {
-  const _UnavailableAction();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F1F3),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: const Text(
-        'المنتج غير متوفر',
-        style: TextStyle(color: Color(0xFF8E8E93), fontWeight: FontWeight.w600),
       ),
     );
   }
