@@ -51,6 +51,47 @@ class ProductRecords extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Server-owned snapshot used only by customer Product Discovery.
+///
+/// This table is deliberately separate from ProductRecords because supplier
+/// product management has independent pending/outbox semantics.
+class ProductDiscoveryRecords extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get supplierId => text()();
+
+  TextColumn get supplierName => text()();
+
+  TextColumn get name => text()();
+
+  TextColumn get category => text().withDefault(const Constant(''))();
+
+  TextColumn get brand => text().withDefault(const Constant(''))();
+
+  TextColumn get description => text().withDefault(const Constant(''))();
+
+  RealColumn get price => real()();
+
+  IntColumn get quantity => integer().withDefault(const Constant(0))();
+
+  BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
+
+  RealColumn get discount => real().withDefault(const Constant(0))();
+
+  RealColumn get rating => real().withDefault(const Constant(0))();
+
+  TextColumn get colorsJson => text().withDefault(const Constant('[]'))();
+
+  TextColumn get remoteImageUrl => text().nullable()();
+
+  DateTimeColumn get createdAt => dateTime()();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 class OrderRecords extends Table {
   TextColumn get id => text()();
 
@@ -114,15 +155,23 @@ class SyncOperations extends Table {
 }
 
 @DriftDatabase(
-  tables: [ProductRecords, OrderRecords, OrderItemRecords, SyncOperations],
+  tables: [
+    ProductRecords,
+    ProductDiscoveryRecords,
+    OrderRecords,
+    OrderItemRecords,
+    SyncOperations,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'talbatiyk'));
 
-  /// مُنشئ مخصص للاختبارات يسمح باستخدام قاعدة بيانات مؤقتة.
+  /// Test-only constructor that accepts an in-memory database executor.
   AppDatabase.forTesting(super.e);
+
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -133,6 +182,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(orderRecords);
           await m.createTable(orderItemRecords);
+        }
+
+        if (from < 3) {
+          await m.createTable(productDiscoveryRecords);
         }
       },
     );

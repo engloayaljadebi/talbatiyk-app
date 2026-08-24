@@ -7,10 +7,9 @@ import '../../../domain/entities/products_entity.dart';
 import '../../models/products_model.dart';
 import '../products_datasource.dart';
 
-/// مصدر المنتجات المحلي المسؤول عن القراءة من قاعدة SQLite.
+/// Drift-backed source for supplier product management.
 ///
-/// في أول تشغيل فقط، يضيف المنتجات التجريبية إلى قاعدة البيانات.
-/// بعد ذلك تُقرأ جميع المنتجات من قاعدة البيانات المحلية.
+/// Reads use ProductRecords, while business writes may create Outbox work.
 class ProductsLocalDataSource
     implements ProductsDataSource, ProductsWritableDataSource {
   ProductsLocalDataSource(this.database);
@@ -19,8 +18,6 @@ class ProductsLocalDataSource
 
   @override
   Future<List<ProductModel>> getProducts() async {
-    await _seedInitialProductsIfNeeded();
-
     /// نستبعد المنتجات المحذوفة محليًا ونرتب الأحدث أولًا.
     final query = database.select(database.productRecords)
       ..where((table) => table.deletedAt.isNull())
@@ -302,76 +299,6 @@ class ProductsLocalDataSource
               createdAt: now,
             ),
           );
-    });
-  }
-
-  /// يضيف البيانات التجريبية عند فتح قاعدة بيانات فارغة فقط.
-  Future<void> _seedInitialProductsIfNeeded() async {
-    final existingProduct = await (database.select(
-      database.productRecords,
-    )..limit(1)).getSingleOrNull();
-
-    if (existingProduct != null) {
-      return;
-    }
-
-    final now = DateTime.now();
-
-    await database.batch((batch) {
-      batch.insertAll(database.productRecords, [
-        ProductRecordsCompanion.insert(
-          id: '1',
-          supplierId: 'demo-supplier',
-          supplierName: 'مورد تجريبي',
-          name: 'شاحن سامسونج وكالة',
-          price: 4500,
-          category: const Value('شواحن'),
-          brand: const Value('Samsung'),
-          description: const Value('ضمان سنة'),
-          colorsJson: const Value('["أبيض","أسود"]'),
-          quantity: const Value(50),
-          isAvailable: const Value(true),
-          rating: const Value(4.8),
-          remoteImageUrl: const Value(''),
-          syncStatus: const Value('synced'),
-          createdAt: now,
-          updatedAt: now,
-        ),
-        ProductRecordsCompanion.insert(
-          id: '2',
-          supplierId: 'demo-supplier',
-          supplierName: 'مورد تجريبي',
-          name: 'سماعة AirPods',
-          price: 15000,
-          category: const Value('سماعات'),
-          brand: const Value('Apple'),
-          description: const Value('نسخة أصلية'),
-          colorsJson: const Value('["أبيض"]'),
-          quantity: const Value(25),
-          isAvailable: const Value(true),
-          rating: const Value(4.7),
-          remoteImageUrl: const Value(''),
-          syncStatus: const Value('synced'),
-          createdAt: now,
-          updatedAt: now,
-        ),
-        ProductRecordsCompanion.insert(
-          id: '3',
-          supplierId: 'demo-supplier',
-          supplierName: 'مورد تجريبي',
-          name: 'رأس شاحن Type-C',
-          price: 2500,
-          category: const Value('شواحن'),
-          brand: const Value('Anker'),
-          quantity: const Value(0),
-          isAvailable: const Value(false),
-          rating: const Value(4.2),
-          remoteImageUrl: const Value(''),
-          syncStatus: const Value('synced'),
-          createdAt: now,
-          updatedAt: now,
-        ),
-      ]);
     });
   }
 
