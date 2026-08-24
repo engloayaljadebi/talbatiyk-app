@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 import 'package:talbatiyk/features/products/presentation/pages/product_details_page.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
@@ -74,6 +78,80 @@ void main() {
     },
   );
 
+  testWidgets(
+    'confirms follow before adding product from an unfollowed supplier',
+    (tester) async {
+      final repository = _FakeSupplierFollowRepository(
+        isFollowingResult: false,
+      );
+      final container = _createContainer(repository);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProductDetailsPage(product: product)),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byType(AddToCartButton),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(AddToCartButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('متابعة المورد وإضافة المنتج'), findsOneWidget);
+      expect(container.read(cartProvider).quantityOf(product.id), 0);
+      expect(repository.followCalls, 0);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'متابعة وإضافة'));
+      await tester.pumpAndSettle();
+
+      expect(repository.followCalls, 1);
+      expect(container.read(cartProvider).quantityOf(product.id), 1);
+    },
+  );
+
+  testWidgets('does not add product when required follow fails', (
+    tester,
+  ) async {
+    final repository = _FakeSupplierFollowRepository(isFollowingResult: false)
+      ..failNextFollow = true;
+
+    final container = _createContainer(repository);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ProductDetailsPage(product: product)),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byType(AddToCartButton),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(AddToCartButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'متابعة وإضافة'));
+    await tester.pumpAndSettle();
+
+    expect(repository.followCalls, 1);
+    expect(container.read(cartProvider).quantityOf(product.id), 0);
+  });
   testWidgets('product discovery card does not expose add-to-cart', (
     tester,
   ) async {
@@ -109,7 +187,41 @@ void main() {
     // Product Details still has no cart action in Gate 2.3.
     expect(find.byType(AddToCartButton), findsNothing);
   });
+  testWidgets('adds product directly when supplier is already followed', (
+    tester,
+  ) async {
+    final repository = _FakeSupplierFollowRepository(isFollowingResult: true);
+    final container = _createContainer(repository);
+    addTearDown(container.dispose);
 
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ProductDetailsPage(product: product)),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(container.read(cartProvider).isEmpty, isTrue);
+    await tester.scrollUntilVisible(
+      find.byType(AddToCartButton),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    final addToCartButton = find.byType(AddToCartButton);
+    expect(addToCartButton, findsOneWidget);
+
+    await tester.tap(addToCartButton);
+    await tester.pumpAndSettle();
+
+    final CartController cart = container.read(cartProvider);
+
+    expect(cart.quantityOf(product.id), 1);
+    expect(repository.followCalls, 0);
+    expect(repository.unfollowCalls, 0);
+  });
   testWidgets('follows supplier from product details', (tester) async {
     final repository = _FakeSupplierFollowRepository(isFollowingResult: false);
     final container = _createContainer(repository);
@@ -137,14 +249,13 @@ void main() {
     expect(repository.followCalls, 1);
     expect(find.widgetWithText(FilledButton, 'تتم المتابعة'), findsOneWidget);
 
-    expect(find.byType(AddToCartButton), findsNothing);
+    expect(find.byType(AddToCartButton), findsOneWidget);
   });
 
   testWidgets('shows follow load error and retries', (tester) async {
     final repository = _FakeSupplierFollowRepository(failNextLoad: true);
     final container = _createContainer(repository);
     addTearDown(container.dispose);
-
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -169,6 +280,89 @@ void main() {
     expect(repository.isFollowingCalls, 2);
     expect(find.widgetWithText(FilledButton, 'متابعة المورد'), findsOneWidget);
   });
+  testWidgets(
+    'prevents duplicate follow and cart insertion while add flow is running',
+    (tester) async {
+      final repository = _FakeSupplierFollowRepository(isFollowingResult: false)
+        ..followCompleter = Completer<bool>();
+
+      final container = _createContainer(repository);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProductDetailsPage(product: product)),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byType(AddToCartButton),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(AddToCartButton));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'متابعة وإضافة'));
+      await tester.pump();
+
+      expect(repository.followCalls, 1);
+      expect(container.read(cartProvider).quantityOf(product.id), 0);
+
+      await tester.tap(find.byType(AddToCartButton));
+      await tester.pump();
+
+      expect(repository.followCalls, 1);
+      expect(container.read(cartProvider).quantityOf(product.id), 0);
+
+      repository.followCompleter!.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(repository.followCalls, 1);
+      expect(container.read(cartProvider).quantityOf(product.id), 1);
+    },
+  );
+  testWidgets('does not follow or add product when confirmation is cancelled', (
+    tester,
+  ) async {
+    final repository = _FakeSupplierFollowRepository(isFollowingResult: false);
+
+    final container = _createContainer(repository);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ProductDetailsPage(product: product)),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byType(AddToCartButton),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(AddToCartButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('متابعة المورد وإضافة المنتج'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'إلغاء'));
+    await tester.pumpAndSettle();
+
+    expect(repository.followCalls, 0);
+    expect(repository.unfollowCalls, 0);
+    expect(container.read(cartProvider).quantityOf(product.id), 0);
+  });
 }
 
 ProviderContainer _createContainer(SupplierFollowRepository repository) {
@@ -185,6 +379,8 @@ final class _FakeSupplierFollowRepository implements SupplierFollowRepository {
 
   bool isFollowingResult;
   bool failNextLoad;
+  bool failNextFollow = false;
+  Completer<bool>? followCompleter;
 
   int isFollowingCalls = 0;
   int followCalls = 0;
@@ -205,6 +401,20 @@ final class _FakeSupplierFollowRepository implements SupplierFollowRepository {
   @override
   Future<bool> follow(String businessId) async {
     followCalls += 1;
+
+    if (failNextFollow) {
+      failNextFollow = false;
+      throw StateError('follow failed');
+    }
+
+    final completer = followCompleter;
+
+    if (completer != null) {
+      final result = await completer.future;
+      isFollowingResult = result;
+      return result;
+    }
+
     isFollowingResult = true;
     return true;
   }

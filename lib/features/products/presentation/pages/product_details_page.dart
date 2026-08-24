@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbatiyk/features/cart/presentation/utils/cart_feedback.dart';
+import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
 import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
@@ -22,6 +24,8 @@ class ProductDetailsPage extends ConsumerStatefulWidget {
 
 class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   late ProductEntity _product;
+
+  bool _isProcessingCartAction = false;
 
   @override
   void initState() {
@@ -107,6 +111,10 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                 _ProductInformation(product: _product),
                 const SizedBox(height: 14),
                 _ProductIdentityCard(product: _product),
+                const SizedBox(height: 14),
+
+                AddToCartButton(onPressed: _handleAddToCart),
+
                 if (!_canManageProduct &&
                     _product.supplierId.trim().isNotEmpty) ...[
                   const SizedBox(height: 14),
@@ -124,6 +132,99 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleAddToCart() async {
+    // يمنع تنفيذ أكثر من عملية إضافة/متابعة في نفس الوقت.
+    if (_isProcessingCartAction) {
+      return;
+    }
+
+    final String businessId = _product.supplierId.trim();
+
+    // المنتجات التي لا تحتوي على supplierId لا تمر عبر Follow Gate.
+    if (businessId.isEmpty) {
+      final result = ref.read(cartProvider).addProduct(_product);
+      showCartAddResultMessage(context, result);
+      return;
+    }
+
+    final followController = ref.read(supplierFollowProvider(businessId));
+
+    // لا ننفذ الإضافة أثناء تحميل أو تحديث حالة المتابعة.
+    if (followController.isLoading || followController.isUpdating) {
+      return;
+    }
+
+    // المورد متابَع بالفعل:
+    // نضيف المنتج مباشرة بدون Confirmation.
+    if (followController.isFollowing == true) {
+      final result = ref.read(cartProvider).addProduct(_product);
+      showCartAddResultMessage(context, result);
+      return;
+    }
+
+    // حالة المتابعة لم تُعرف بعد.
+    if (followController.isFollowing == null) {
+      return;
+    }
+
+    // المورد غير متابَع:
+    // نطلب التأكيد قبل تنفيذ المتابعة.
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('متابعة المورد وإضافة المنتج'),
+          content: const Text('يجب متابعة المورد قبل إضافة المنتج إلى السلة.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('إلغاء'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('متابعة وإضافة'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Cancel:
+    // لا Follow ولا Cart insertion.
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isProcessingCartAction = true;
+    });
+
+    try {
+      // Gate 2.4:
+      // يجب نجاح عملية المتابعة أولًا قبل إضافة المنتج للسلة.
+      final bool isFollowing = await followController.toggle();
+
+      // إذا فشلت المتابعة، لا نضيف المنتج.
+      if (!mounted || !isFollowing) {
+        return;
+      }
+
+      final result = ref.read(cartProvider).addProduct(_product);
+
+      showCartAddResultMessage(context, result);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingCartAction = false;
+        });
+      }
+    }
   }
 
   /// يفتح نفس نموذج المنتج في وضع التعديل.
