@@ -6,6 +6,8 @@ import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
 import 'package:talbatiyk/features/cart/presentation/pages/cart_page.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dart';
+import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 
@@ -18,7 +20,12 @@ void main() {
     );
 
     final ProviderContainer container = ProviderContainer(
-      overrides: [appDatabaseProvider.overrideWithValue(database)],
+      overrides: [
+        appDatabaseProvider.overrideWithValue(database),
+        ordersRemoteDataSourceProvider.overrideWithValue(
+          _FakeOrdersRemoteDataSource(),
+        ),
+      ],
     );
 
     addTearDown(() async {
@@ -81,6 +88,8 @@ void main() {
 
     final createdOrder = ordersState.orders.single;
 
+    expect(createdOrder.id, 'server-order-1');
+
     expect(createdOrder.items, hasLength(1));
 
     expect(createdOrder.items.single.productId, 'product-1');
@@ -89,10 +98,52 @@ void main() {
 
     expect(createdOrder.items.single.supplierName, 'مؤسسة الأمل');
 
+    // The server-created order must also be persisted
+    // in the local Drift database.
+    final persistedOrders = await container
+        .read(ordersLocalDataSourceProvider)
+        .getOrders();
+
+    expect(persistedOrders, hasLength(1));
+
+    expect(persistedOrders.single.id, 'server-order-1');
+
+    expect(persistedOrders.single.items, hasLength(1));
+
+    expect(persistedOrders.single.items.single.productId, 'product-1');
+
+    expect(persistedOrders.single.items.single.supplierId, 'supplier-1');
+
     expect(container.read(cartProvider).isEmpty, isTrue);
 
     await tester.pump();
 
     expect(find.text('السلة فارغة'), findsOneWidget);
   });
+}
+
+class _FakeOrdersRemoteDataSource implements OrdersDataSource {
+  @override
+  Future<OrderModel> createOrder(CreateOrderModel request) async {
+    return OrderModel(
+      id: 'server-order-1',
+      status: 'pending',
+      items: request.items,
+      createdAt: DateTime.utc(2026, 8, 24, 12),
+      notes: request.notes,
+    );
+  }
+
+  @override
+  Future<List<OrderModel>> getOrders() {
+    throw UnsupportedError('GET orders is not used by this test.');
+  }
+
+  @override
+  Future<OrderModel> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) {
+    throw UnsupportedError('Order status updates are not used by this test.');
+  }
 }

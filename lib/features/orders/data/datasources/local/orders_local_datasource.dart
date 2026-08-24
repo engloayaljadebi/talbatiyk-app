@@ -31,7 +31,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
           id: orderRow.id,
           status: orderRow.status,
           items: itemRows.map(_itemRecordToModel).toList(growable: false),
-          createdAt: orderRow.createdAt,
+          createdAt: orderRow.createdAt.toUtc(),
           notes: orderRow.notes,
         ),
       );
@@ -45,28 +45,50 @@ class OrdersLocalDataSource implements OrdersDataSource {
     final DateTime now = DateTime.now().toUtc();
     final String orderId = 'local-order-${now.microsecondsSinceEpoch}';
 
+    final OrderModel order = OrderModel(
+      id: orderId,
+      status: 'pending',
+      items: request.items,
+      createdAt: now,
+      notes: request.notes,
+    );
+
+    return saveOrder(order);
+  }
+
+  /// Persists an order using its existing ID.
+  ///
+  /// This is used after successful remote creation so the
+  /// server-generated order ID is preserved locally.
+  Future<OrderModel> saveOrder(OrderModel order) async {
+    final DateTime now = DateTime.now().toUtc();
+
     await _database.transaction(() async {
       await _database
           .into(_database.orderRecords)
-          .insert(
+          .insertOnConflictUpdate(
             OrderRecordsCompanion.insert(
-              id: orderId,
-              status: const Value('pending'),
-              notes: Value(request.notes),
-              createdAt: now,
+              id: order.id,
+              status: Value(order.status),
+              notes: Value(order.notes),
+              createdAt: order.createdAt.toUtc(),
               updatedAt: now,
             ),
           );
 
-      for (int index = 0; index < request.items.length; index++) {
-        final OrderItemModel item = request.items[index];
+      await (_database.delete(_database.orderItemRecords)
+            ..where((OrderItemRecords table) => table.orderId.equals(order.id)))
+          .go();
+
+      for (int index = 0; index < order.items.length; index++) {
+        final OrderItemModel item = order.items[index];
 
         await _database
             .into(_database.orderItemRecords)
             .insert(
               OrderItemRecordsCompanion.insert(
-                id: '$orderId-item-$index',
-                orderId: orderId,
+                id: '${order.id}-item-$index',
+                orderId: order.id,
                 productId: item.productId,
                 supplierId: item.supplierId,
                 supplierName: Value(item.supplierName),
@@ -80,11 +102,11 @@ class OrdersLocalDataSource implements OrdersDataSource {
     });
 
     return OrderModel(
-      id: orderId,
-      status: 'pending',
-      items: request.items,
-      createdAt: now,
-      notes: request.notes,
+      id: order.id,
+      status: order.status,
+      items: order.items,
+      createdAt: order.createdAt.toUtc(),
+      notes: order.notes,
     );
   }
 
@@ -118,7 +140,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
       id: existing.id,
       status: status,
       items: itemRows.map(_itemRecordToModel).toList(growable: false),
-      createdAt: existing.createdAt,
+      createdAt: existing.createdAt.toUtc(),
       notes: existing.notes,
     );
   }
