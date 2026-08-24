@@ -1,38 +1,54 @@
 import '../../domain/entities/orders_entity.dart';
 import '../../domain/repositories/orders_repository.dart';
+import '../datasources/local/orders_local_datasource.dart';
 import '../datasources/orders_datasource.dart';
 import '../mappers/orders_mapper.dart';
 import '../models/orders_model.dart';
 
 class OrdersRepositoryImpl implements OrdersRepository {
-  const OrdersRepositoryImpl(this.dataSource);
-  @override
-  Future<OrderEntity> updateOrderStatus({
-    required String orderId,
-    required OrderStatus status,
-  }) async {
-    final OrderModel updatedOrder = await dataSource.updateOrderStatus(
-      orderId: orderId,
-      status: OrdersMapper.statusToDataValue(status),
-    );
+  const OrdersRepositoryImpl(this.localDataSource, {this.remoteDataSource});
 
-    return OrdersMapper.toEntity(updatedOrder);
-  }
-
-  final OrdersDataSource dataSource;
+  final OrdersLocalDataSource localDataSource;
+  final OrdersDataSource? remoteDataSource;
 
   @override
   Future<List<OrderEntity>> getOrders() async {
-    final models = await dataSource.getOrders();
+    final models = await localDataSource.getOrders();
 
     return List<OrderEntity>.unmodifiable(models.map(OrdersMapper.toEntity));
   }
 
   @override
   Future<OrderEntity> createOrder(CreateOrderRequest request) async {
-    final createModel = OrdersMapper.toCreateModel(request);
-    final order = await dataSource.createOrder(createModel);
+    final CreateOrderModel createModel = OrdersMapper.toCreateModel(request);
 
-    return OrdersMapper.toEntity(order);
+    final OrdersDataSource? remote = remoteDataSource;
+
+    if (remote == null) {
+      final OrderModel localOrder = await localDataSource.createOrder(
+        createModel,
+      );
+
+      return OrdersMapper.toEntity(localOrder);
+    }
+
+    final OrderModel remoteOrder = await remote.createOrder(createModel);
+
+    await localDataSource.saveOrder(remoteOrder);
+
+    return OrdersMapper.toEntity(remoteOrder);
+  }
+
+  @override
+  Future<OrderEntity> updateOrderStatus({
+    required String orderId,
+    required OrderStatus status,
+  }) async {
+    final OrderModel updatedOrder = await localDataSource.updateOrderStatus(
+      orderId: orderId,
+      status: OrdersMapper.statusToDataValue(status),
+    );
+
+    return OrdersMapper.toEntity(updatedOrder);
   }
 }
