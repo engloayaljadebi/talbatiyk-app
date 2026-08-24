@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
@@ -12,17 +13,24 @@ void main() {
   late ProductsLocalDataSource dataSource;
 
   setUp(() {
-    // قاعدة مؤقتة مستقلة لكل اختبار ولا تكتب شيئًا على الهاتف.
     database = AppDatabase.forTesting(NativeDatabase.memory());
     dataSource = ProductsLocalDataSource(database);
   });
 
   tearDown(() async {
-    // نغلق قاعدة البيانات لمنع بقاء اتصالات أو مؤقتات مفتوحة.
     await database.close();
   });
 
   group('ProductsLocalDataSource', () {
+    test('قاعدة المنتجات الفارغة تبقى فارغة ولا تضيف بيانات تجريبية', () async {
+      final products = await dataSource.getProducts();
+
+      final records = await database.select(database.productRecords).get();
+
+      expect(products, isEmpty);
+      expect(records, isEmpty);
+    });
+
     test('يحفظ المنتج ويضيف عملية إنشاء إلى طابور المزامنة', () async {
       const productId = 'offline-product-1';
       final product = _buildProduct(id: productId);
@@ -77,12 +85,10 @@ void main() {
         final payload =
             jsonDecode(operations.single.payloadJson) as Map<String, dynamic>;
 
-        // المنتج الجديد يبقى بانتظار الإنشاء السحابي.
         expect(updatedProduct.syncStatus, ProductSyncStatus.pendingCreate);
         expect(productRecord.name, 'الاسم بعد التعديل');
         expect(productRecord.price, 1750);
 
-        // يجب وجود عملية إنشاء واحدة فقط تحمل أحدث البيانات.
         expect(operations, hasLength(1));
         expect(operations.single.operation, 'create');
         expect(payload['name'], 'الاسم بعد التعديل');
@@ -105,37 +111,60 @@ void main() {
         database.syncOperations,
       )..where((table) => table.entityId.equals(productId))).get();
 
-      // لا حاجة لإرسال حذف للسحابة لأن المنتج لم يصل إليها أصلًا.
       expect(productRecord, isNull);
       expect(operations, isEmpty);
     });
 
     test('حذف منتج متزامن يخفيه محليًا ويضيف عملية حذف', () async {
-      // تحميل المنتجات لأول مرة يضيف المنتجات التجريبية المتزامنة.
-      await dataSource.getProducts();
+      const productId = 'synced-product-1';
+      final createdAt = DateTime.utc(2026, 8, 4, 12);
 
-      await dataSource.deleteProduct('1');
+      // هذا سجل إدارة مورد متزامن صريح، وليس Discovery cache.
+      await database
+          .into(database.productRecords)
+          .insert(
+            ProductRecordsCompanion.insert(
+              id: productId,
+              supplierId: 'supplier-1',
+              supplierName: 'المورد الحقيقي',
+              name: 'منتج متزامن',
+              price: 1250,
+              category: const Value('مواد غذائية'),
+              brand: const Value('علامة حقيقية'),
+              description: const Value('منتج متزامن للاختبار'),
+              quantity: const Value(20),
+              isAvailable: const Value(true),
+              syncStatus: Value(ProductSyncStatus.synced.name),
+              createdAt: createdAt,
+              updatedAt: createdAt,
+            ),
+          );
+
+      await dataSource.deleteProduct(productId);
 
       final productRecord = await (database.select(
         database.productRecords,
-      )..where((table) => table.id.equals('1'))).getSingle();
+      )..where((table) => table.id.equals(productId))).getSingle();
 
-      final deleteOperation = await (database.select(
-        database.syncOperations,
-      )..where((table) => table.id.equals('product:delete:1'))).getSingle();
+      final deleteOperation =
+          await (database.select(
+                database.syncOperations,
+              )..where((table) => table.id.equals('product:delete:$productId')))
+              .getSingle();
 
       final visibleProducts = await dataSource.getProducts();
 
-      // يبقى السجل حتى يُرسل الحذف، لكنه لا يظهر في قائمة المنتجات.
       expect(productRecord.deletedAt, isNotNull);
       expect(productRecord.syncStatus, ProductSyncStatus.pendingDelete.name);
       expect(deleteOperation.operation, 'delete');
-      expect(visibleProducts.any((product) => product.id == '1'), isFalse);
+      expect(
+        visibleProducts.any((product) => product.id == productId),
+        isFalse,
+      );
     });
   });
 }
 
-/// ينشئ نموذج منتج موحدًا لاستخدامه داخل الاختبارات.
 ProductModel _buildProduct({
   required String id,
   String name = 'منتج محفوظ بدون إنترنت',

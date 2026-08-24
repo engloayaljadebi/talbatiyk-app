@@ -1158,6 +1158,912 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   }
 }
 
+class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
+    with TableInfo<$ProductDiscoveryRecordsTable, ProductDiscoveryRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProductDiscoveryRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
+    'supplierId',
+  );
+  @override
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
+    'supplier_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierNameMeta = const VerificationMeta(
+    'supplierName',
+  );
+  @override
+  late final GeneratedColumn<String> supplierName = GeneratedColumn<String>(
+    'supplier_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+    'price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isAvailableMeta = const VerificationMeta(
+    'isAvailable',
+  );
+  @override
+  late final GeneratedColumn<bool> isAvailable = GeneratedColumn<bool>(
+    'is_available',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_available" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _discountMeta = const VerificationMeta(
+    'discount',
+  );
+  @override
+  late final GeneratedColumn<double> discount = GeneratedColumn<double>(
+    'discount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<double> rating = GeneratedColumn<double>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _colorsJsonMeta = const VerificationMeta(
+    'colorsJson',
+  );
+  @override
+  late final GeneratedColumn<String> colorsJson = GeneratedColumn<String>(
+    'colors_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _remoteImageUrlMeta = const VerificationMeta(
+    'remoteImageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> remoteImageUrl = GeneratedColumn<String>(
+    'remote_image_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    supplierId,
+    supplierName,
+    name,
+    category,
+    brand,
+    description,
+    price,
+    quantity,
+    isAvailable,
+    discount,
+    rating,
+    colorsJson,
+    remoteImageUrl,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'product_discovery_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProductDiscoveryRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+        _supplierIdMeta,
+        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierIdMeta);
+    }
+    if (data.containsKey('supplier_name')) {
+      context.handle(
+        _supplierNameMeta,
+        supplierName.isAcceptableOrUnknown(
+          data['supplier_name']!,
+          _supplierNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierNameMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+        _priceMeta,
+        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    }
+    if (data.containsKey('is_available')) {
+      context.handle(
+        _isAvailableMeta,
+        isAvailable.isAcceptableOrUnknown(
+          data['is_available']!,
+          _isAvailableMeta,
+        ),
+      );
+    }
+    if (data.containsKey('discount')) {
+      context.handle(
+        _discountMeta,
+        discount.isAcceptableOrUnknown(data['discount']!, _discountMeta),
+      );
+    }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    }
+    if (data.containsKey('colors_json')) {
+      context.handle(
+        _colorsJsonMeta,
+        colorsJson.isAcceptableOrUnknown(data['colors_json']!, _colorsJsonMeta),
+      );
+    }
+    if (data.containsKey('remote_image_url')) {
+      context.handle(
+        _remoteImageUrlMeta,
+        remoteImageUrl.isAcceptableOrUnknown(
+          data['remote_image_url']!,
+          _remoteImageUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProductDiscoveryRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProductDiscoveryRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      supplierId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_id'],
+      )!,
+      supplierName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_name'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      price: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}price'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      isAvailable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_available'],
+      )!,
+      discount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}discount'],
+      )!,
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}rating'],
+      )!,
+      colorsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}colors_json'],
+      )!,
+      remoteImageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_image_url'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ProductDiscoveryRecordsTable createAlias(String alias) {
+    return $ProductDiscoveryRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ProductDiscoveryRecord extends DataClass
+    implements Insertable<ProductDiscoveryRecord> {
+  final String id;
+  final String supplierId;
+  final String supplierName;
+  final String name;
+  final String category;
+  final String brand;
+  final String description;
+  final double price;
+  final int quantity;
+  final bool isAvailable;
+  final double discount;
+  final double rating;
+  final String colorsJson;
+  final String? remoteImageUrl;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ProductDiscoveryRecord({
+    required this.id,
+    required this.supplierId,
+    required this.supplierName,
+    required this.name,
+    required this.category,
+    required this.brand,
+    required this.description,
+    required this.price,
+    required this.quantity,
+    required this.isAvailable,
+    required this.discount,
+    required this.rating,
+    required this.colorsJson,
+    this.remoteImageUrl,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['supplier_id'] = Variable<String>(supplierId);
+    map['supplier_name'] = Variable<String>(supplierName);
+    map['name'] = Variable<String>(name);
+    map['category'] = Variable<String>(category);
+    map['brand'] = Variable<String>(brand);
+    map['description'] = Variable<String>(description);
+    map['price'] = Variable<double>(price);
+    map['quantity'] = Variable<int>(quantity);
+    map['is_available'] = Variable<bool>(isAvailable);
+    map['discount'] = Variable<double>(discount);
+    map['rating'] = Variable<double>(rating);
+    map['colors_json'] = Variable<String>(colorsJson);
+    if (!nullToAbsent || remoteImageUrl != null) {
+      map['remote_image_url'] = Variable<String>(remoteImageUrl);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ProductDiscoveryRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ProductDiscoveryRecordsCompanion(
+      id: Value(id),
+      supplierId: Value(supplierId),
+      supplierName: Value(supplierName),
+      name: Value(name),
+      category: Value(category),
+      brand: Value(brand),
+      description: Value(description),
+      price: Value(price),
+      quantity: Value(quantity),
+      isAvailable: Value(isAvailable),
+      discount: Value(discount),
+      rating: Value(rating),
+      colorsJson: Value(colorsJson),
+      remoteImageUrl: remoteImageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteImageUrl),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ProductDiscoveryRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProductDiscoveryRecord(
+      id: serializer.fromJson<String>(json['id']),
+      supplierId: serializer.fromJson<String>(json['supplierId']),
+      supplierName: serializer.fromJson<String>(json['supplierName']),
+      name: serializer.fromJson<String>(json['name']),
+      category: serializer.fromJson<String>(json['category']),
+      brand: serializer.fromJson<String>(json['brand']),
+      description: serializer.fromJson<String>(json['description']),
+      price: serializer.fromJson<double>(json['price']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      isAvailable: serializer.fromJson<bool>(json['isAvailable']),
+      discount: serializer.fromJson<double>(json['discount']),
+      rating: serializer.fromJson<double>(json['rating']),
+      colorsJson: serializer.fromJson<String>(json['colorsJson']),
+      remoteImageUrl: serializer.fromJson<String?>(json['remoteImageUrl']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'supplierId': serializer.toJson<String>(supplierId),
+      'supplierName': serializer.toJson<String>(supplierName),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String>(category),
+      'brand': serializer.toJson<String>(brand),
+      'description': serializer.toJson<String>(description),
+      'price': serializer.toJson<double>(price),
+      'quantity': serializer.toJson<int>(quantity),
+      'isAvailable': serializer.toJson<bool>(isAvailable),
+      'discount': serializer.toJson<double>(discount),
+      'rating': serializer.toJson<double>(rating),
+      'colorsJson': serializer.toJson<String>(colorsJson),
+      'remoteImageUrl': serializer.toJson<String?>(remoteImageUrl),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ProductDiscoveryRecord copyWith({
+    String? id,
+    String? supplierId,
+    String? supplierName,
+    String? name,
+    String? category,
+    String? brand,
+    String? description,
+    double? price,
+    int? quantity,
+    bool? isAvailable,
+    double? discount,
+    double? rating,
+    String? colorsJson,
+    Value<String?> remoteImageUrl = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => ProductDiscoveryRecord(
+    id: id ?? this.id,
+    supplierId: supplierId ?? this.supplierId,
+    supplierName: supplierName ?? this.supplierName,
+    name: name ?? this.name,
+    category: category ?? this.category,
+    brand: brand ?? this.brand,
+    description: description ?? this.description,
+    price: price ?? this.price,
+    quantity: quantity ?? this.quantity,
+    isAvailable: isAvailable ?? this.isAvailable,
+    discount: discount ?? this.discount,
+    rating: rating ?? this.rating,
+    colorsJson: colorsJson ?? this.colorsJson,
+    remoteImageUrl: remoteImageUrl.present
+        ? remoteImageUrl.value
+        : this.remoteImageUrl,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ProductDiscoveryRecord copyWithCompanion(
+    ProductDiscoveryRecordsCompanion data,
+  ) {
+    return ProductDiscoveryRecord(
+      id: data.id.present ? data.id.value : this.id,
+      supplierId: data.supplierId.present
+          ? data.supplierId.value
+          : this.supplierId,
+      supplierName: data.supplierName.present
+          ? data.supplierName.value
+          : this.supplierName,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      price: data.price.present ? data.price.value : this.price,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      isAvailable: data.isAvailable.present
+          ? data.isAvailable.value
+          : this.isAvailable,
+      discount: data.discount.present ? data.discount.value : this.discount,
+      rating: data.rating.present ? data.rating.value : this.rating,
+      colorsJson: data.colorsJson.present
+          ? data.colorsJson.value
+          : this.colorsJson,
+      remoteImageUrl: data.remoteImageUrl.present
+          ? data.remoteImageUrl.value
+          : this.remoteImageUrl,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductDiscoveryRecord(')
+          ..write('id: $id, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('brand: $brand, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('quantity: $quantity, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('discount: $discount, ')
+          ..write('rating: $rating, ')
+          ..write('colorsJson: $colorsJson, ')
+          ..write('remoteImageUrl: $remoteImageUrl, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    supplierId,
+    supplierName,
+    name,
+    category,
+    brand,
+    description,
+    price,
+    quantity,
+    isAvailable,
+    discount,
+    rating,
+    colorsJson,
+    remoteImageUrl,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProductDiscoveryRecord &&
+          other.id == this.id &&
+          other.supplierId == this.supplierId &&
+          other.supplierName == this.supplierName &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.brand == this.brand &&
+          other.description == this.description &&
+          other.price == this.price &&
+          other.quantity == this.quantity &&
+          other.isAvailable == this.isAvailable &&
+          other.discount == this.discount &&
+          other.rating == this.rating &&
+          other.colorsJson == this.colorsJson &&
+          other.remoteImageUrl == this.remoteImageUrl &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ProductDiscoveryRecordsCompanion
+    extends UpdateCompanion<ProductDiscoveryRecord> {
+  final Value<String> id;
+  final Value<String> supplierId;
+  final Value<String> supplierName;
+  final Value<String> name;
+  final Value<String> category;
+  final Value<String> brand;
+  final Value<String> description;
+  final Value<double> price;
+  final Value<int> quantity;
+  final Value<bool> isAvailable;
+  final Value<double> discount;
+  final Value<double> rating;
+  final Value<String> colorsJson;
+  final Value<String?> remoteImageUrl;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ProductDiscoveryRecordsCompanion({
+    this.id = const Value.absent(),
+    this.supplierId = const Value.absent(),
+    this.supplierName = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.description = const Value.absent(),
+    this.price = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.discount = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.colorsJson = const Value.absent(),
+    this.remoteImageUrl = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProductDiscoveryRecordsCompanion.insert({
+    required String id,
+    required String supplierId,
+    required String supplierName,
+    required String name,
+    this.category = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.description = const Value.absent(),
+    required double price,
+    this.quantity = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.discount = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.colorsJson = const Value.absent(),
+    this.remoteImageUrl = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       supplierId = Value(supplierId),
+       supplierName = Value(supplierName),
+       name = Value(name),
+       price = Value(price),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<ProductDiscoveryRecord> custom({
+    Expression<String>? id,
+    Expression<String>? supplierId,
+    Expression<String>? supplierName,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? brand,
+    Expression<String>? description,
+    Expression<double>? price,
+    Expression<int>? quantity,
+    Expression<bool>? isAvailable,
+    Expression<double>? discount,
+    Expression<double>? rating,
+    Expression<String>? colorsJson,
+    Expression<String>? remoteImageUrl,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (supplierName != null) 'supplier_name': supplierName,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (brand != null) 'brand': brand,
+      if (description != null) 'description': description,
+      if (price != null) 'price': price,
+      if (quantity != null) 'quantity': quantity,
+      if (isAvailable != null) 'is_available': isAvailable,
+      if (discount != null) 'discount': discount,
+      if (rating != null) 'rating': rating,
+      if (colorsJson != null) 'colors_json': colorsJson,
+      if (remoteImageUrl != null) 'remote_image_url': remoteImageUrl,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProductDiscoveryRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? supplierId,
+    Value<String>? supplierName,
+    Value<String>? name,
+    Value<String>? category,
+    Value<String>? brand,
+    Value<String>? description,
+    Value<double>? price,
+    Value<int>? quantity,
+    Value<bool>? isAvailable,
+    Value<double>? discount,
+    Value<double>? rating,
+    Value<String>? colorsJson,
+    Value<String?>? remoteImageUrl,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ProductDiscoveryRecordsCompanion(
+      id: id ?? this.id,
+      supplierId: supplierId ?? this.supplierId,
+      supplierName: supplierName ?? this.supplierName,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      brand: brand ?? this.brand,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      quantity: quantity ?? this.quantity,
+      isAvailable: isAvailable ?? this.isAvailable,
+      discount: discount ?? this.discount,
+      rating: rating ?? this.rating,
+      colorsJson: colorsJson ?? this.colorsJson,
+      remoteImageUrl: remoteImageUrl ?? this.remoteImageUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
+    }
+    if (supplierName.present) {
+      map['supplier_name'] = Variable<String>(supplierName.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (isAvailable.present) {
+      map['is_available'] = Variable<bool>(isAvailable.value);
+    }
+    if (discount.present) {
+      map['discount'] = Variable<double>(discount.value);
+    }
+    if (rating.present) {
+      map['rating'] = Variable<double>(rating.value);
+    }
+    if (colorsJson.present) {
+      map['colors_json'] = Variable<String>(colorsJson.value);
+    }
+    if (remoteImageUrl.present) {
+      map['remote_image_url'] = Variable<String>(remoteImageUrl.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductDiscoveryRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('brand: $brand, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('quantity: $quantity, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('discount: $discount, ')
+          ..write('rating: $rating, ')
+          ..write('colorsJson: $colorsJson, ')
+          ..write('remoteImageUrl: $remoteImageUrl, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OrderRecordsTable extends OrderRecords
     with TableInfo<$OrderRecordsTable, OrderRecord> {
   @override
@@ -2662,6 +3568,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ProductRecordsTable productRecords = $ProductRecordsTable(this);
+  late final $ProductDiscoveryRecordsTable productDiscoveryRecords =
+      $ProductDiscoveryRecordsTable(this);
   late final $OrderRecordsTable orderRecords = $OrderRecordsTable(this);
   late final $OrderItemRecordsTable orderItemRecords = $OrderItemRecordsTable(
     this,
@@ -2673,6 +3581,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     productRecords,
+    productDiscoveryRecords,
     orderRecords,
     orderItemRecords,
     syncOperations,
@@ -3211,6 +4120,446 @@ typedef $$ProductRecordsTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $ProductRecordsTable, ProductRecord>,
       ),
       ProductRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$ProductDiscoveryRecordsTableCreateCompanionBuilder =
+    ProductDiscoveryRecordsCompanion Function({
+      required String id,
+      required String supplierId,
+      required String supplierName,
+      required String name,
+      Value<String> category,
+      Value<String> brand,
+      Value<String> description,
+      required double price,
+      Value<int> quantity,
+      Value<bool> isAvailable,
+      Value<double> discount,
+      Value<double> rating,
+      Value<String> colorsJson,
+      Value<String?> remoteImageUrl,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ProductDiscoveryRecordsTableUpdateCompanionBuilder =
+    ProductDiscoveryRecordsCompanion Function({
+      Value<String> id,
+      Value<String> supplierId,
+      Value<String> supplierName,
+      Value<String> name,
+      Value<String> category,
+      Value<String> brand,
+      Value<String> description,
+      Value<double> price,
+      Value<int> quantity,
+      Value<bool> isAvailable,
+      Value<double> discount,
+      Value<double> rating,
+      Value<String> colorsJson,
+      Value<String?> remoteImageUrl,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ProductDiscoveryRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ProductDiscoveryRecordsTable> {
+  $$ProductDiscoveryRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get discount => $composableBuilder(
+    column: $table.discount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get colorsJson => $composableBuilder(
+    column: $table.colorsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteImageUrl => $composableBuilder(
+    column: $table.remoteImageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ProductDiscoveryRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProductDiscoveryRecordsTable> {
+  $$ProductDiscoveryRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get discount => $composableBuilder(
+    column: $table.discount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get colorsJson => $composableBuilder(
+    column: $table.colorsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteImageUrl => $composableBuilder(
+    column: $table.remoteImageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProductDiscoveryRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProductDiscoveryRecordsTable> {
+  $$ProductDiscoveryRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get discount =>
+      $composableBuilder(column: $table.discount, builder: (column) => column);
+
+  GeneratedColumn<double> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<String> get colorsJson => $composableBuilder(
+    column: $table.colorsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remoteImageUrl => $composableBuilder(
+    column: $table.remoteImageUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ProductDiscoveryRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ProductDiscoveryRecordsTable,
+          ProductDiscoveryRecord,
+          $$ProductDiscoveryRecordsTableFilterComposer,
+          $$ProductDiscoveryRecordsTableOrderingComposer,
+          $$ProductDiscoveryRecordsTableAnnotationComposer,
+          $$ProductDiscoveryRecordsTableCreateCompanionBuilder,
+          $$ProductDiscoveryRecordsTableUpdateCompanionBuilder,
+          (
+            ProductDiscoveryRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $ProductDiscoveryRecordsTable,
+              ProductDiscoveryRecord
+            >,
+          ),
+          ProductDiscoveryRecord,
+          PrefetchHooks Function()
+        > {
+  $$ProductDiscoveryRecordsTableTableManager(
+    _$AppDatabase db,
+    $ProductDiscoveryRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProductDiscoveryRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ProductDiscoveryRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ProductDiscoveryRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> supplierId = const Value.absent(),
+                Value<String> supplierName = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> brand = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<double> price = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
+                Value<double> discount = const Value.absent(),
+                Value<double> rating = const Value.absent(),
+                Value<String> colorsJson = const Value.absent(),
+                Value<String?> remoteImageUrl = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProductDiscoveryRecordsCompanion(
+                id: id,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                name: name,
+                category: category,
+                brand: brand,
+                description: description,
+                price: price,
+                quantity: quantity,
+                isAvailable: isAvailable,
+                discount: discount,
+                rating: rating,
+                colorsJson: colorsJson,
+                remoteImageUrl: remoteImageUrl,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String supplierId,
+                required String supplierName,
+                required String name,
+                Value<String> category = const Value.absent(),
+                Value<String> brand = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                required double price,
+                Value<int> quantity = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
+                Value<double> discount = const Value.absent(),
+                Value<double> rating = const Value.absent(),
+                Value<String> colorsJson = const Value.absent(),
+                Value<String?> remoteImageUrl = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ProductDiscoveryRecordsCompanion.insert(
+                id: id,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                name: name,
+                category: category,
+                brand: brand,
+                description: description,
+                price: price,
+                quantity: quantity,
+                isAvailable: isAvailable,
+                discount: discount,
+                rating: rating,
+                colorsJson: colorsJson,
+                remoteImageUrl: remoteImageUrl,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ProductDiscoveryRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ProductDiscoveryRecordsTable,
+      ProductDiscoveryRecord,
+      $$ProductDiscoveryRecordsTableFilterComposer,
+      $$ProductDiscoveryRecordsTableOrderingComposer,
+      $$ProductDiscoveryRecordsTableAnnotationComposer,
+      $$ProductDiscoveryRecordsTableCreateCompanionBuilder,
+      $$ProductDiscoveryRecordsTableUpdateCompanionBuilder,
+      (
+        ProductDiscoveryRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $ProductDiscoveryRecordsTable,
+          ProductDiscoveryRecord
+        >,
+      ),
+      ProductDiscoveryRecord,
       PrefetchHooks Function()
     >;
 typedef $$OrderRecordsTableCreateCompanionBuilder =
@@ -4216,6 +5565,11 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$ProductRecordsTableTableManager get productRecords =>
       $$ProductRecordsTableTableManager(_db, _db.productRecords);
+  $$ProductDiscoveryRecordsTableTableManager get productDiscoveryRecords =>
+      $$ProductDiscoveryRecordsTableTableManager(
+        _db,
+        _db.productDiscoveryRecords,
+      );
   $$OrderRecordsTableTableManager get orderRecords =>
       $$OrderRecordsTableTableManager(_db, _db.orderRecords);
   $$OrderItemRecordsTableTableManager get orderItemRecords =>
