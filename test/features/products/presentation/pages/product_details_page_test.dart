@@ -1,10 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 import 'package:talbatiyk/features/products/presentation/pages/product_details_page.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
@@ -152,8 +153,9 @@ void main() {
     expect(repository.followCalls, 1);
     expect(container.read(cartProvider).quantityOf(product.id), 0);
   });
-  testWidgets('product discovery card does not expose add-to-cart', (
-    tester,
+
+  testWidgets('product discovery card exposes add-to-cart', (
+    WidgetTester tester,
   ) async {
     final repository = _FakeSupplierFollowRepository();
     final container = _createContainer(repository);
@@ -176,8 +178,8 @@ void main() {
       ),
     );
 
-    expect(find.byType(AddToCartButton), findsNothing);
-
+    // Product Discovery تدعم الإضافة المباشرة دون فتح Details.
+    expect(find.byType(AddToCartButton), findsOneWidget);
     await tester.tap(find.byType(ProductCard));
     await tester.pumpAndSettle();
 
@@ -187,6 +189,7 @@ void main() {
     // Product Details still has no cart action in Gate 2.3.
     expect(find.byType(AddToCartButton), findsNothing);
   });
+
   testWidgets('adds product directly when supplier is already followed', (
     tester,
   ) async {
@@ -204,12 +207,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(cartProvider).isEmpty, isTrue);
+
     await tester.scrollUntilVisible(
       find.byType(AddToCartButton),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
+
     final addToCartButton = find.byType(AddToCartButton);
     expect(addToCartButton, findsOneWidget);
 
@@ -222,6 +227,7 @@ void main() {
     expect(repository.followCalls, 0);
     expect(repository.unfollowCalls, 0);
   });
+
   testWidgets('follows supplier from product details', (tester) async {
     final repository = _FakeSupplierFollowRepository(isFollowingResult: false);
     final container = _createContainer(repository);
@@ -256,6 +262,7 @@ void main() {
     final repository = _FakeSupplierFollowRepository(failNextLoad: true);
     final container = _createContainer(repository);
     addTearDown(container.dispose);
+
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -280,6 +287,7 @@ void main() {
     expect(repository.isFollowingCalls, 2);
     expect(find.widgetWithText(FilledButton, 'متابعة المورد'), findsOneWidget);
   });
+
   testWidgets(
     'prevents duplicate follow and cart insertion while add flow is running',
     (tester) async {
@@ -327,6 +335,7 @@ void main() {
       expect(container.read(cartProvider).quantityOf(product.id), 1);
     },
   );
+
   testWidgets('does not follow or add product when confirmation is cancelled', (
     tester,
   ) async {
@@ -367,7 +376,14 @@ void main() {
 
 ProviderContainer _createContainer(SupplierFollowRepository repository) {
   return ProviderContainer(
-    overrides: [supplierFollowRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      supplierFollowRepositoryProvider.overrideWithValue(repository),
+
+      // Product Details tests must stay hermetic.
+      // Do not allow cartProvider to create the real AppDatabase/Drift
+      // persistence layer during widget tests.
+      cartProvider.overrideWith((ref) => CartController()),
+    ],
   );
 }
 

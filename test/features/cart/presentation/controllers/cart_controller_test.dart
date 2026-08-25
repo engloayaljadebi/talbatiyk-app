@@ -115,24 +115,32 @@ void main() {
       expect(controller.totalPrice, 12500);
     });
 
-    test('rejects a product from a different supplier', () {
+    test('accepts products from different suppliers', () {
       final CartController controller = CartController();
 
-      controller.addProduct(firstSupplierProduct);
+      final CartAddResult firstResult = controller.addProduct(
+        firstSupplierProduct,
+      );
 
-      final CartAddResult result = controller.addProduct(
+      final CartAddResult secondResult = controller.addProduct(
         differentSupplierProduct,
       );
 
-      expect(result, CartAddResult.differentSupplier);
+      expect(firstResult, CartAddResult.added);
+      expect(secondResult, CartAddResult.added);
 
-      expect(controller.items, hasLength(1));
-      expect(controller.quantityOf(differentSupplierProduct.id), 0);
-      expect(controller.supplierId, 'supplier-1');
-      expect(controller.supplierName, 'مؤسسة الأمل');
-      expect(controller.hasSingleSupplier, isTrue);
+      expect(controller.items, hasLength(2));
+      expect(controller.quantityOf(firstSupplierProduct.id), 1);
+      expect(controller.quantityOf(differentSupplierProduct.id), 1);
+
+      // Multi-Supplier Cart حالة صحيحة ولا تمنع الإضافة أو إرسال الطلب.
+      expect(controller.hasSingleSupplier, isFalse);
+
+      expect(
+        controller.totalPrice,
+        firstSupplierProduct.price + differentSupplierProduct.price,
+      );
     });
-
     test('allows another supplier after clearing the cart', () {
       final CartController controller = CartController();
 

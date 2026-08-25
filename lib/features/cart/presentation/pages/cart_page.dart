@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
@@ -9,16 +10,20 @@ import 'package:talbatiyk/features/products/presentation/widgets/product_image.d
 
 /// صفحة سلة المشتريات.
 ///
-/// المهام:
-/// - عرض المنتجات الموجودة داخل السلة.
-/// - التحكم في الكميات.
-/// - حذف منتج أو تفريغ السلة.
-/// - دعم منتجات من عدة موردين داخل الطلبية.
-/// - إرسال بيانات المورد الخاصة بكل عنصر من عناصر الطلبية.
+/// التصميم:
+/// - تنظيم المنتجات حسب المورد.
+/// - Checkout bar ثابتة أسفل الشاشة.
+/// - Micro-interactions وحركات دخول وانتقال.
+/// - حالات Empty / Loading واضحة.
+/// - دعم عدة موردين داخل الطلبية.
+/// - المحافظة على Cart persistence وOrders logic كما هما.
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
-  static const Color _primaryColor = Color(0xFFE53935);
+  static const Color _primary = Color(0xFFE53935);
+  static const Color _background = Color(0xFFF6F7F9);
+  static const Color _textPrimary = Color(0xFF17181A);
+  static const Color _textSecondary = Color(0xFF73777F);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,68 +31,167 @@ class CartPage extends ConsumerWidget {
     final ordersController = ref.watch(ordersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
-      appBar: AppBar(
-        title: const Text('السلة'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          if (cart.isNotEmpty)
-            IconButton(
-              tooltip: 'تفريغ السلة',
-              icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: () {
-                _confirmClearCart(context, ref);
-              },
-            ),
-        ],
+      backgroundColor: _background,
+      appBar: _buildAppBar(context, ref, cart),
+      body: SafeArea(
+        bottom: false,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 320),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(0, 0.025),
+              end: Offset.zero,
+            ).animate(animation);
+
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(position: slideAnimation, child: child),
+            );
+          },
+          child: cart.isEmpty
+              ? const _EmptyCart(key: ValueKey('empty-cart'))
+              : _CartContent(
+                  key: const ValueKey('cart-content'),
+                  items: cart.items,
+                ),
+        ),
       ),
-      body: cart.isEmpty
-          ? const _EmptyCart()
-          : Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
-              child: Column(
-                children: [
-                  if (cart.supplierName.isNotEmpty) ...[
-                    _SupplierBanner(supplierName: cart.supplierName),
-                    const SizedBox(height: 12),
-                  ],
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: cart.items.length,
-                      separatorBuilder: (_, _) {
-                        return const SizedBox(height: 12);
-                      },
-                      itemBuilder: (context, index) {
-                        return _CartItemCard(item: cart.items[index]);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _CartSummary(
-                    totalQuantity: cart.totalQuantity,
-                    totalPrice: cart.totalPrice,
-                    isSubmitting: ordersController.state.isSubmitting,
-                    onSubmit: () {
-                      _submitOrder(context, ref, cart);
-                    },
-                  ),
-                ],
-              ),
+      bottomNavigationBar: cart.isEmpty
+          ? null
+          : _CheckoutBar(
+              totalQuantity: cart.totalQuantity,
+              totalPrice: cart.totalPrice,
+              isSubmitting: ordersController.state.isSubmitting,
+              onSubmit: () {
+                _submitOrder(context, ref, cart);
+              },
             ),
     );
   }
 
-  /// عرض رسالة تأكيد قبل تفريغ السلة.
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    WidgetRef ref,
+    CartController cart,
+  ) {
+    return AppBar(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      centerTitle: false,
+      titleSpacing: 20,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'السلة',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
+          ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: cart.isEmpty
+                ? const SizedBox.shrink()
+                : Text(
+                    '${cart.totalQuantity} ${_itemsLabel(cart.totalQuantity)}',
+                    key: ValueKey(cart.totalQuantity),
+                    style: const TextStyle(
+                      color: _textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+      actions: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          transitionBuilder: (child, animation) {
+            return ScaleTransition(
+              scale: animation,
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+          child: cart.isEmpty
+              ? const SizedBox(key: ValueKey('clear-hidden'), width: 16)
+              : Padding(
+                  key: const ValueKey('clear-visible'),
+                  padding: const EdgeInsetsDirectional.only(end: 10),
+                  child: IconButton(
+                    tooltip: 'تفريغ السلة',
+                    onPressed: () {
+                      _confirmClearCart(context, ref);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFF1F1),
+                      foregroundColor: _primary,
+                    ),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 21),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _confirmClearCart(BuildContext context, WidgetRef ref) async {
     final bool shouldClear =
         await showDialog<bool>(
           context: context,
-          builder: (BuildContext dialogContext) {
+          barrierColor: Colors.black.withValues(alpha: 0.35),
+          builder: (dialogContext) {
             return AlertDialog(
-              title: const Text('تفريغ السلة'),
-              content: const Text('هل تريد حذف جميع المنتجات من السلة؟'),
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              title: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFEBEE),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: _primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'تفريغ السلة',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: const Text(
+                'سيتم حذف جميع المنتجات الموجودة في السلة. '
+                'لا يمكن التراجع عن هذه العملية.',
+                style: TextStyle(
+                  color: _textSecondary,
+                  height: 1.6,
+                  fontSize: 14,
+                ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -99,8 +203,18 @@ class CartPage extends ConsumerWidget {
                   onPressed: () {
                     Navigator.pop(dialogContext, true);
                   },
-                  style: FilledButton.styleFrom(backgroundColor: _primaryColor),
-                  child: const Text('حذف'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text('حذف الكل'),
                 ),
               ],
             );
@@ -113,10 +227,6 @@ class CartPage extends ConsumerWidget {
     }
   }
 
-  /// إنشاء طلبية من منتجات السلة.
-  ///
-  /// كل عنصر داخل الطلبية يحمل بيانات المورد الخاصة به،
-  /// لذلك يمكن إرسال منتجات من عدة موردين في نفس الطلب.
   Future<void> _submitOrder(
     BuildContext context,
     WidgetRef ref,
@@ -126,9 +236,27 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    final CreateOrderRequest request = CreateOrderRequest(
-      items: cart.items
-          .map((CartItemEntity item) {
+    final selectedSuppliers = await _selectSuppliers(context, cart.items);
+
+    if (!context.mounted ||
+        selectedSuppliers == null ||
+        selectedSuppliers.isEmpty) {
+      return;
+    }
+
+    final selectedItems = cart.items
+        .where((item) {
+          return selectedSuppliers.contains(_supplierKey(item));
+        })
+        .toList(growable: false);
+
+    if (selectedItems.isEmpty) {
+      return;
+    }
+
+    final request = CreateOrderRequest(
+      items: selectedItems
+          .map((item) {
             return OrderItemEntity(
               productId: item.product.id,
               productName: item.product.name,
@@ -144,9 +272,7 @@ class CartPage extends ConsumerWidget {
 
     final ordersController = ref.read(ordersProvider);
 
-    final OrderEntity? createdOrder = await ordersController.createOrder(
-      request,
-    );
+    final createdOrder = await ordersController.createOrder(request);
 
     if (!context.mounted) {
       return;
@@ -168,7 +294,9 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    cart.clear();
+    // نحذف فقط المنتجات التي دخلت في الطلب الناجح.
+    // منتجات الموردين غير المحددين تبقى محفوظة في Cart وDrift.
+    cart.removeProducts(selectedItems.map((item) => item.product.id));
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -179,94 +307,229 @@ class CartPage extends ConsumerWidget {
         ),
       );
   }
-}
 
-/// بطاقة صغيرة تعرض مورد الطلبية الحالية.
-class _SupplierBanner extends StatelessWidget {
-  const _SupplierBanner({required this.supplierName});
+  /// يتيح اختيار مورد واحد أو عدة موردين من الموردين الموجودين في السلة.
+  Future<Set<String>?> _selectSuppliers(
+    BuildContext context,
+    List<CartItemEntity> items,
+  ) async {
+    final suppliers = <String, String>{};
 
-  final String supplierName;
+    for (final item in items) {
+      final key = _supplierKey(item);
+      final supplierName = item.product.supplierName.trim();
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFEBEE),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _primaryBorderColor),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.storefront_outlined,
-            color: Color(0xFFE53935),
-            size: 22,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'المورد: $supplierName',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFFE53935),
-                fontWeight: FontWeight.w700,
+      suppliers[key] = supplierName.isNotEmpty ? supplierName : 'مورد غير محدد';
+    }
+
+    // مورد واحد لا يحتاج إلى خطوة اختيار إضافية.
+    if (suppliers.length == 1) {
+      return suppliers.keys.toSet();
+    }
+
+    final selected = suppliers.keys.toSet();
+
+    return showDialog<Set<String>>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('اختر الموردين'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: suppliers.entries
+                      .map((entry) {
+                        return CheckboxListTile(
+                          value: selected.contains(entry.key),
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(entry.value),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == true) {
+                                selected.add(entry.key);
+                              } else {
+                                selected.remove(entry.key);
+                              }
+                            });
+                          },
+                        );
+                      })
+                      .toList(growable: false),
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('إلغاء'),
+                ),
+                FilledButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () {
+                          Navigator.pop(
+                            dialogContext,
+                            Set<String>.unmodifiable(selected),
+                          );
+                        },
+                  child: Text(
+                    selected.length == suppliers.length
+                        ? 'إرسال للجميع'
+                        : 'إرسال للمحدد',
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  static const Color _primaryBorderColor = Color(0xFFFFCDD2);
+  /// يبني هوية مستقرة للمورد.
+  /// نفضل supplierId، ثم الاسم لدعم البيانات القديمة.
+  String _supplierKey(CartItemEntity item) {
+    final supplierId = item.product.supplierId.trim();
+
+    if (supplierId.isNotEmpty) {
+      return 'id:$supplierId';
+    }
+
+    final supplierName = item.product.supplierName.trim().toLowerCase();
+
+    if (supplierName.isNotEmpty) {
+      return 'name:$supplierName';
+    }
+
+    return 'unknown:${item.product.id}';
+  }
 }
 
-/// واجهة السلة الفارغة.
-class _EmptyCart extends StatelessWidget {
-  const _EmptyCart();
+/// محتوى السلة.
+///
+/// يتم تنظيم المنتجات حسب المورد بدل عرض جميع المنتجات
+/// كقائمة مسطحة.
+class _CartContent extends StatelessWidget {
+  const _CartContent({super.key, required this.items});
+
+  final List<CartItemEntity> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = _groupBySupplier(items);
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
+      itemCount: groups.length,
+      itemBuilder: (context, index) {
+        return _AppearAnimation(
+          index: index,
+          child: _SupplierSection(group: groups[index]),
+        );
+      },
+    );
+  }
+}
+
+/// قسم مورد كامل.
+class _SupplierSection extends StatelessWidget {
+  const _SupplierSection({required this.group});
+
+  final _SupplierGroup group;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 80),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFEBEE),
-                shape: BoxShape.circle,
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SupplierHeader(group: group),
+          const SizedBox(height: 10),
+          ...List.generate(group.items.length, (index) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == group.items.length - 1 ? 0 : 10,
               ),
-              child: const Icon(
-                Icons.shopping_cart_outlined,
-                size: 46,
-                color: Color(0xFFE53935),
+              child: _AppearAnimation(
+                index: index,
+                baseDelay: 50,
+                child: _CartItemCard(item: group.items[index]),
               ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'السلة فارغة',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'أضف المنتجات التي تريدها إلى طلبيتك',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
+            );
+          }),
+        ],
       ),
     );
   }
 }
 
-/// بطاقة منتج واحد داخل السلة.
+/// عنوان المورد.
+class _SupplierHeader extends StatelessWidget {
+  const _SupplierHeader({required this.group});
+
+  final _SupplierGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    final quantity = group.items.fold<int>(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
+
+    return Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFEBEE),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.storefront_outlined,
+            color: CartPage._primary,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                group.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: CartPage._textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$quantity ${_itemsLabel(quantity)}',
+                style: const TextStyle(
+                  color: CartPage._textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// بطاقة المنتج داخل السلة.
 class _CartItemCard extends ConsumerWidget {
   const _CartItemCard({required this.item});
 
@@ -277,100 +540,111 @@ class _CartItemCard extends ConsumerWidget {
     final product = item.product;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.045)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              width: 82,
-              height: 82,
-              child: ProductImage(imageUrl: product.displayImagePath),
+          Hero(
+            tag: 'cart-product-${product.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(17),
+              child: Container(
+                width: 90,
+                height: 90,
+                color: const Color(0xFFF6F6F7),
+                child: ProductImage(imageUrl: product.displayImagePath),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 13),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product.brand,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-                if (product.supplierName.trim().isNotEmpty) ...[
-                  const SizedBox(height: 4),
+            child: SizedBox(
+              height: 90,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    product.supplierName,
-                    maxLines: 1,
+                    product.name,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    style: const TextStyle(
+                      color: CartPage._textPrimary,
+                      fontSize: 14.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (product.brand.trim().isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      product.brand,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: CartPage._textSecondary,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                  const Spacer(),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Text(
+                      '${_formatPrice(item.totalPrice)} ر.ي',
+                      key: ValueKey(item.totalPrice),
+                      style: const TextStyle(
+                        color: CartPage._primary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ),
                 ],
-                const SizedBox(height: 8),
-                Text(
-                  '${_formatPrice(item.totalPrice)} ر.ي',
-                  style: const TextStyle(
-                    color: Color(0xFFE53935),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                tooltip: 'حذف المنتج',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close_rounded, size: 20),
+              _RemoveButton(
                 onPressed: () {
                   ref.read(cartProvider).removeProduct(product.id);
                 },
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F3F5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _QuantityButton(
-                      icon: Icons.remove_rounded,
-                      onPressed: () {
-                        ref.read(cartProvider).decreaseProduct(product.id);
-                      },
-                    ),
-                    SizedBox(
-                      width: 30,
-                      child: Text(
-                        '${item.quantity}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    _QuantityButton(
-                      icon: Icons.add_rounded,
-                      onPressed: () {
-                        ref.read(cartProvider).addProduct(product);
-                      },
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 8),
+              _QuantityControl(
+                quantity: item.quantity,
+                onDecrease: () {
+                  ref.read(cartProvider).decreaseProduct(product.id);
+                },
+                onIncrease: () {
+                  ref.read(cartProvider).addProduct(product);
+                },
               ),
             ],
           ),
@@ -380,28 +654,128 @@ class _CartItemCard extends ConsumerWidget {
   }
 }
 
-/// زر زيادة أو تقليل كمية المنتج.
-class _QuantityButton extends StatelessWidget {
-  const _QuantityButton({required this.icon, required this.onPressed});
+/// زر حذف المنتج.
+class _RemoveButton extends StatelessWidget {
+  const _RemoveButton({required this.onPressed});
 
-  final IconData icon;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      tooltip: 'حذف المنتج',
       onPressed: onPressed,
       visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      padding: EdgeInsets.zero,
-      icon: Icon(icon, size: 18),
+      style: IconButton.styleFrom(
+        backgroundColor: const Color(0xFFF5F5F6),
+        foregroundColor: const Color(0xFF7A7D82),
+        minimumSize: const Size(34, 34),
+      ),
+      icon: const Icon(Icons.close_rounded, size: 18),
     );
   }
 }
 
-/// ملخص الكمية والإجمالي وزر إرسال الطلبية.
-class _CartSummary extends StatelessWidget {
-  const _CartSummary({
+/// التحكم بالكمية.
+class _QuantityControl extends StatelessWidget {
+  const _QuantityControl({
+    required this.quantity,
+    required this.onDecrease,
+    required this.onIncrease,
+  });
+
+  final int quantity;
+  final VoidCallback onDecrease;
+  final VoidCallback onIncrease;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F4F5),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _QuantityButton(icon: Icons.remove_rounded, onPressed: onDecrease),
+          SizedBox(
+            width: 30,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(
+                  scale: Tween<double>(begin: 0.7, end: 1).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutBack,
+                    ),
+                  ),
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: Text(
+                '$quantity',
+                key: ValueKey(quantity),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: CartPage._textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          _QuantityButton(
+            icon: Icons.add_rounded,
+            primary: true,
+            onPressed: onIncrease,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// زر زيادة/إنقاص.
+class _QuantityButton extends StatelessWidget {
+  const _QuantityButton({
+    required this.icon,
+    required this.onPressed,
+    this.primary = false,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: primary ? CartPage._primary : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          width: 30,
+          height: 30,
+          child: Icon(
+            icon,
+            size: 17,
+            color: primary ? Colors.white : CartPage._textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Checkout bar ثابتة.
+class _CheckoutBar extends StatelessWidget {
+  const _CheckoutBar({
     required this.totalQuantity,
     required this.totalPrice,
     required this.isSubmitting,
@@ -415,86 +789,332 @@ class _CartSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
+    return Material(
+      color: Colors.white,
+      elevation: 18,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+          child: Row(
             children: [
-              const Text('عدد المنتجات'),
-              const Spacer(),
-              Text(
-                '$totalQuantity',
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Text(
-                'الإجمالي',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              Text(
-                '${_formatPrice(totalPrice)} ر.ي',
-                style: const TextStyle(
-                  color: Color(0xFFE53935),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: FilledButton.icon(
-              onPressed: isSubmitting ? null : onSubmit,
-              icon: isSubmitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'الإجمالي',
+                          style: TextStyle(
+                            color: CartPage._textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F3F4),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '$totalQuantity',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.3),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        '${_formatPrice(totalPrice)} ر.ي',
+                        key: ValueKey(totalPrice),
+                        style: const TextStyle(
+                          color: CartPage._textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.4,
+                        ),
                       ),
-                    )
-                  : const Icon(Icons.send_rounded),
-              label: Text(isSubmitting ? 'جاري الإرسال...' : 'إرسال الطلبية'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFE53935),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(width: 14),
+              SizedBox(
+                height: 54,
+                child: FilledButton(
+                  onPressed: isSubmitting ? null : onSubmit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: CartPage._primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: CartPage._primary.withValues(
+                      alpha: 0.65,
+                    ),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(scale: animation, child: child),
+                      );
+                    },
+                    child: isSubmitting
+                        ? const Row(
+                            key: ValueKey('sending'),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'جاري الإرسال',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                            ],
+                          )
+                        : const Row(
+                            key: ValueKey('submit'),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'إرسال الطلبية',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_rounded, size: 19),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// تنسيق السعر دون أصفار عشرية غير ضرورية.
+/// Empty state احترافية.
+class _EmptyCart extends StatelessWidget {
+  const _EmptyCart({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 132,
+                height: 132,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: CartPage._primary.withValues(alpha: 0.08),
+                      blurRadius: 40,
+                      spreadRadius: 8,
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 58,
+                    color: CartPage._primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              const Text(
+                'سلتك فارغة',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: CartPage._textPrimary,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 300),
+                child: Text(
+                  'ابدأ بإضافة المنتجات التي تحتاجها، '
+                  'وستظهر هنا جاهزة لإرسال طلبيتك.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: CartPage._textSecondary,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// حركة دخول موحدة للعناصر.
+class _AppearAnimation extends StatelessWidget {
+  const _AppearAnimation({
+    required this.child,
+    required this.index,
+    this.baseDelay = 0,
+  });
+
+  final Widget child;
+  final int index;
+  final int baseDelay;
+
+  @override
+  Widget build(BuildContext context) {
+    final milliseconds = 320 + baseDelay + ((index * 35).clamp(0, 180));
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: milliseconds),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 14 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+class _SupplierGroup {
+  const _SupplierGroup({
+    required this.key,
+    required this.name,
+    required this.items,
+  });
+
+  final String key;
+  final String name;
+  final List<CartItemEntity> items;
+}
+
+List<_SupplierGroup> _groupBySupplier(List<CartItemEntity> items) {
+  final groups = <String, List<CartItemEntity>>{};
+  final names = <String, String>{};
+
+  for (final item in items) {
+    final key = _supplierKey(item);
+    final supplierName = item.product.supplierName.trim();
+
+    groups.putIfAbsent(key, () => <CartItemEntity>[]);
+
+    groups[key]!.add(item);
+
+    names[key] = supplierName.isNotEmpty ? supplierName : 'مورد غير محدد';
+  }
+
+  return groups.entries
+      .map((entry) {
+        return _SupplierGroup(
+          key: entry.key,
+          name: names[entry.key] ?? 'مورد غير محدد',
+          items: List<CartItemEntity>.unmodifiable(entry.value),
+        );
+      })
+      .toList(growable: false);
+}
+
+String _supplierKey(CartItemEntity item) {
+  final supplierId = item.product.supplierId.trim();
+
+  if (supplierId.isNotEmpty) {
+    return 'id:$supplierId';
+  }
+
+  final supplierName = item.product.supplierName.trim().toLowerCase();
+
+  if (supplierName.isNotEmpty) {
+    return 'name:$supplierName';
+  }
+
+  return 'unknown:${item.product.id}';
+}
+
 String _formatPrice(double price) {
   if (price == price.truncateToDouble()) {
     return price.toStringAsFixed(0);
   }
 
   return price.toStringAsFixed(2);
+}
+
+String _itemsLabel(int quantity) {
+  if (quantity == 1) {
+    return 'منتج';
+  }
+
+  if (quantity >= 3 && quantity <= 10) {
+    return 'منتجات';
+  }
+
+  return 'منتج';
 }
