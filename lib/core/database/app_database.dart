@@ -131,6 +131,55 @@ class OrderItemRecords extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class CartItemRecords extends Table {
+  TextColumn get productId => text()();
+
+  TextColumn get supplierId => text().withDefault(const Constant(''))();
+
+  TextColumn get supplierName => text().withDefault(const Constant(''))();
+
+  TextColumn get productName => text()();
+
+  RealColumn get price => real()();
+
+  TextColumn get imageUrl => text().withDefault(const Constant(''))();
+
+  TextColumn get localImagePath => text().nullable()();
+
+  TextColumn get category => text().withDefault(const Constant(''))();
+
+  TextColumn get brand => text().withDefault(const Constant(''))();
+
+  BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
+
+  TextColumn get description => text().withDefault(const Constant(''))();
+
+  TextColumn get colorsJson => text().withDefault(const Constant('[]'))();
+
+  IntColumn get productQuantity => integer().withDefault(const Constant(0))();
+
+  RealColumn get discount => real().withDefault(const Constant(0))();
+
+  RealColumn get rating => real().withDefault(const Constant(0))();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+
+  TextColumn get syncError => text().nullable()();
+
+  DateTimeColumn get productCreatedAt => dateTime().nullable()();
+
+  DateTimeColumn get productUpdatedAt => dateTime().nullable()();
+
+  IntColumn get cartQuantity => integer()();
+
+  IntColumn get sortOrder => integer()();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {productId};
+}
+
 class SyncOperations extends Table {
   TextColumn get id => text()();
 
@@ -160,6 +209,7 @@ class SyncOperations extends Table {
     ProductDiscoveryRecords,
     OrderRecords,
     OrderItemRecords,
+    CartItemRecords,
     SyncOperations,
   ],
 )
@@ -170,7 +220,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -186,6 +236,10 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 3) {
           await m.createTable(productDiscoveryRecords);
+        }
+
+        if (from < 4) {
+          await m.createTable(cartItemRecords);
         }
       },
     );

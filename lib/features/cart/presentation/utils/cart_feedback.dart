@@ -2,26 +2,29 @@ import 'package:flutter/material.dart';
 
 import '../controllers/cart_controller.dart';
 
-/// عرض رسالة مناسبة بعد محاولة إضافة منتج إلى السلة.
-///
-/// لا نعرض رسالة عند نجاح الإضافة حتى لا نزعج المستخدم
-/// عند زيادة الكمية عدة مرات.
-void showCartAddResultMessage(BuildContext context, CartAddResult result) {
+/// يعرض Feedback واضحًا بعد محاولة إضافة منتج إلى السلة.
+void showCartAddResultMessage(
+  BuildContext context,
+  CartAddResult result, {
+  int? quantity,
+}) {
   final String message;
   final Color backgroundColor;
 
   switch (result) {
     case CartAddResult.added:
-      return;
+      message = quantity != null
+          ? 'تمت الإضافة إلى السلة — الكمية: $quantity'
+          : 'تمت إضافة المنتج إلى السلة';
+      backgroundColor = Colors.green.shade700;
 
     case CartAddResult.unavailable:
       message = 'هذا المنتج غير متوفر حاليًا';
       backgroundColor = Colors.orange.shade800;
 
     case CartAddResult.differentSupplier:
-      message =
-          'لا يمكن إضافة منتجات من مورد مختلف. '
-          'أرسل الطلبية الحالية أو أفرغ السلة أولًا.';
+      // Legacy compatibility فقط؛ Multi-Supplier Cart لا تعيد هذه النتيجة.
+      message = 'تعذر إضافة المنتج إلى السلة';
       backgroundColor = Colors.red.shade700;
   }
 

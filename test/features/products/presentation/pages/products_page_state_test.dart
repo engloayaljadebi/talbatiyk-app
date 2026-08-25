@@ -100,8 +100,18 @@ void main() {
       expect(controller.state.isGrid, isTrue);
       expect(controller.state.products.single.id, 'product-1');
 
-      // نفتح Product Details من نفس ProductCard المستخدم في Discovery.
-      await tester.tap(find.byType(ProductCard));
+      // نفتح Product Details من منطقة معلومات المنتج داخل ProductCard.
+      // لا نضغط مركز البطاقة لأن الجزء السفلي أصبح مخصصًا لـ Add-to-Cart.
+      final productCard = find.byType(ProductCard);
+
+      final productTitle = find.descendant(
+        of: productCard,
+        matching: find.text('شاحن سريع'),
+      );
+
+      expect(productTitle, findsOneWidget);
+
+      await tester.tap(productTitle);
       await tester.pumpAndSettle();
 
       expect(find.text('تفاصيل المنتج'), findsOneWidget);
