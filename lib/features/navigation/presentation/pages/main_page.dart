@@ -67,7 +67,7 @@ class _MainPageState extends ConsumerState<MainPage> {
 
     return Scaffold(
       // يسمح لشريط التنقل بالظهور عائمًا فوق محتوى الصفحات.
-      extendBody: true,
+      extendBody: false,
       body: Stack(
         children: [
           // يحتفظ بحالة الصفحات عند التنقل بينها.

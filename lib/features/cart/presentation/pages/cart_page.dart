@@ -24,7 +24,6 @@ class CartPage extends ConsumerWidget {
   static const Color _background = Color(0xFFF6F7F9);
   static const Color _textPrimary = Color(0xFF17181A);
   static const Color _textSecondary = Color(0xFF73777F);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final CartController cart = ref.watch(cartProvider);
@@ -35,39 +34,47 @@ class CartPage extends ConsumerWidget {
       appBar: _buildAppBar(context, ref, cart),
       body: SafeArea(
         bottom: false,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 320),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) {
-            final slideAnimation = Tween<Offset>(
-              begin: const Offset(0, 0.025),
-              end: Offset.zero,
-            ).animate(animation);
+        child: Column(
+          children: [
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 320),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final slideAnimation = Tween<Offset>(
+                    begin: const Offset(0, 0.025),
+                    end: Offset.zero,
+                  ).animate(animation);
 
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(position: slideAnimation, child: child),
-            );
-          },
-          child: cart.isEmpty
-              ? const _EmptyCart(key: ValueKey('empty-cart'))
-              : _CartContent(
-                  key: const ValueKey('cart-content'),
-                  items: cart.items,
-                ),
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: slideAnimation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: cart.isEmpty
+                    ? const _EmptyCart(key: ValueKey('empty-cart'))
+                    : _CartContent(
+                        key: const ValueKey('cart-content'),
+                        items: cart.items,
+                      ),
+              ),
+            ),
+            if (cart.isNotEmpty)
+              _CheckoutBar(
+                totalQuantity: cart.totalQuantity,
+                totalPrice: cart.totalPrice,
+                isSubmitting: ordersController.state.isSubmitting,
+                onSubmit: () {
+                  _submitOrder(context, ref, cart);
+                },
+              ),
+          ],
         ),
       ),
-      bottomNavigationBar: cart.isEmpty
-          ? null
-          : _CheckoutBar(
-              totalQuantity: cart.totalQuantity,
-              totalPrice: cart.totalPrice,
-              isSubmitting: ordersController.state.isSubmitting,
-              onSubmit: () {
-                _submitOrder(context, ref, cart);
-              },
-            ),
     );
   }
 
@@ -424,7 +431,7 @@ class _CartContent extends StatelessWidget {
 
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         return _AppearAnimation(
