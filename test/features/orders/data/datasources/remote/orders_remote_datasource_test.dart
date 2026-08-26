@@ -78,6 +78,7 @@ void main() {
         );
 
         final request = CreateOrderModel(
+          idempotencyKey: '550e8400-e29b-41d4-a716-446655440000',
           items: const [
             OrderItemModel(
               productId: 'product-1',
@@ -98,6 +99,10 @@ void main() {
         expect(requestOptions, isNotNull);
         expect(requestOptions!.method, 'POST');
         expect(requestOptions.path, '/orders');
+        expect(
+          requestOptions.headers['Idempotency-Key'],
+          '550e8400-e29b-41d4-a716-446655440000',
+        );
 
         expect(requestOptions.data, {
           'items': [

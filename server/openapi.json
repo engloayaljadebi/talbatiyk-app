@@ -1337,6 +1337,19 @@
                 "tags": [
                     "Order"
                 ],
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "description": "Stable UUID reused for retries of the same logical order creation.",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {

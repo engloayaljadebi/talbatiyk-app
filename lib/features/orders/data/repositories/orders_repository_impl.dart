@@ -8,6 +8,7 @@ import '../datasources/local/orders_local_datasource.dart';
 import '../datasources/orders_datasource.dart';
 import '../mappers/orders_mapper.dart';
 import '../models/orders_model.dart';
+import 'package:uuid/uuid.dart';
 
 class OrdersRepositoryImpl implements OrdersRepository {
   const OrdersRepositoryImpl(this.localDataSource, {this.remoteDataSource});
@@ -24,8 +25,12 @@ class OrdersRepositoryImpl implements OrdersRepository {
 
   @override
   Future<OrderEntity> createOrder(CreateOrderRequest request) async {
-    final CreateOrderModel createModel = OrdersMapper.toCreateModel(request);
-
+    final CreateOrderModel
+    createModel = OrdersMapper.toCreateModel(request).copyWith(
+      // The key must exist before the first network attempt so an ambiguous
+      // lost response and its later Outbox replay use exactly the same UUID.
+      idempotencyKey: Uuid().v4(),
+    );
     final OrdersDataSource? remote = remoteDataSource;
 
     if (remote == null) {

@@ -99,6 +99,14 @@ final class OrdersSyncCoordinator {
       throw const FormatException('Invalid order Outbox payload.');
     }
 
+    final Object? rawIdempotencyKey = decoded['idempotencyKey'];
+
+    if (rawIdempotencyKey is! String || rawIdempotencyKey.trim().isEmpty) {
+      throw const FormatException(
+        'Order Outbox payload has no idempotency key.',
+      );
+    }
+
     final Object? rawItems = decoded['items'];
 
     if (rawItems is! List || rawItems.isEmpty) {
@@ -106,6 +114,7 @@ final class OrdersSyncCoordinator {
     }
 
     return CreateOrderModel(
+      idempotencyKey: rawIdempotencyKey.trim(),
       notes: decoded['notes'] as String? ?? '',
       items: rawItems
           .map((Object? rawItem) {

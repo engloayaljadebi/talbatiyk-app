@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../../../../../core/database/app_database.dart';
 import '../../models/orders_model.dart';
+import 'package:uuid/uuid.dart';
 import '../orders_datasource.dart';
 
 class OrdersLocalDataSource implements OrdersDataSource {
@@ -44,15 +45,18 @@ class OrdersLocalDataSource implements OrdersDataSource {
 
   @override
   Future<OrderModel> createOrder(CreateOrderModel request) async {
+    final CreateOrderModel queuedRequest = request.idempotencyKey.trim().isEmpty
+        ? request.copyWith(idempotencyKey: Uuid().v4())
+        : request;
     final DateTime now = DateTime.now().toUtc();
     final String orderId = 'local-order-${now.microsecondsSinceEpoch}';
 
     final OrderModel order = OrderModel(
       id: orderId,
       status: 'pending',
-      items: request.items,
+      items: queuedRequest.items,
       createdAt: now,
-      notes: request.notes,
+      notes: queuedRequest.notes,
     );
 
     await _database.transaction(() async {
@@ -68,7 +72,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
               entityType: 'order',
               entityId: orderId,
               operation: 'create',
-              payloadJson: jsonEncode(_createOrderPayload(request)),
+              payloadJson: jsonEncode(_createOrderPayload(queuedRequest)),
               createdAt: now,
             ),
           );
@@ -216,6 +220,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
 
   Map<String, Object?> _createOrderPayload(CreateOrderModel request) {
     return <String, Object?>{
+      'idempotencyKey': request.idempotencyKey,
       'notes': request.notes,
       'items': request.items
           .map(
