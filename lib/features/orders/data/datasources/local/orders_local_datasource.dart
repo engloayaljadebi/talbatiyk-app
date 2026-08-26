@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../../../../core/database/app_database.dart';
@@ -53,7 +55,26 @@ class OrdersLocalDataSource implements OrdersDataSource {
       notes: request.notes,
     );
 
-    return saveOrder(order);
+    await _database.transaction(() async {
+      // يجب أن يبقى الطلب المحلي والـOutbox في transaction واحدة:
+      // إما أن يُحفَظ الاثنان أو لا يُحفَظ أي منهما.
+      await _saveOrderRows(order, updatedAt: now);
+
+      await _database
+          .into(_database.syncOperations)
+          .insertOnConflictUpdate(
+            SyncOperationsCompanion.insert(
+              id: 'order:create:$orderId',
+              entityType: 'order',
+              entityId: orderId,
+              operation: 'create',
+              payloadJson: jsonEncode(_createOrderPayload(request)),
+              createdAt: now,
+            ),
+          );
+    });
+
+    return order;
   }
 
   /// Persists an order using its existing ID.
@@ -64,41 +85,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
     final DateTime now = DateTime.now().toUtc();
 
     await _database.transaction(() async {
-      await _database
-          .into(_database.orderRecords)
-          .insertOnConflictUpdate(
-            OrderRecordsCompanion.insert(
-              id: order.id,
-              status: Value(order.status),
-              notes: Value(order.notes),
-              createdAt: order.createdAt.toUtc(),
-              updatedAt: now,
-            ),
-          );
-
-      await (_database.delete(_database.orderItemRecords)
-            ..where((OrderItemRecords table) => table.orderId.equals(order.id)))
-          .go();
-
-      for (int index = 0; index < order.items.length; index++) {
-        final OrderItemModel item = order.items[index];
-
-        await _database
-            .into(_database.orderItemRecords)
-            .insert(
-              OrderItemRecordsCompanion.insert(
-                id: '${order.id}-item-$index',
-                orderId: order.id,
-                productId: item.productId,
-                supplierId: item.supplierId,
-                supplierName: Value(item.supplierName),
-                productName: item.productName,
-                unitPrice: item.unitPrice,
-                quantity: item.quantity,
-                imageUrl: Value(item.imageUrl),
-              ),
-            );
-      }
+      await _saveOrderRows(order, updatedAt: now);
     });
 
     return OrderModel(
@@ -107,6 +94,47 @@ class OrdersLocalDataSource implements OrdersDataSource {
       items: order.items,
       createdAt: order.createdAt.toUtc(),
       notes: order.notes,
+    );
+  }
+
+  /// Replaces the temporary offline order with the authoritative server order
+  /// and removes its completed Outbox operation atomically.
+  Future<OrderModel> completeCreateSync({
+    required String localOrderId,
+    required String operationId,
+    required OrderModel remoteOrder,
+  }) async {
+    final DateTime now = DateTime.now().toUtc();
+
+    await _database.transaction(() async {
+      await (_database.delete(
+        _database.orderRecords,
+      )..where((OrderRecords table) => table.id.equals(localOrderId))).go();
+
+      await _saveOrderRows(remoteOrder, updatedAt: now);
+
+      await (_database.delete(
+        _database.syncOperations,
+      )..where((SyncOperations table) => table.id.equals(operationId))).go();
+    });
+
+    return remoteOrder;
+  }
+
+  Future<void> markCreateSyncFailure({
+    required String operationId,
+    required int attempts,
+    required Object error,
+    required DateTime nextAttemptAt,
+  }) async {
+    await (_database.update(
+      _database.syncOperations,
+    )..where((SyncOperations table) => table.id.equals(operationId))).write(
+      SyncOperationsCompanion(
+        attempts: Value(attempts),
+        lastError: Value(error.toString()),
+        nextAttemptAt: Value(nextAttemptAt.toUtc()),
+      ),
     );
   }
 
@@ -143,6 +171,66 @@ class OrdersLocalDataSource implements OrdersDataSource {
       createdAt: existing.createdAt.toUtc(),
       notes: existing.notes,
     );
+  }
+
+  Future<void> _saveOrderRows(
+    OrderModel order, {
+    required DateTime updatedAt,
+  }) async {
+    await _database
+        .into(_database.orderRecords)
+        .insertOnConflictUpdate(
+          OrderRecordsCompanion.insert(
+            id: order.id,
+            status: Value(order.status),
+            notes: Value(order.notes),
+            createdAt: order.createdAt.toUtc(),
+            updatedAt: updatedAt,
+          ),
+        );
+
+    await (_database.delete(
+      _database.orderItemRecords,
+    )..where((OrderItemRecords table) => table.orderId.equals(order.id))).go();
+
+    for (int index = 0; index < order.items.length; index++) {
+      final OrderItemModel item = order.items[index];
+
+      await _database
+          .into(_database.orderItemRecords)
+          .insert(
+            OrderItemRecordsCompanion.insert(
+              id: '${order.id}-item-$index',
+              orderId: order.id,
+              productId: item.productId,
+              supplierId: item.supplierId,
+              supplierName: Value(item.supplierName),
+              productName: item.productName,
+              unitPrice: item.unitPrice,
+              quantity: item.quantity,
+              imageUrl: Value(item.imageUrl),
+            ),
+          );
+    }
+  }
+
+  Map<String, Object?> _createOrderPayload(CreateOrderModel request) {
+    return <String, Object?>{
+      'notes': request.notes,
+      'items': request.items
+          .map(
+            (OrderItemModel item) => <String, Object?>{
+              'productId': item.productId,
+              'productName': item.productName,
+              'unitPrice': item.unitPrice,
+              'quantity': item.quantity,
+              'supplierId': item.supplierId,
+              'supplierName': item.supplierName,
+              'imageUrl': item.imageUrl,
+            },
+          )
+          .toList(growable: false),
+    };
   }
 
   OrderItemModel _itemRecordToModel(OrderItemRecord row) {
