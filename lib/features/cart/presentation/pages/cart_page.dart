@@ -65,6 +65,8 @@ class CartPage extends ConsumerWidget {
             ),
             if (cart.isNotEmpty)
               _CheckoutBar(
+                // مفتاح ثابت يستخدمه Regression Test لإثبات ظهور Checkout bar.
+                key: const ValueKey('checkout-bar'),
                 totalQuantity: cart.totalQuantity,
                 totalPrice: cart.totalPrice,
                 isSubmitting: ordersController.state.isSubmitting,
@@ -783,12 +785,12 @@ class _QuantityButton extends StatelessWidget {
 /// Checkout bar ثابتة.
 class _CheckoutBar extends StatelessWidget {
   const _CheckoutBar({
+    super.key,
     required this.totalQuantity,
     required this.totalPrice,
     required this.isSubmitting,
     required this.onSubmit,
   });
-
   final int totalQuantity;
   final double totalPrice;
   final bool isSubmitting;
