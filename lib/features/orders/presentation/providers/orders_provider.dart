@@ -8,6 +8,7 @@ import '../../data/datasources/remote/orders_remote_datasource.dart';
 import '../../data/repositories/orders_repository_impl.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../../domain/usecases/orders_usecase.dart';
+import '../../data/sync/orders_sync_coordinator.dart';
 import '../controllers/orders_controller.dart';
 
 final ordersLocalDataSourceProvider = Provider<OrdersLocalDataSource>((ref) {
@@ -17,6 +18,13 @@ final ordersLocalDataSourceProvider = Provider<OrdersLocalDataSource>((ref) {
 /// Local orders remain the source of truth for reads.
 final ordersDataSourceProvider = Provider<OrdersDataSource>((ref) {
   return ref.watch(ordersLocalDataSourceProvider);
+});
+final ordersSyncCoordinatorProvider = Provider<OrdersSyncCoordinator>((ref) {
+  return OrdersSyncCoordinator(
+    database: ref.watch(appDatabaseProvider),
+    localDataSource: ref.watch(ordersLocalDataSourceProvider),
+    remoteDataSource: ref.watch(ordersRemoteDataSourceProvider),
+  );
 });
 
 /// The generated remote API is currently used for creating orders.

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
@@ -88,13 +91,170 @@ void main() {
       expect(localOrders.single.id, 'server-order-1');
       expect(localOrders.single.createdAt, serverCreatedAt);
 
-      expect(localOrders.single.items.map((item) => item.supplierId).toSet(), {
-        'supplier-1',
-        'supplier-2',
-      });
+      expect(
+        localOrders.single.items.map((item) => item.supplierId).toSet(),
+        <String>{'supplier-1', 'supplier-2'},
+      );
+
+      final syncOperations = await database
+          .select(database.syncOperations)
+          .get();
+
+      // النجاح المباشر مع السيرفر لا يجب أن يترك عملية Outbox.
+      expect(syncOperations, isEmpty);
     });
 
-    test('does not create a local order when remote creation fails', () async {
+    test(
+      'queues a local order when remote creation fails due to connectivity',
+      () async {
+        final AppDatabase database = AppDatabase.forTesting(
+          NativeDatabase.memory(),
+        );
+
+        addTearDown(database.close);
+
+        final localDataSource = OrdersLocalDataSource(database);
+
+        final remoteDataSource = _FakeRemoteOrdersDataSource(
+          createError: DioException(
+            requestOptions: RequestOptions(path: '/orders'),
+            type: DioExceptionType.connectionError,
+            message: 'network unavailable',
+          ),
+        );
+
+        final repository = OrdersRepositoryImpl(
+          localDataSource,
+          remoteDataSource: remoteDataSource,
+        );
+
+        final request = CreateOrderRequest(
+          notes: 'Offline order',
+          items: const [
+            OrderItemEntity(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 2,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+            OrderItemEntity(
+              productId: 'product-2',
+              productName: 'Product 2',
+              unitPrice: 200,
+              quantity: 1,
+              supplierId: 'supplier-2',
+              supplierName: 'Supplier 2',
+            ),
+          ],
+        );
+
+        final OrderEntity created = await repository.createOrder(request);
+
+        final localOrders = await localDataSource.getOrders();
+
+        final syncOperations = await database
+            .select(database.syncOperations)
+            .get();
+
+        expect(created.id, startsWith('local-order-'));
+        expect(created.status, OrderStatus.pending);
+        expect(created.items, hasLength(2));
+
+        expect(localOrders, hasLength(1));
+        expect(localOrders.single.id, created.id);
+
+        expect(syncOperations, hasLength(1));
+
+        final operation = syncOperations.single;
+
+        expect(operation.id, 'order:create:${created.id}');
+        expect(operation.entityType, 'order');
+        expect(operation.entityId, created.id);
+        expect(operation.operation, 'create');
+        expect(operation.attempts, 0);
+        expect(operation.lastError, isNull);
+
+        final payload =
+            jsonDecode(operation.payloadJson) as Map<String, dynamic>;
+
+        expect(payload['notes'], 'Offline order');
+
+        final items = payload['items'] as List<dynamic>;
+
+        expect(items, hasLength(2));
+
+        expect(
+          items
+              .map((item) => (item as Map<String, dynamic>)['supplierId'])
+              .toSet(),
+          <String>{'supplier-1', 'supplier-2'},
+        );
+      },
+    );
+
+    test('does not turn HTTP 422 into an offline order', () async {
+      final AppDatabase database = AppDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+
+      addTearDown(database.close);
+
+      final localDataSource = OrdersLocalDataSource(database);
+
+      final requestOptions = RequestOptions(path: '/orders');
+
+      final remoteError = DioException(
+        requestOptions: requestOptions,
+        response: Response<dynamic>(
+          requestOptions: requestOptions,
+          statusCode: 422,
+          data: <String, dynamic>{'message': 'Validation failed'},
+        ),
+        type: DioExceptionType.badResponse,
+        message: 'Validation failed',
+      );
+
+      final remoteDataSource = _FakeRemoteOrdersDataSource(
+        createError: remoteError,
+      );
+
+      final repository = OrdersRepositoryImpl(
+        localDataSource,
+        remoteDataSource: remoteDataSource,
+      );
+
+      final request = CreateOrderRequest(
+        items: const [
+          OrderItemEntity(
+            productId: 'product-1',
+            productName: 'Product 1',
+            unitPrice: 100,
+            quantity: 1,
+            supplierId: 'supplier-1',
+            supplierName: 'Supplier 1',
+          ),
+        ],
+      );
+
+      await expectLater(
+        repository.createOrder(request),
+        throwsA(same(remoteError)),
+      );
+
+      final localOrders = await localDataSource.getOrders();
+
+      final syncOperations = await database
+          .select(database.syncOperations)
+          .get();
+
+      // HTTP 422 ليس فقدان اتصال، لذلك لا ننشئ Offline Order.
+      expect(localOrders, isEmpty);
+      expect(syncOperations, isEmpty);
+    });
+
+    test('does not hide non-connectivity programming failures', () async {
       final AppDatabase database = AppDatabase.forTesting(
         NativeDatabase.memory(),
       );
@@ -134,7 +294,12 @@ void main() {
 
       final localOrders = await localDataSource.getOrders();
 
+      final syncOperations = await database
+          .select(database.syncOperations)
+          .get();
+
       expect(localOrders, isEmpty);
+      expect(syncOperations, isEmpty);
     });
 
     test(
@@ -163,9 +328,13 @@ void main() {
           ],
         );
 
-        final created = await repository.createOrder(request);
+        final OrderEntity created = await repository.createOrder(request);
 
-        final orders = await repository.getOrders();
+        final List<OrderEntity> orders = await repository.getOrders();
+
+        final syncOperations = await database
+            .select(database.syncOperations)
+            .get();
 
         expect(created.status, OrderStatus.pending);
         expect(created.totalQuantity, 2);
@@ -175,6 +344,15 @@ void main() {
 
         expect(orders, hasLength(1));
         expect(orders.single.id, created.id);
+
+        // local-only يعني أن الطلب يحتاج مزامنة لاحقًا.
+        expect(syncOperations, hasLength(1));
+
+        final operation = syncOperations.single;
+
+        expect(operation.entityType, 'order');
+        expect(operation.operation, 'create');
+        expect(operation.entityId, created.id);
       },
     );
   });

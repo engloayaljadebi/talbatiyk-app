@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import '../../domain/entities/orders_entity.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../datasources/local/orders_local_datasource.dart';
@@ -32,11 +36,26 @@ class OrdersRepositoryImpl implements OrdersRepository {
       return OrdersMapper.toEntity(localOrder);
     }
 
-    final OrderModel remoteOrder = await remote.createOrder(createModel);
+    try {
+      final OrderModel remoteOrder = await remote.createOrder(createModel);
 
-    await localDataSource.saveOrder(remoteOrder);
+      // نجاح الخادم لا ينشئ Outbox؛ نحفظ نسخة السيرفر فقط.
+      await localDataSource.saveOrder(remoteOrder);
 
-    return OrdersMapper.toEntity(remoteOrder);
+      return OrdersMapper.toEntity(remoteOrder);
+    } catch (error) {
+      // لا نحول أخطاء validation أو server responses إلى Offline Orders.
+      // الـ fallback مسموح فقط عند فقدان الاتصال فعليًا.
+      if (!_isConnectivityFailure(error)) {
+        rethrow;
+      }
+
+      final OrderModel localOrder = await localDataSource.createOrder(
+        createModel,
+      );
+
+      return OrdersMapper.toEntity(localOrder);
+    }
   }
 
   @override
@@ -50,5 +69,25 @@ class OrdersRepositoryImpl implements OrdersRepository {
     );
 
     return OrdersMapper.toEntity(updatedOrder);
+  }
+
+  bool _isConnectivityFailure(Object error) {
+    if (error is! DioException) {
+      return false;
+    }
+
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionError:
+        return true;
+
+      case DioExceptionType.unknown:
+        return error.error is SocketException;
+
+      default:
+        return false;
+    }
   }
 }
