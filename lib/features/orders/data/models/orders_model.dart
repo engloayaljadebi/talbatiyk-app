@@ -49,11 +49,29 @@ class CreateOrderModel {
     required List<OrderItemModel> items,
     this.supplier,
     this.notes = '',
+    this.idempotencyKey = '',
   }) : items = List<OrderItemModel>.unmodifiable(items);
 
   final List<OrderItemModel> items;
   final OrderSupplierModel? supplier;
   final String notes;
+
+  /// Stable for the lifetime of one logical create-order operation.
+  final String idempotencyKey;
+
+  CreateOrderModel copyWith({
+    List<OrderItemModel>? items,
+    OrderSupplierModel? supplier,
+    String? notes,
+    String? idempotencyKey,
+  }) {
+    return CreateOrderModel(
+      items: items ?? this.items,
+      supplier: supplier ?? this.supplier,
+      notes: notes ?? this.notes,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     final OrderSupplierModel? orderSupplier = supplier;
@@ -63,7 +81,6 @@ class CreateOrderModel {
           .map((OrderItemModel item) => item.toJson())
           .toList(growable: false),
 
-      // الباك إند يحتاج معرّف المورد، أما الاسم فهو نسخة محلية للعرض.
       if (orderSupplier != null && orderSupplier.id.trim().isNotEmpty)
         'supplier_id': orderSupplier.id.trim(),
 

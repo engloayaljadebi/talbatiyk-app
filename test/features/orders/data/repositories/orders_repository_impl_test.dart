@@ -178,6 +178,11 @@ void main() {
 
         final payload =
             jsonDecode(operation.payloadJson) as Map<String, dynamic>;
+        final String firstAttemptKey =
+            remoteDataSource.createRequest!.idempotencyKey;
+
+        expect(firstAttemptKey, isNotEmpty);
+        expect(payload['idempotencyKey'], firstAttemptKey);
 
         expect(payload['notes'], 'Offline order');
 

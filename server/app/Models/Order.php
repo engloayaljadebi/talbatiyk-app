@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id',
+    'idempotency_key',
+    'idempotency_payload_hash',
     'status',
     'notes',
 ])]

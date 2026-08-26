@@ -5,6 +5,8 @@ namespace App\Http\Requests\Api\V1\Order;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Validator;
 
 class CreateOrderRequest extends FormRequest
 {
@@ -83,7 +85,42 @@ class CreateOrderRequest extends FormRequest
             ],
         ];
     }
+    /**
+     * Validate the idempotency header separately from the JSON body.
+     *
+     * @return array<int, callable>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $idempotencyKey = trim(
+                    (string) $this->header('Idempotency-Key', ''),
+                );
 
+                if ($idempotencyKey === '') {
+                    $validator->errors()->add(
+                        'Idempotency-Key',
+                        'The Idempotency-Key header is required.',
+                    );
+
+                    return;
+                }
+
+                if (!Str::isUuid($idempotencyKey)) {
+                    $validator->errors()->add(
+                        'Idempotency-Key',
+                        'The Idempotency-Key header must be a valid UUID.',
+                    );
+                }
+            },
+        ];
+    }
+
+    public function idempotencyKey(): string
+    {
+        return trim((string) $this->header('Idempotency-Key'));
+    }
     protected function prepareForValidation(): void
     {
         $this->merge([

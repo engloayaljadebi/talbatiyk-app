@@ -8,23 +8,32 @@ use App\Http\Resources\Api\V1\OrderResource;
 use App\Services\Order\OrderService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Dedoc\Scramble\Attributes\HeaderParameter;
 
 class OrderController extends Controller
 {
     public function __construct(
         private readonly OrderService $orderService,
-    ) {}
+    ) {
+    }
 
     /**
      * Create a new order for the authenticated user.
-     */
+     */ #[HeaderParameter(
+        'Idempotency-Key',
+        description: 'Stable UUID reused for retries of the same logical order creation.',
+        required: true,
+        type: 'string',
+        format: 'uuid',
+        example: '550e8400-e29b-41d4-a716-446655440000',
+    )]
     public function store(CreateOrderRequest $request): JsonResponse
     {
         $order = $this->orderService->create(
             $request->user(),
             $request->validated(),
+            $request->idempotencyKey(),
         );
-
         return (new OrderResource($order))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);

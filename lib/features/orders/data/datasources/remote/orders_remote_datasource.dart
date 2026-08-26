@@ -47,6 +47,15 @@ class OrdersRemoteDataSource implements OrdersDataSource {
 
   @override
   Future<OrderModel> createOrder(CreateOrderModel request) async {
+    final String idempotencyKey = request.idempotencyKey.trim();
+
+    if (idempotencyKey.isEmpty) {
+      throw ArgumentError.value(
+        request.idempotencyKey,
+        'idempotencyKey',
+        'Create order requires an idempotency key.',
+      );
+    }
     final apiRequest = CreateOrderRequest((builder) {
       final notes = request.notes.trim();
 
@@ -78,6 +87,7 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     });
 
     final response = await generatedApiClient.orders.orderStore(
+      idempotencyKey: idempotencyKey,
       createOrderRequest: apiRequest,
     );
 

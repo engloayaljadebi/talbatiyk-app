@@ -6,11 +6,14 @@ use App\Models\Business;
 use App\Models\User;
 use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class OrderApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    private const IDEMPOTENCY_KEY = '550e8400-e29b-41d4-a716-446655440000';
 
     public function test_unauthenticated_user_cannot_create_order(): void
     {
@@ -53,6 +56,10 @@ class OrderApiTest extends TestCase
 
         $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson('/api/v1/orders', [
                 'notes' => 'Test order',
             ])
@@ -85,6 +92,10 @@ class OrderApiTest extends TestCase
 
         $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson('/api/v1/orders', $payload)
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
@@ -115,6 +126,10 @@ class OrderApiTest extends TestCase
 
         $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson('/api/v1/orders', $payload)
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
@@ -138,6 +153,10 @@ class OrderApiTest extends TestCase
 
         $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson(
                 '/api/v1/orders',
                 $this->orderPayload($supplier),
@@ -162,6 +181,10 @@ class OrderApiTest extends TestCase
 
         $response = $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson(
                 '/api/v1/orders',
                 $this->orderPayload($supplier),
@@ -177,6 +200,216 @@ class OrderApiTest extends TestCase
             );
     }
 
+    public function test_idempotency_key_is_required(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            name: 'Idempotency supplier',
+        );
+
+        $this
+            ->withToken($this->tokenFor($user))
+            ->postJson(
+                '/api/v1/orders',
+                $this->orderPayload($supplier),
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'Idempotency-Key',
+            ]);
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_items', 0);
+    }
+
+    public function test_idempotency_key_must_be_valid_uuid(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            name: 'Invalid key supplier',
+        );
+
+        $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                'not-a-valid-uuid',
+            )
+            ->postJson(
+                '/api/v1/orders',
+                $this->orderPayload($supplier),
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'Idempotency-Key',
+            ]);
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_items', 0);
+    }
+
+    public function test_same_idempotency_key_and_payload_returns_same_order(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            name: 'Replay supplier',
+        );
+
+        $payload = $this->orderPayload($supplier);
+
+        $firstResponse = $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $secondResponse = $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $firstOrderId = $firstResponse->json('data.id');
+        $secondOrderId = $secondResponse->json('data.id');
+
+        $this->assertSame(
+            $firstOrderId,
+            $secondOrderId,
+        );
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $firstOrderId,
+            'user_id' => $user->id,
+            'idempotency_key' => self::IDEMPOTENCY_KEY,
+        ]);
+
+        // Replay must not create a duplicate aggregate.
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertDatabaseCount('order_items', 1);
+    }
+
+    public function test_same_idempotency_key_with_different_payload_is_conflict(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            name: 'Conflict supplier',
+        );
+
+        $payload = $this->orderPayload($supplier);
+
+        $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $differentPayload = $payload;
+        $differentPayload['notes'] = 'Different logical order';
+
+        $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson(
+                '/api/v1/orders',
+                $differentPayload,
+            )
+            ->assertStatus(409);
+
+        // Conflict must not mutate the original aggregate.
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertDatabaseCount('order_items', 1);
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'idempotency_key' => self::IDEMPOTENCY_KEY,
+            'notes' => 'Test order',
+        ]);
+    }
+
+    public function test_same_idempotency_key_is_scoped_per_user(): void
+    {
+        $firstUser = User::factory()->create();
+        $secondUser = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            name: 'Shared key supplier',
+        );
+
+        $payload = $this->orderPayload($supplier);
+
+        $firstResponse = $this
+            ->withToken($this->tokenFor($firstUser))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $secondResponse = $this
+            ->withToken($this->tokenFor($secondUser))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+        $firstResponse = $this
+            ->withToken($this->tokenFor($firstUser))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        // Feature tests reuse the application instance.
+        // Reset the resolved guard before authenticating the second user.
+        Auth::forgetGuards();
+
+        $secondResponse = $this
+            ->withToken($this->tokenFor($secondUser))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+        $this->assertNotSame(
+            $firstResponse->json('data.id'),
+            $secondResponse->json('data.id'),
+        );
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $firstUser->id,
+            'idempotency_key' => self::IDEMPOTENCY_KEY,
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $secondUser->id,
+            'idempotency_key' => self::IDEMPOTENCY_KEY,
+        ]);
+
+        $this->assertDatabaseCount('orders', 2);
+        $this->assertDatabaseCount('order_items', 2);
+    }
+
     public function test_order_and_order_items_are_persisted(): void
     {
         $user = User::factory()->create();
@@ -187,6 +420,10 @@ class OrderApiTest extends TestCase
 
         $response = $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson(
                 '/api/v1/orders',
                 $this->orderPayload($supplier),
@@ -257,6 +494,10 @@ class OrderApiTest extends TestCase
 
         $response = $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson('/api/v1/orders', $payload);
 
         $response
@@ -298,6 +539,10 @@ class OrderApiTest extends TestCase
 
         $response = $this
             ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
             ->postJson(
                 '/api/v1/orders',
                 $this->orderPayload($supplier),
