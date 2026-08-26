@@ -179,6 +179,8 @@ void main() {
       expect(cart.items, hasLength(2));
 
       await _pumpCartPage(tester, container);
+      // Checkout يبقى جزءًا من CartPage نفسها عندما تحتوي السلة عناصر.
+      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
 
       expect(find.text(_supplierAProduct.name), findsOneWidget);
 
@@ -263,7 +265,9 @@ void main() {
 
       // Supplier B was not submitted and must remain.
       expect(cart.quantityOf(_supplierBProduct.id), 1);
-
+      // عند إفراغ السلة بعد نجاح الطلب يجب إزالة Checkout bar.
+      // Supplier B لم يُرسل وما زال موجودًا، لذلك يجب أن تبقى Checkout bar.
+      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
       expect(cart.items, hasLength(1));
 
       expect(cart.isEmpty, isFalse);
@@ -294,7 +298,11 @@ void main() {
 
       expect(find.text(_supplierBProduct.name), findsOneWidget);
 
-      expect(find.byKey(const ValueKey('cart-content')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('cart-content')),
+        findsOneWidget,
+      ); // بقاء Supplier B يعني أن Checkout يجب أن يبقى متاحًا.
+      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
 
       // Because Supplier B remains in the cart,
       // the checkout action must remain available.
@@ -337,7 +345,8 @@ void main() {
     expect(cart.items, hasLength(2));
 
     await _pumpCartPage(tester, container);
-
+    // Supplier B ما زال موجودًا في السلة، لذلك يجب أن تبقى Checkout bar.
+    expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
     final submitButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
 
     expect(submitButton, findsOneWidget);

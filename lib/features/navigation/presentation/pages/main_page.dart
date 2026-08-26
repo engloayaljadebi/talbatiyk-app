@@ -62,30 +62,19 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // مساحة شريط النظام أسفل شاشة الهاتف.
-    final double bottomInset = MediaQuery.paddingOf(context).bottom;
-
     return Scaffold(
-      // يسمح لشريط التنقل بالظهور عائمًا فوق محتوى الصفحات.
-      extendBody: false,
-      body: Stack(
-        children: [
-          // يحتفظ بحالة الصفحات عند التنقل بينها.
-          Positioned.fill(
-            child: IndexedStack(index: _currentIndex, children: _pages),
-          ),
+      // يحتفظ IndexedStack بحالة كل قسم عند التنقل بين صفحات التطبيق.
+      body: IndexedStack(index: _currentIndex, children: _pages),
 
-          // شريط التنقل السفلي العائم.
-          Positioned(
-            left: 15,
-            right: 15,
-            bottom: bottomInset + 8,
-            child: HomeBottomNavigation(
-              currentIndex: _currentIndex,
-              onDestinationSelected: _changePage,
-            ),
-          ),
-        ],
+      // يملك الـShell الرئيسي شريط التنقل حتى يحجز Scaffold مساحته
+      // ولا يُرسم فوق محتوى الصفحات مثل Checkout في CartPage.
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(15, 0, 15, 8),
+        child: HomeBottomNavigation(
+          currentIndex: _currentIndex,
+          onDestinationSelected: _changePage,
+        ),
       ),
     );
   }
