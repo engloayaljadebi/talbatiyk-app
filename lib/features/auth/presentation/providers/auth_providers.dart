@@ -6,17 +6,20 @@
 | محتويات الملف:
 | - توفير AuthRemoteDataSource.
 | - توفير Secure Token Storage.
+| - توفير Verified Auth Session Storage.
 | - توفير AuthRepository.
 | - توفير AuthUseCase.
 | - توفير AuthController للواجهة.
 |
-| التدفق:
+| التسلسل المعماري:
 |
 | GeneratedApiClient
 |       ↓
 | AuthRemoteDataSource
 |       ↓
-| AuthRepository ← Secure Token Storage
+| AuthRepository
+|       ├── AuthTokenStorage
+|       └── VerifiedAuthSessionStorage
 |       ↓
 | AuthUseCase
 |       ↓
@@ -29,6 +32,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
 
+import '../../data/datasources/local/auth_session_storage.dart';
 import '../../data/datasources/local/auth_token_storage.dart';
 import '../../data/datasources/remote/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -50,16 +54,30 @@ final secureKeyValueStoreProvider = Provider<SecureKeyValueStore>((ref) {
 
 /// يوفر تخزين Access Token الخاص بالمصادقة.
 final authTokenStorageProvider = Provider<AuthTokenStorage>((ref) {
-  final secureStorage = ref.watch(secureKeyValueStoreProvider);
+  final SecureKeyValueStore secureStorage = ref.watch(
+    secureKeyValueStoreProvider,
+  );
 
   return AuthTokenStorageImpl(secureStorage);
 });
+
+/// يوفر آخر جلسة مصادقة تم التحقق منها من الخادم.
+final verifiedAuthSessionStorageProvider = Provider<VerifiedAuthSessionStorage>(
+  (ref) {
+    final SecureKeyValueStore secureStorage = ref.watch(
+      secureKeyValueStoreProvider,
+    );
+
+    return VerifiedAuthSessionStorageImpl(secureStorage);
+  },
+);
 
 /// يربط Remote API والتخزين الآمن بطبقة Domain.
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     remoteDataSource: ref.watch(authRemoteDataSourceProvider),
     tokenStorage: ref.watch(authTokenStorageProvider),
+    verifiedSessionStorage: ref.watch(verifiedAuthSessionStorageProvider),
   );
 });
 
