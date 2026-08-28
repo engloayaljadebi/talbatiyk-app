@@ -3,42 +3,37 @@
 | Auth Repository Implementation
 |--------------------------------------------------------------------------
 |
-| محتويات الملف:
-| - تنفيذ عقد AuthRepository.
-| - التنسيق بين Laravel Remote API وSecure Token Storage.
-| - تحويل OpenAPI Models إلى Domain Entities.
-| - حفظ Access Token بعد تسجيل الدخول.
-| - استعادة الجلسة المحفوظة عند تشغيل التطبيق.
-| - تنظيف بيانات الجلسة عند تسجيل الخروج.
+| ينسق بين Laravel وToken Storage وVerified Session Storage.
+| Domain يبقى معزولًا عن Dio/OpenAPI والتخزين المحلي.
 |
-| قواعد التصميم:
-| - Domain لا يعرف OpenAPI أو Dio أو Secure Storage.
-| - Access Token لا يغادر طبقة Data.
-| - فشل الاتصال أثناء استعادة الجلسة لا يحذف Token المحفوظ تلقائيًا.
-| - 401 فقط يعني أن الجلسة لم تعد صالحة ويجب حذف Token المحلي.
+| قواعد مهمة:
+| - وجود Token محلي لا يكفي لإثبات صلاحية الجلسة.
+| - نجاح /me يحدّث آخر Verified Session.
+| - Offline fallback مسموح فقط للأخطاء المؤقتة المحددة.
+| - 401 يلغي الجلسة المحلية، و403 يلغي الـVerified Session لمنع bypass Offline.
 |
 */
+
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/auth_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../datasources/local/auth_session_storage.dart';
 import '../datasources/local/auth_token_storage.dart';
 import '../datasources/remote/auth_remote_datasource.dart';
 import '../mappers/auth_mapper.dart';
 
-/// تنفيذ مستودع المصادقة.
-///
-/// يجمع بين:
-/// - مصدر المصادقة البعيد.
-/// - التخزين الآمن للتوكن.
-/// - Mapper الخاص بتحويل Models إلى Domain Entities.
+/// تنفيذ مستودع المصادقة وتنسيق مصادرها داخل Data Layer.
 final class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required this._remoteDataSource,
     required this._tokenStorage,
+    required this._verifiedSessionStorage,
   });
 
+  final VerifiedAuthSessionStorage _verifiedSessionStorage;
   final AuthRemoteDataSource _remoteDataSource;
   final AuthTokenStorage _tokenStorage;
 
@@ -48,12 +43,6 @@ final class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String deviceName,
   }) async {
-    /*
-     * نطلب تسجيل الدخول من Laravel أولًا.
-     *
-     * AuthRemoteDataSource سيضع Bearer Token
-     * مباشرة داخل Generated API Client بعد نجاح الطلب.
-     */
     final remoteSession = await _remoteDataSource.login(
       login: login,
       password: password,
@@ -61,150 +50,154 @@ final class AuthRepositoryImpl implements AuthRepository {
     );
 
     try {
-      /*
-       * نحفظ Access Token في Secure Storage
-       * حتى نستطيع استعادة الجلسة بعد إغلاق التطبيق.
-       */
-      await _tokenStorage.saveAccessToken(remoteSession.accessToken);
-    } catch (error, stackTrace) {
-      /*
-       * Laravel أنشأ Token بنجاح، لكن حفظه محليًا فشل.
-       *
-       * نحاول إلغاء Token من Laravel حتى لا نترك
-       * جلسة غير قابلة للإدارة على الخادم.
-       */
-      try {
-        await _remoteDataSource.logout();
-      } catch (_) {
-        /*
-         * إذا تعذر الوصول إلى Laravel أيضًا،
-         * ننظف على الأقل Bearer Token من ذاكرة العميل.
-         */
-        _remoteDataSource.clearAccessToken();
-      }
+      final AuthSessionEntity session = remoteSession.toDomain();
 
-      /*
-       * نعيد نفس الخطأ الأصلي مع StackTrace الأصلي.
-       */
+      await _tokenStorage.saveAccessToken(remoteSession.accessToken);
+      await _verifiedSessionStorage.saveVerifiedSession(session);
+
+      return session;
+    } catch (error, stackTrace) {
+      // Laravel may already have created a token, so avoid leaving partial state.
+      await _bestEffortCleanupAfterFailedLogin();
+
+      // Preserve the original login failure and its stack trace.
       Error.throwWithStackTrace(error, stackTrace);
     }
-
-    /*
-     * Access Token لا يخرج إلى Domain.
-     * Mapper يعيد AuthSessionEntity الذي يحتوي المستخدم فقط.
-     */
-    return remoteSession.toDomain();
   }
 
   @override
   Future<AuthSessionEntity?> restoreSession() async {
-    /*
-     * نقرأ Access Token المحفوظ على الجهاز.
-     */
-    final accessToken = await _tokenStorage.readAccessToken();
+    final String? accessToken = await _tokenStorage.readAccessToken();
 
-    /*
-     * لا يوجد Token محفوظ، إذًا لا توجد جلسة.
-     */
     if (accessToken == null) {
       return null;
     }
 
-    /*
-     * نعيد Bearer Token إلى Generated API Client
-     * حتى يستخدمه في الطلبات المحمية.
-     */
     _remoteDataSource.setAccessToken(accessToken);
 
     try {
-      /*
-       * لا نعتبر وجود Token محلي دليلًا كافيًا
-       * على أن الجلسة ما زالت صالحة.
-       *
-       * نتحقق فعليًا من Laravel عبر:
-       *
-       * GET /api/v1/auth/me
-       */
       final user = await _remoteDataSource.me();
 
-      /*
-       * Laravel قبل Token وأعاد المستخدم الحالي.
-       * إذًا الجلسة صالحة.
-       */
-      return AuthSessionEntity(user: user.toDomain());
+      final AuthSessionEntity session = AuthSessionEntity(
+        user: user.toDomain(),
+      );
+
+      await _verifiedSessionStorage.saveVerifiedSession(session);
+
+      return session;
     } on DioException catch (error) {
-      /*
-       * 401 Unauthorized يعني أن Token المحفوظ
-       * لم يعد صالحًا على Laravel.
-       *
-       * أمثلة:
-       * - تم إلغاء Token من الخادم.
-       * - انتهت صلاحية Token مستقبلًا.
-       * - تم حذف الجلسة من Sanctum.
-       */
       if (error.response?.statusCode == 401) {
-        /*
-         * ننظف Bearer Token من ذاكرة العميل أولًا.
-         */
-        _remoteDataSource.clearAccessToken();
+        // Invalid token is definitive: never fall back to a cached session.
+        await _clearLocalSession();
 
-        /*
-         * ثم نحذف Token نهائيًا من Secure Storage.
-         */
-        await _tokenStorage.deleteAccessToken();
-
-        /*
-         * null تخبر AuthController أنه لا توجد جلسة صالحة،
-         * وبالتالي GoRouter سينقل المستخدم إلى LoginPage.
-         */
         return null;
       }
 
-      /*
-       * لا نحذف Token عند:
-       * - انقطاع الإنترنت.
-       * - Timeout.
-       * - Connection Error.
-       * - أخطاء Laravel 5xx.
-       *
-       * لأن الجلسة قد تكون ما زالت صالحة،
-       * والمشكلة مؤقتة في الشبكة أو الخادم.
-       */
+      if (error.response?.statusCode == 403) {
+        // /auth/me is protected by active.user. Drop the verified snapshot so
+        // a later offline restart cannot reuse a session rejected by Laravel.
+        // Keep the token so a future online retry can succeed after reactivation.
+        await _verifiedSessionStorage.deleteVerifiedSession();
+
+        rethrow;
+      }
+
+      if (_canRestoreFromVerifiedCache(error)) {
+        final AuthSessionEntity? cachedSession = await _verifiedSessionStorage
+            .readVerifiedSession();
+
+        if (cachedSession != null) {
+          return cachedSession;
+        }
+      }
+
       rethrow;
     }
   }
 
   @override
   Future<AuthUserEntity> getCurrentUser() async {
-    /*
-     * جلب بيانات المستخدم الحالي من Laravel.
-     */
     final user = await _remoteDataSource.me();
 
-    return user.toDomain();
+    final AuthUserEntity domainUser = user.toDomain();
+
+    // A successful /me is a fresh server verification.
+    await _verifiedSessionStorage.saveVerifiedSession(
+      AuthSessionEntity(user: domainUser),
+    );
+
+    return domainUser;
   }
 
   @override
   Future<void> logout() async {
-    /*
-     * نحاول أولًا إلغاء Sanctum Token على Laravel.
-     *
-     * finally متعمد:
-     * حتى لو كان الجهاز بلا إنترنت أو Laravel غير متاح،
-     * يجب أن يستطيع المستخدم تسجيل الخروج من الجهاز.
-     */
     try {
       await _remoteDataSource.logout();
     } finally {
-      /*
-       * إزالة Bearer Token من ذاكرة Generated API Client.
-       */
-      _remoteDataSource.clearAccessToken();
+      // Local logout must complete even when the remote revoke fails.
+      await _clearLocalSession();
+    }
+  }
 
-      /*
-       * حذف Access Token من Secure Storage.
-       */
+  /// يسمح بالـoffline fallback فقط للأخطاء المؤقتة أو غير الحاسمة.
+  bool _canRestoreFromVerifiedCache(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionError:
+        return true;
+
+      case DioExceptionType.unknown:
+        return error.error is SocketException;
+
+      case DioExceptionType.badResponse:
+        final int? statusCode = error.response?.statusCode;
+
+        if (statusCode == null) {
+          return false;
+        }
+
+        return statusCode == 408 ||
+            statusCode == 429 ||
+            (statusCode >= 500 && statusCode < 600);
+
+      default:
+        return false;
+    }
+  }
+
+  Future<void> _clearLocalSession() async {
+    _remoteDataSource.clearAccessToken();
+
+    try {
       await _tokenStorage.deleteAccessToken();
+    } finally {
+      // Do not leave a verified snapshot if token cleanup partially fails.
+      await _verifiedSessionStorage.deleteVerifiedSession();
+    }
+  }
+
+  /// ينظف آثار Login المحلي والخادمي قدر الإمكان دون إخفاء الخطأ الأصلي.
+  Future<void> _bestEffortCleanupAfterFailedLogin() async {
+    try {
+      await _remoteDataSource.logout();
+    } catch (_) {
+      // Best effort: cleanup failures must not replace the original login error.
+    } finally {
+      _remoteDataSource.clearAccessToken();
+    }
+
+    try {
+      await _tokenStorage.deleteAccessToken();
+    } catch (_) {
+      // Best effort.
+    }
+
+    try {
+      await _verifiedSessionStorage.deleteVerifiedSession();
+    } catch (_) {
+      // Best effort.
     }
   }
 }
