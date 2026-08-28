@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
@@ -36,6 +37,8 @@ final class OrdersSyncCoordinator {
                   (SyncOperations table) =>
                       table.entityType.equals('order') &
                       table.operation.equals('create') &
+                      (table.status.equals(SyncOperationStatuses.pending) |
+                          table.status.equals(SyncOperationStatuses.retrying)) &
                       (table.nextAttemptAt.isNull() |
                           table.nextAttemptAt.isSmallerOrEqualValue(now)),
                 )
@@ -53,30 +56,76 @@ final class OrdersSyncCoordinator {
   }
 
   Future<void> _syncCreate(SyncOperation operation) async {
+    final int attempts = operation.attempts + 1;
+
+    late final CreateOrderModel request;
+
     try {
-      final CreateOrderModel request = _decodeCreatePayload(
-        operation.payloadJson,
+      // فشل فك الـpayload مشكلة محلية نهائية:
+      // إعادة إرسال نفس JSON التالف لاحقًا لن تجعله صالحًا.
+      request = _decodeCreatePayload(operation.payloadJson);
+    } catch (error) {
+      await _localDataSource.markCreateSyncPermanentFailure(
+        operationId: operation.id,
+        attempts: attempts,
+        error: error,
       );
 
+      return;
+    }
+
+    try {
       final OrderModel remoteOrder = await _remoteDataSource.createOrder(
         request,
       );
 
+      // إذا فشل reconciliation بعد قبول السيرفر نبقي العملية Retryable.
+      // replay بنفس idempotency key يعيد نفس Order بدل إنشاء duplicate.
       await _localDataSource.completeCreateSync(
         localOrderId: operation.entityId,
         operationId: operation.id,
         remoteOrder: remoteOrder,
       );
     } catch (error) {
-      final int attempts = operation.attempts + 1;
+      if (_isPermanentRemoteFailure(error)) {
+        await _localDataSource.markCreateSyncPermanentFailure(
+          operationId: operation.id,
+          attempts: attempts,
+          error: error,
+        );
 
-      await _localDataSource.markCreateSyncFailure(
+        return;
+      }
+
+      // أخطاء الاتصال، 408/429/5xx، والنتائج الغامضة تبقى Retryable.
+      // 401 يبقى هنا مؤقتًا إلى أن نعالج Auth/Offline policy في blocker مستقل.
+      await _localDataSource.markCreateSyncRetry(
         operationId: operation.id,
         attempts: attempts,
         error: error,
         nextAttemptAt: DateTime.now().toUtc().add(_retryDelay(attempts)),
       );
     }
+  }
+
+  bool _isPermanentRemoteFailure(Object error) {
+    if (error is! DioException || error.type != DioExceptionType.badResponse) {
+      return false;
+    }
+
+    final int? statusCode = error.response?.statusCode;
+
+    if (statusCode == null) {
+      return false;
+    }
+
+    // 401 مرتبط بالـsession وقد ينجح بعد استعادة Authentication.
+    // 408 و429 حالات مؤقتة بطبيعتها، لذلك تبقى Retryable.
+    return statusCode >= 400 &&
+        statusCode < 500 &&
+        statusCode != 401 &&
+        statusCode != 408 &&
+        statusCode != 429;
   }
 
   Duration _retryDelay(int attempts) {

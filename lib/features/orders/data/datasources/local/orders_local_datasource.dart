@@ -154,7 +154,11 @@ class OrdersLocalDataSource implements OrdersDataSource {
     });
   }
 
-  Future<void> markCreateSyncFailure({
+  /// يسجل فشلًا مؤقتًا مع موعد المحاولة التالية.
+  ///
+  /// نبقي العملية قابلة للمزامنة لأن السبب قد يختفي بدون تغيير
+  /// نفس العملية المنطقية أو الـidempotency key.
+  Future<void> markCreateSyncRetry({
     required String operationId,
     required int attempts,
     required Object error,
@@ -164,9 +168,31 @@ class OrdersLocalDataSource implements OrdersDataSource {
       _database.syncOperations,
     )..where((SyncOperations table) => table.id.equals(operationId))).write(
       SyncOperationsCompanion(
+        status: const Value(SyncOperationStatuses.retrying),
         attempts: Value(attempts),
         lastError: Value(error.toString()),
         nextAttemptAt: Value(nextAttemptAt.toUtc()),
+      ),
+    );
+  }
+
+  /// يسجل failure نهائيًا بدون حذف الـOrder أو الـOutbox.
+  ///
+  /// الاحتفاظ بالعملية مهم حتى لا يتحول فشل المزامنة إلى Data Loss.
+  /// nextAttemptAt يُمسح لأن هذه العملية لا يجب أن تُعاد تلقائيًا.
+  Future<void> markCreateSyncPermanentFailure({
+    required String operationId,
+    required int attempts,
+    required Object error,
+  }) async {
+    await (_database.update(
+      _database.syncOperations,
+    )..where((SyncOperations table) => table.id.equals(operationId))).write(
+      SyncOperationsCompanion(
+        status: const Value(SyncOperationStatuses.permanentFailure),
+        attempts: Value(attempts),
+        lastError: Value(error.toString()),
+        nextAttemptAt: const Value<DateTime?>(null),
       ),
     );
   }

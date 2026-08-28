@@ -180,6 +180,15 @@ class CartItemRecords extends Table {
   Set<Column<Object>> get primaryKey => {productId};
 }
 
+/// الحالات الأساسية لدورة حياة عملية الـOutbox.
+///
+/// هذه القيم تخص المزامنة فقط ولا تمثل الحالة التجارية للـOrder.
+abstract final class SyncOperationStatuses {
+  static const String pending = 'pending';
+  static const String retrying = 'retrying';
+  static const String permanentFailure = 'permanent_failure';
+}
+
 class SyncOperations extends Table {
   TextColumn get id => text()();
 
@@ -191,6 +200,12 @@ class SyncOperations extends Table {
 
   TextColumn get payloadJson => text()();
 
+  /// يحدد هل العملية تنتظر أول محاولة، تحتاج Retry، أو توقفت نهائيًا.
+  ///
+  /// permanentFailure لا يعني حذف البيانات؛ بل يمنع إعادة المحاولة التلقائية
+  /// مع الاحتفاظ بالـpayload والخطأ للتحليل أو المعالجة اليدوية لاحقًا.
+  TextColumn get status =>
+      text().withDefault(const Constant(SyncOperationStatuses.pending))();
   IntColumn get attempts => integer().withDefault(const Constant(0))();
 
   TextColumn get lastError => text().nullable()();
@@ -220,7 +235,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -240,6 +255,11 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 4) {
           await m.createTable(cartItemRecords);
+        }
+        if (from < 5) {
+          // كل عمليات Outbox القديمة تعتبر pending افتراضيًا.
+          // الإضافة Forward-Only وتحافظ على البيانات الموجودة بدون إعادة إنشاء الجدول.
+          await m.addColumn(syncOperations, syncOperations.status);
         }
       },
     );
