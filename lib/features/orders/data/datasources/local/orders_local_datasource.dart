@@ -111,6 +111,11 @@ class OrdersLocalDataSource implements OrdersDataSource {
     final DateTime now = DateTime.now().toUtc();
 
     await _database.transaction(() async {
+      await (_database.delete(_database.orderItemRecords)..where(
+            (OrderItemRecords table) => table.orderId.equals(localOrderId),
+          ))
+          .go();
+
       await (_database.delete(
         _database.orderRecords,
       )..where((OrderRecords table) => table.id.equals(localOrderId))).go();
@@ -123,6 +128,30 @@ class OrdersLocalDataSource implements OrdersDataSource {
     });
 
     return remoteOrder;
+  }
+
+  /// Removes a locally queued create after a definitive server rejection.
+  ///
+  /// The temporary order and its Outbox operation must disappear atomically
+  /// so a permanently rejected logical request cannot be replayed later.
+  Future<void> discardPendingCreate({
+    required String localOrderId,
+    required String operationId,
+  }) async {
+    await _database.transaction(() async {
+      await (_database.delete(_database.orderItemRecords)..where(
+            (OrderItemRecords table) => table.orderId.equals(localOrderId),
+          ))
+          .go();
+
+      await (_database.delete(
+        _database.orderRecords,
+      )..where((OrderRecords table) => table.id.equals(localOrderId))).go();
+
+      await (_database.delete(
+        _database.syncOperations,
+      )..where((SyncOperations table) => table.id.equals(operationId))).go();
+    });
   }
 
   Future<void> markCreateSyncFailure({

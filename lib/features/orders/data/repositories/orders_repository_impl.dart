@@ -27,38 +27,59 @@ class OrdersRepositoryImpl implements OrdersRepository {
   Future<OrderEntity> createOrder(CreateOrderRequest request) async {
     final CreateOrderModel
     createModel = OrdersMapper.toCreateModel(request).copyWith(
-      // The key must exist before the first network attempt so an ambiguous
-      // lost response and its later Outbox replay use exactly the same UUID.
+      // One logical create gets one idempotency key before local persistence
+      // or network I/O.
       idempotencyKey: Uuid().v4(),
     );
+
+    // Local Order + Outbox are committed atomically before the first
+    // network attempt. Drift remains the durable source of truth.
+    final OrderModel localOrder = await localDataSource.createOrder(
+      createModel,
+    );
+
     final OrdersDataSource? remote = remoteDataSource;
 
     if (remote == null) {
-      final OrderModel localOrder = await localDataSource.createOrder(
-        createModel,
-      );
-
       return OrdersMapper.toEntity(localOrder);
     }
 
+    final String operationId = 'order:create:${localOrder.id}';
+
+    late final OrderModel remoteOrder;
+
     try {
-      final OrderModel remoteOrder = await remote.createOrder(createModel);
-
-      // نجاح الخادم لا ينشئ Outbox؛ نحفظ نسخة السيرفر فقط.
-      await localDataSource.saveOrder(remoteOrder);
-
-      return OrdersMapper.toEntity(remoteOrder);
+      remoteOrder = await remote.createOrder(createModel);
     } catch (error) {
-      // لا نحول أخطاء validation أو server responses إلى Offline Orders.
-      // الـ fallback مسموح فقط عند فقدان الاتصال فعليًا.
-      if (!_isConnectivityFailure(error)) {
-        rethrow;
+      if (_shouldRemainQueued(error)) {
+        // Retryable or ambiguous transport/server outcomes remain durable.
+        // SyncCoordinator will replay the same logical operation later.
+        return OrdersMapper.toEntity(localOrder);
       }
 
-      final OrderModel localOrder = await localDataSource.createOrder(
-        createModel,
+      if (_isDefinitiveRemoteRejection(error)) {
+        // A definitive client-side rejection was not accepted by the server.
+        await localDataSource.discardPendingCreate(
+          localOrderId: localOrder.id,
+          operationId: operationId,
+        );
+      }
+
+      // Unknown/non-Dio failures are surfaced, but their durable local state
+      // is retained because the remote outcome may be ambiguous.
+      rethrow;
+    }
+    try {
+      await localDataSource.completeCreateSync(
+        localOrderId: localOrder.id,
+        operationId: operationId,
+        remoteOrder: remoteOrder,
       );
 
+      return OrdersMapper.toEntity(remoteOrder);
+    } catch (_) {
+      // The server already accepted the logical operation. Keep the durable
+      // local Order + Outbox so a later idempotent replay can reconcile it.
       return OrdersMapper.toEntity(localOrder);
     }
   }
@@ -74,6 +95,41 @@ class OrdersRepositoryImpl implements OrdersRepository {
     );
 
     return OrdersMapper.toEntity(updatedOrder);
+  }
+
+  bool _shouldRemainQueued(Object error) {
+    if (_isConnectivityFailure(error)) {
+      return true;
+    }
+
+    if (error is! DioException || error.type != DioExceptionType.badResponse) {
+      return false;
+    }
+
+    final int? statusCode = error.response?.statusCode;
+
+    if (statusCode == null) {
+      return false;
+    }
+
+    return statusCode == 408 || statusCode == 429 || statusCode >= 500;
+  }
+
+  bool _isDefinitiveRemoteRejection(Object error) {
+    if (error is! DioException || error.type != DioExceptionType.badResponse) {
+      return false;
+    }
+
+    final int? statusCode = error.response?.statusCode;
+
+    if (statusCode == null) {
+      return false;
+    }
+
+    return statusCode >= 400 &&
+        statusCode < 500 &&
+        statusCode != 408 &&
+        statusCode != 429;
   }
 
   bool _isConnectivityFailure(Object error) {
