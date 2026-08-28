@@ -199,6 +199,70 @@ void main() {
       },
     );
 
+    test('keeps local order queued when server returns HTTP 503', () async {
+      final AppDatabase database = AppDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+
+      addTearDown(database.close);
+
+      final localDataSource = OrdersLocalDataSource(database);
+      final requestOptions = RequestOptions(path: '/orders');
+
+      final remoteError = DioException(
+        requestOptions: requestOptions,
+        response: Response<dynamic>(
+          requestOptions: requestOptions,
+          statusCode: 503,
+          data: <String, dynamic>{'message': 'Service unavailable'},
+        ),
+        type: DioExceptionType.badResponse,
+        message: 'Service unavailable',
+      );
+
+      final remoteDataSource = _FakeRemoteOrdersDataSource(
+        createError: remoteError,
+      );
+
+      final repository = OrdersRepositoryImpl(
+        localDataSource,
+        remoteDataSource: remoteDataSource,
+      );
+
+      final OrderEntity created = await repository.createOrder(
+        CreateOrderRequest(
+          items: const [
+            OrderItemEntity(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 1,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+          ],
+        ),
+      );
+
+      final localOrders = await localDataSource.getOrders();
+      final syncOperations = await database
+          .select(database.syncOperations)
+          .get();
+
+      expect(created.id, startsWith('local-order-'));
+      expect(localOrders, hasLength(1));
+      expect(localOrders.single.id, created.id);
+      expect(syncOperations, hasLength(1));
+
+      final payload =
+          jsonDecode(syncOperations.single.payloadJson) as Map<String, dynamic>;
+
+      expect(remoteDataSource.createRequest, isNotNull);
+      expect(
+        payload['idempotencyKey'],
+        remoteDataSource.createRequest!.idempotencyKey,
+      );
+    });
     test('does not turn HTTP 422 into an offline order', () async {
       final AppDatabase database = AppDatabase.forTesting(
         NativeDatabase.memory(),
@@ -259,53 +323,69 @@ void main() {
       expect(syncOperations, isEmpty);
     });
 
-    test('does not hide non-connectivity programming failures', () async {
-      final AppDatabase database = AppDatabase.forTesting(
-        NativeDatabase.memory(),
-      );
+    test(
+      'does not hide programming failures and keeps durable state',
+      () async {
+        final AppDatabase database = AppDatabase.forTesting(
+          NativeDatabase.memory(),
+        );
 
-      addTearDown(database.close);
+        addTearDown(database.close);
 
-      final localDataSource = OrdersLocalDataSource(database);
+        final localDataSource = OrdersLocalDataSource(database);
 
-      final remoteError = StateError('Remote create failed');
+        final remoteError = StateError('Remote create failed');
 
-      final remoteDataSource = _FakeRemoteOrdersDataSource(
-        createError: remoteError,
-      );
+        final remoteDataSource = _FakeRemoteOrdersDataSource(
+          createError: remoteError,
+        );
 
-      final repository = OrdersRepositoryImpl(
-        localDataSource,
-        remoteDataSource: remoteDataSource,
-      );
+        final repository = OrdersRepositoryImpl(
+          localDataSource,
+          remoteDataSource: remoteDataSource,
+        );
 
-      final request = CreateOrderRequest(
-        items: const [
-          OrderItemEntity(
-            productId: 'product-1',
-            productName: 'Product 1',
-            unitPrice: 100,
-            quantity: 1,
-            supplierId: 'supplier-1',
-            supplierName: 'Supplier 1',
-          ),
-        ],
-      );
+        final request = CreateOrderRequest(
+          items: const [
+            OrderItemEntity(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 1,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+          ],
+        );
 
-      await expectLater(
-        repository.createOrder(request),
-        throwsA(same(remoteError)),
-      );
+        await expectLater(
+          repository.createOrder(request),
+          throwsA(same(remoteError)),
+        );
 
-      final localOrders = await localDataSource.getOrders();
+        final localOrders = await localDataSource.getOrders();
 
-      final syncOperations = await database
-          .select(database.syncOperations)
-          .get();
+        final syncOperations = await database
+            .select(database.syncOperations)
+            .get();
 
-      expect(localOrders, isEmpty);
-      expect(syncOperations, isEmpty);
-    });
+        expect(localOrders, hasLength(1));
+        expect(localOrders.single.id, startsWith('local-order-'));
+
+        expect(syncOperations, hasLength(1));
+        expect(syncOperations.single.entityId, localOrders.single.id);
+
+        final payload =
+            jsonDecode(syncOperations.single.payloadJson)
+                as Map<String, dynamic>;
+
+        expect(remoteDataSource.createRequest, isNotNull);
+        expect(
+          payload['idempotencyKey'],
+          remoteDataSource.createRequest!.idempotencyKey,
+        );
+      },
+    );
 
     test(
       'supports local-only creation when no remote source is configured',
