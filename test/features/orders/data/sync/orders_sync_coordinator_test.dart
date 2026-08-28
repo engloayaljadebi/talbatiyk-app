@@ -1,4 +1,5 @@
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:dio/dio.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
@@ -130,7 +131,203 @@ void main() {
         expect(operations.single.nextAttemptAt, isNotNull);
       },
     );
+    test(
+      'dead-letters malformed Outbox payload without retrying it again',
+      () async {
+        final database = AppDatabase.forTesting(NativeDatabase.memory());
 
+        addTearDown(database.close);
+
+        final local = OrdersLocalDataSource(database);
+
+        final localOrder = await local.createOrder(
+          CreateOrderModel(
+            items: const [
+              OrderItemModel(
+                productId: 'product-1',
+                productName: 'Product 1',
+                unitPrice: 100,
+                quantity: 1,
+                supplierId: 'supplier-1',
+                supplierName: 'Supplier 1',
+              ),
+            ],
+          ),
+        );
+
+        await (database.update(
+          database.syncOperations,
+        )..where((table) => table.entityId.equals(localOrder.id))).write(
+          const SyncOperationsCompanion(payloadJson: Value('{invalid-json')),
+        );
+
+        final remote = _FakeOrdersDataSource(
+          createError: StateError('must not be called'),
+        );
+
+        final coordinator = OrdersSyncCoordinator(
+          database: database,
+          localDataSource: local,
+          remoteDataSource: remote,
+        );
+
+        await coordinator.syncPendingOrders();
+
+        final firstOperation = await database
+            .select(database.syncOperations)
+            .getSingle();
+
+        expect(remote.createCalls, 0);
+        expect(firstOperation.status, SyncOperationStatuses.permanentFailure);
+        expect(firstOperation.attempts, 1);
+        expect(firstOperation.lastError, isNotNull);
+        expect(firstOperation.nextAttemptAt, isNull);
+
+        // التشغيل الثاني يجب ألا يلمس permanent failure أصلًا.
+        await coordinator.syncPendingOrders();
+
+        final secondOperation = await database
+            .select(database.syncOperations)
+            .getSingle();
+
+        expect(remote.createCalls, 0);
+        expect(secondOperation.attempts, 1);
+      },
+    );
+    test('dead-letters HTTP 422 instead of retrying forever', () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+
+      addTearDown(database.close);
+
+      final local = OrdersLocalDataSource(database);
+
+      final localOrder = await local.createOrder(
+        CreateOrderModel(
+          items: const [
+            OrderItemModel(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 1,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+          ],
+        ),
+      );
+
+      final requestOptions = RequestOptions(path: '/orders');
+
+      final remote = _FakeOrdersDataSource(
+        createError: DioException(
+          requestOptions: requestOptions,
+          response: Response<dynamic>(
+            requestOptions: requestOptions,
+            statusCode: 422,
+            data: <String, dynamic>{'message': 'Validation failed'},
+          ),
+          type: DioExceptionType.badResponse,
+          message: 'Validation failed',
+        ),
+      );
+
+      final coordinator = OrdersSyncCoordinator(
+        database: database,
+        localDataSource: local,
+        remoteDataSource: remote,
+      );
+
+      await coordinator.syncPendingOrders();
+
+      final firstOperation = await database
+          .select(database.syncOperations)
+          .getSingle();
+
+      final orders = await local.getOrders();
+
+      expect(remote.createCalls, 1);
+
+      // في background sync لا نحذف durable state عند الرفض النهائي.
+      // نحفظ العملية كـdead-letter حتى لا يتحول فشل المزامنة إلى Data Loss.
+      expect(orders, hasLength(1));
+      expect(orders.single.id, localOrder.id);
+
+      expect(firstOperation.status, SyncOperationStatuses.permanentFailure);
+      expect(firstOperation.attempts, 1);
+      expect(firstOperation.lastError, isNotNull);
+      expect(firstOperation.nextAttemptAt, isNull);
+
+      await coordinator.syncPendingOrders();
+
+      final secondOperation = await database
+          .select(database.syncOperations)
+          .getSingle();
+
+      // permanent_failure لا يدخل قائمة العمليات المؤهلة للمزامنة مرة أخرى.
+      expect(remote.createCalls, 1);
+      expect(secondOperation.attempts, 1);
+    });
+    test('keeps HTTP 503 retryable with backoff', () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+
+      addTearDown(database.close);
+
+      final local = OrdersLocalDataSource(database);
+
+      final localOrder = await local.createOrder(
+        CreateOrderModel(
+          items: const [
+            OrderItemModel(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 1,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+          ],
+        ),
+      );
+
+      final requestOptions = RequestOptions(path: '/orders');
+
+      final remote = _FakeOrdersDataSource(
+        createError: DioException(
+          requestOptions: requestOptions,
+          response: Response<dynamic>(
+            requestOptions: requestOptions,
+            statusCode: 503,
+            data: <String, dynamic>{'message': 'Service unavailable'},
+          ),
+          type: DioExceptionType.badResponse,
+          message: 'Service unavailable',
+        ),
+      );
+
+      final coordinator = OrdersSyncCoordinator(
+        database: database,
+        localDataSource: local,
+        remoteDataSource: remote,
+      );
+
+      await coordinator.syncPendingOrders();
+
+      final operation = await database
+          .select(database.syncOperations)
+          .getSingle();
+
+      expect(remote.createCalls, 1);
+      expect(operation.entityId, localOrder.id);
+      expect(operation.status, SyncOperationStatuses.retrying);
+      expect(operation.attempts, 1);
+      expect(operation.lastError, isNotNull);
+      expect(operation.nextAttemptAt, isNotNull);
+
+      // المحاولة الفورية الثانية لا تتم لأن backoff لم ينته بعد.
+      await coordinator.syncPendingOrders();
+
+      expect(remote.createCalls, 1);
+    });
     test('does not replay an operation before nextAttemptAt', () async {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
 

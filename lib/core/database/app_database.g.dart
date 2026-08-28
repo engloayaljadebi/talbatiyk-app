@@ -4277,6 +4277,16 @@ class $SyncOperationsTable extends SyncOperations
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(SyncOperationStatuses.pending),
+  );
   static const VerificationMeta _attemptsMeta = const VerificationMeta(
     'attempts',
   );
@@ -4330,6 +4340,7 @@ class $SyncOperationsTable extends SyncOperations
     entityId,
     operation,
     payloadJson,
+    status,
     attempts,
     lastError,
     nextAttemptAt,
@@ -4386,6 +4397,12 @@ class $SyncOperationsTable extends SyncOperations
       );
     } else if (isInserting) {
       context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
     }
     if (data.containsKey('attempts')) {
       context.handle(
@@ -4445,6 +4462,10 @@ class $SyncOperationsTable extends SyncOperations
         DriftSqlType.string,
         data['${effectivePrefix}payload_json'],
       )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
       attempts: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}attempts'],
@@ -4476,6 +4497,12 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   final String entityId;
   final String operation;
   final String payloadJson;
+
+  /// يحدد هل العملية تنتظر أول محاولة، تحتاج Retry، أو توقفت نهائيًا.
+  ///
+  /// permanentFailure لا يعني حذف البيانات؛ بل يمنع إعادة المحاولة التلقائية
+  /// مع الاحتفاظ بالـpayload والخطأ للتحليل أو المعالجة اليدوية لاحقًا.
+  final String status;
   final int attempts;
   final String? lastError;
   final DateTime? nextAttemptAt;
@@ -4486,6 +4513,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     required this.entityId,
     required this.operation,
     required this.payloadJson,
+    required this.status,
     required this.attempts,
     this.lastError,
     this.nextAttemptAt,
@@ -4499,6 +4527,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     map['entity_id'] = Variable<String>(entityId);
     map['operation'] = Variable<String>(operation);
     map['payload_json'] = Variable<String>(payloadJson);
+    map['status'] = Variable<String>(status);
     map['attempts'] = Variable<int>(attempts);
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
@@ -4517,6 +4546,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
       entityId: Value(entityId),
       operation: Value(operation),
       payloadJson: Value(payloadJson),
+      status: Value(status),
       attempts: Value(attempts),
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
@@ -4539,6 +4569,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
       entityId: serializer.fromJson<String>(json['entityId']),
       operation: serializer.fromJson<String>(json['operation']),
       payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      status: serializer.fromJson<String>(json['status']),
       attempts: serializer.fromJson<int>(json['attempts']),
       lastError: serializer.fromJson<String?>(json['lastError']),
       nextAttemptAt: serializer.fromJson<DateTime?>(json['nextAttemptAt']),
@@ -4554,6 +4585,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
       'entityId': serializer.toJson<String>(entityId),
       'operation': serializer.toJson<String>(operation),
       'payloadJson': serializer.toJson<String>(payloadJson),
+      'status': serializer.toJson<String>(status),
       'attempts': serializer.toJson<int>(attempts),
       'lastError': serializer.toJson<String?>(lastError),
       'nextAttemptAt': serializer.toJson<DateTime?>(nextAttemptAt),
@@ -4567,6 +4599,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     String? entityId,
     String? operation,
     String? payloadJson,
+    String? status,
     int? attempts,
     Value<String?> lastError = const Value.absent(),
     Value<DateTime?> nextAttemptAt = const Value.absent(),
@@ -4577,6 +4610,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     entityId: entityId ?? this.entityId,
     operation: operation ?? this.operation,
     payloadJson: payloadJson ?? this.payloadJson,
+    status: status ?? this.status,
     attempts: attempts ?? this.attempts,
     lastError: lastError.present ? lastError.value : this.lastError,
     nextAttemptAt: nextAttemptAt.present
@@ -4595,6 +4629,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
       payloadJson: data.payloadJson.present
           ? data.payloadJson.value
           : this.payloadJson,
+      status: data.status.present ? data.status.value : this.status,
       attempts: data.attempts.present ? data.attempts.value : this.attempts,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
       nextAttemptAt: data.nextAttemptAt.present
@@ -4612,6 +4647,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
           ..write('payloadJson: $payloadJson, ')
+          ..write('status: $status, ')
           ..write('attempts: $attempts, ')
           ..write('lastError: $lastError, ')
           ..write('nextAttemptAt: $nextAttemptAt, ')
@@ -4627,6 +4663,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     entityId,
     operation,
     payloadJson,
+    status,
     attempts,
     lastError,
     nextAttemptAt,
@@ -4641,6 +4678,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
           other.entityId == this.entityId &&
           other.operation == this.operation &&
           other.payloadJson == this.payloadJson &&
+          other.status == this.status &&
           other.attempts == this.attempts &&
           other.lastError == this.lastError &&
           other.nextAttemptAt == this.nextAttemptAt &&
@@ -4653,6 +4691,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   final Value<String> entityId;
   final Value<String> operation;
   final Value<String> payloadJson;
+  final Value<String> status;
   final Value<int> attempts;
   final Value<String?> lastError;
   final Value<DateTime?> nextAttemptAt;
@@ -4664,6 +4703,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     this.entityId = const Value.absent(),
     this.operation = const Value.absent(),
     this.payloadJson = const Value.absent(),
+    this.status = const Value.absent(),
     this.attempts = const Value.absent(),
     this.lastError = const Value.absent(),
     this.nextAttemptAt = const Value.absent(),
@@ -4676,6 +4716,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     required String entityId,
     required String operation,
     required String payloadJson,
+    this.status = const Value.absent(),
     this.attempts = const Value.absent(),
     this.lastError = const Value.absent(),
     this.nextAttemptAt = const Value.absent(),
@@ -4693,6 +4734,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     Expression<String>? entityId,
     Expression<String>? operation,
     Expression<String>? payloadJson,
+    Expression<String>? status,
     Expression<int>? attempts,
     Expression<String>? lastError,
     Expression<DateTime>? nextAttemptAt,
@@ -4705,6 +4747,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
       if (entityId != null) 'entity_id': entityId,
       if (operation != null) 'operation': operation,
       if (payloadJson != null) 'payload_json': payloadJson,
+      if (status != null) 'status': status,
       if (attempts != null) 'attempts': attempts,
       if (lastError != null) 'last_error': lastError,
       if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
@@ -4719,6 +4762,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     Value<String>? entityId,
     Value<String>? operation,
     Value<String>? payloadJson,
+    Value<String>? status,
     Value<int>? attempts,
     Value<String?>? lastError,
     Value<DateTime?>? nextAttemptAt,
@@ -4731,6 +4775,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
       entityId: entityId ?? this.entityId,
       operation: operation ?? this.operation,
       payloadJson: payloadJson ?? this.payloadJson,
+      status: status ?? this.status,
       attempts: attempts ?? this.attempts,
       lastError: lastError ?? this.lastError,
       nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
@@ -4756,6 +4801,9 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     }
     if (payloadJson.present) {
       map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
     }
     if (attempts.present) {
       map['attempts'] = Variable<int>(attempts.value);
@@ -4783,6 +4831,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
           ..write('payloadJson: $payloadJson, ')
+          ..write('status: $status, ')
           ..write('attempts: $attempts, ')
           ..write('lastError: $lastError, ')
           ..write('nextAttemptAt: $nextAttemptAt, ')
@@ -7068,6 +7117,7 @@ typedef $$SyncOperationsTableCreateCompanionBuilder =
       required String entityId,
       required String operation,
       required String payloadJson,
+      Value<String> status,
       Value<int> attempts,
       Value<String?> lastError,
       Value<DateTime?> nextAttemptAt,
@@ -7081,6 +7131,7 @@ typedef $$SyncOperationsTableUpdateCompanionBuilder =
       Value<String> entityId,
       Value<String> operation,
       Value<String> payloadJson,
+      Value<String> status,
       Value<int> attempts,
       Value<String?> lastError,
       Value<DateTime?> nextAttemptAt,
@@ -7119,6 +7170,11 @@ class $$SyncOperationsTableFilterComposer
 
   ColumnFilters<String> get payloadJson => $composableBuilder(
     column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7177,6 +7233,11 @@ class $$SyncOperationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get attempts => $composableBuilder(
     column: $table.attempts,
     builder: (column) => ColumnOrderings(column),
@@ -7225,6 +7286,9 @@ class $$SyncOperationsTableAnnotationComposer
     column: $table.payloadJson,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<int> get attempts =>
       $composableBuilder(column: $table.attempts, builder: (column) => column);
@@ -7279,6 +7343,7 @@ class $$SyncOperationsTableTableManager
                 Value<String> entityId = const Value.absent(),
                 Value<String> operation = const Value.absent(),
                 Value<String> payloadJson = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<int> attempts = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
                 Value<DateTime?> nextAttemptAt = const Value.absent(),
@@ -7290,6 +7355,7 @@ class $$SyncOperationsTableTableManager
                 entityId: entityId,
                 operation: operation,
                 payloadJson: payloadJson,
+                status: status,
                 attempts: attempts,
                 lastError: lastError,
                 nextAttemptAt: nextAttemptAt,
@@ -7303,6 +7369,7 @@ class $$SyncOperationsTableTableManager
                 required String entityId,
                 required String operation,
                 required String payloadJson,
+                Value<String> status = const Value.absent(),
                 Value<int> attempts = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
                 Value<DateTime?> nextAttemptAt = const Value.absent(),
@@ -7314,6 +7381,7 @@ class $$SyncOperationsTableTableManager
                 entityId: entityId,
                 operation: operation,
                 payloadJson: payloadJson,
+                status: status,
                 attempts: attempts,
                 lastError: lastError,
                 nextAttemptAt: nextAttemptAt,
