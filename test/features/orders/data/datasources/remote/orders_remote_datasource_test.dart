@@ -108,11 +108,9 @@ void main() {
           'items': [
             {
               'product_id': 'product-1',
-              'product_name': 'Fast charger',
-              'unit_price': 4500.0,
               'quantity': 2,
-              'supplier_id': 'supplier-1',
-              'supplier_name': 'Supplier 1',
+              'expected_unit_price': 4500.0,
+              'expected_supplier_id': 'supplier-1',
             },
           ],
           'notes': 'Call before delivery',

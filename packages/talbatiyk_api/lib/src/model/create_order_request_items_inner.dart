@@ -12,49 +12,49 @@ part 'create_order_request_items_inner.g.dart';
 ///
 /// Properties:
 /// * [productId]
-/// * [productName]
-/// * [unitPrice]
 /// * [quantity]
-/// * [supplierId]
-/// * [supplierName]
-/// * [imageUrl]
+/// * [expectedUnitPrice] - This is the price Flutter observed when the user confirmed. Laravel compares it with Product.price and never stores it as the authoritative order price.
+/// * [expectedSupplierId] - This is a concurrency expectation, not the authoritative supplier. Laravel resolves the real supplier from Product.
 @BuiltValue()
-abstract class CreateOrderRequestItemsInner implements Built<CreateOrderRequestItemsInner, CreateOrderRequestItemsInnerBuilder> {
+abstract class CreateOrderRequestItemsInner
+    implements
+        Built<CreateOrderRequestItemsInner,
+            CreateOrderRequestItemsInnerBuilder> {
   @BuiltValueField(wireName: r'product_id')
   String get productId;
-
-  @BuiltValueField(wireName: r'product_name')
-  String get productName;
-
-  @BuiltValueField(wireName: r'unit_price')
-  num get unitPrice;
 
   @BuiltValueField(wireName: r'quantity')
   int get quantity;
 
-  @BuiltValueField(wireName: r'supplier_id')
-  String get supplierId;
+  /// This is the price Flutter observed when the user confirmed. Laravel compares it with Product.price and never stores it as the authoritative order price.
+  @BuiltValueField(wireName: r'expected_unit_price')
+  num get expectedUnitPrice;
 
-  @BuiltValueField(wireName: r'supplier_name')
-  String get supplierName;
-
-  @BuiltValueField(wireName: r'image_url')
-  String? get imageUrl;
+  /// This is a concurrency expectation, not the authoritative supplier. Laravel resolves the real supplier from Product.
+  @BuiltValueField(wireName: r'expected_supplier_id')
+  String get expectedSupplierId;
 
   CreateOrderRequestItemsInner._();
 
-  factory CreateOrderRequestItemsInner([void updates(CreateOrderRequestItemsInnerBuilder b)]) = _$CreateOrderRequestItemsInner;
+  factory CreateOrderRequestItemsInner(
+          [void updates(CreateOrderRequestItemsInnerBuilder b)]) =
+      _$CreateOrderRequestItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(CreateOrderRequestItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<CreateOrderRequestItemsInner> get serializer => _$CreateOrderRequestItemsInnerSerializer();
+  static Serializer<CreateOrderRequestItemsInner> get serializer =>
+      _$CreateOrderRequestItemsInnerSerializer();
 }
 
-class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<CreateOrderRequestItemsInner> {
+class _$CreateOrderRequestItemsInnerSerializer
+    implements PrimitiveSerializer<CreateOrderRequestItemsInner> {
   @override
-  final Iterable<Type> types = const [CreateOrderRequestItemsInner, _$CreateOrderRequestItemsInner];
+  final Iterable<Type> types = const [
+    CreateOrderRequestItemsInner,
+    _$CreateOrderRequestItemsInner
+  ];
 
   @override
   final String wireName = r'CreateOrderRequestItemsInner';
@@ -69,38 +69,21 @@ class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<Cr
       object.productId,
       specifiedType: const FullType(String),
     );
-    yield r'product_name';
-    yield serializers.serialize(
-      object.productName,
-      specifiedType: const FullType(String),
-    );
-    yield r'unit_price';
-    yield serializers.serialize(
-      object.unitPrice,
-      specifiedType: const FullType(num),
-    );
     yield r'quantity';
     yield serializers.serialize(
       object.quantity,
       specifiedType: const FullType(int),
     );
-    yield r'supplier_id';
+    yield r'expected_unit_price';
     yield serializers.serialize(
-      object.supplierId,
+      object.expectedUnitPrice,
+      specifiedType: const FullType(num),
+    );
+    yield r'expected_supplier_id';
+    yield serializers.serialize(
+      object.expectedSupplierId,
       specifiedType: const FullType(String),
     );
-    yield r'supplier_name';
-    yield serializers.serialize(
-      object.supplierName,
-      specifiedType: const FullType(String),
-    );
-    if (object.imageUrl != null) {
-      yield r'image_url';
-      yield serializers.serialize(
-        object.imageUrl,
-        specifiedType: const FullType.nullable(String),
-      );
-    }
   }
 
   @override
@@ -109,7 +92,9 @@ class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<Cr
     CreateOrderRequestItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -131,20 +116,6 @@ class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<Cr
           ) as String;
           result.productId = valueDes;
           break;
-        case r'product_name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.productName = valueDes;
-          break;
-        case r'unit_price':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(num),
-          ) as num;
-          result.unitPrice = valueDes;
-          break;
         case r'quantity':
           final valueDes = serializers.deserialize(
             value,
@@ -152,27 +123,19 @@ class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<Cr
           ) as int;
           result.quantity = valueDes;
           break;
-        case r'supplier_id':
+        case r'expected_unit_price':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(num),
+          ) as num;
+          result.expectedUnitPrice = valueDes;
+          break;
+        case r'expected_supplier_id':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.supplierId = valueDes;
-          break;
-        case r'supplier_name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.supplierName = valueDes;
-          break;
-        case r'image_url':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
-          result.imageUrl = valueDes;
+          result.expectedSupplierId = valueDes;
           break;
         default:
           unhandled.add(key);

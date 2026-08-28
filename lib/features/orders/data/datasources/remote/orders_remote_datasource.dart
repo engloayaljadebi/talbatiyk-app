@@ -67,19 +67,16 @@ class OrdersRemoteDataSource implements OrdersDataSource {
         BuiltList<CreateOrderRequestItemsInner>(
           request.items.map(
             (item) => CreateOrderRequestItemsInner((itemBuilder) {
+              /*
+               * Flutter sends the commercial values it observed.
+               * Laravel resolves the authoritative Product snapshot and
+               * rejects stale price/supplier expectations explicitly.
+               */
               itemBuilder
                 ..productId = item.productId
-                ..productName = item.productName
-                ..unitPrice = item.unitPrice
                 ..quantity = item.quantity
-                ..supplierId = item.supplierId
-                ..supplierName = item.supplierName;
-
-              final imageUrl = item.imageUrl.trim();
-
-              if (imageUrl.isNotEmpty) {
-                itemBuilder.imageUrl = imageUrl;
-              }
+                ..expectedUnitPrice = item.unitPrice
+                ..expectedSupplierId = item.supplierId;
             }),
           ),
         ),

@@ -4,11 +4,23 @@ namespace App\Services\Order;
 
 use App\Models\Business;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
+/*
+|--------------------------------------------------------------------------
+| Order Service
+|--------------------------------------------------------------------------
+|
+| Creates an Order aggregate while preserving idempotency and resolving
+| all commercial Product/Supplier data from the server.
+|
+| Client values are intent/concurrency expectations only.
+|
+*/
 class OrderService
 {
     /**
@@ -18,12 +30,9 @@ class OrderService
      *     notes?: string|null,
      *     items: array<int, array{
      *         product_id: string,
-     *         product_name: string,
-     *         unit_price: numeric-string|int|float,
      *         quantity: int,
-     *         supplier_id: string,
-     *         supplier_name: string,
-     *         image_url?: string|null
+     *         expected_unit_price: numeric-string|int|float,
+     *         expected_supplier_id: string
      *     }>
      * } $data
      */
@@ -34,9 +43,10 @@ class OrderService
     ): Order {
         $payloadHash = $this->payloadHash($data);
 
-        // Important for delayed retries:
-        // if this logical operation already succeeded, return its original order
-        // before re-validating supplier state that may have changed meanwhile.
+        /*
+         * A successful logical operation must be replayable even if Product
+         * price, stock or supplier state changed after the original success.
+         */
         $existingOrder = $user->orders()
             ->where('idempotency_key', $idempotencyKey)
             ->first();
@@ -48,8 +58,6 @@ class OrderService
             );
         }
 
-        $this->validateSuppliers($data['items']);
-
         return DB::transaction(function () use (
             $user,
             $data,
@@ -57,9 +65,12 @@ class OrderService
             $payloadHash,
         ): Order {
             /*
-         * firstOrCreate plus the database unique constraint also protects
-         * concurrent retries using the same logical operation key.
-         */
+             * firstOrCreate is intentionally before commercial validation.
+             * If a concurrent retry already created this logical Order,
+             * return that aggregate instead of re-validating later state.
+             *
+             * Any validation exception below rolls this new row back.
+             */
             $order = $user->orders()->firstOrCreate(
                 [
                     'idempotency_key' => $idempotencyKey,
@@ -78,21 +89,18 @@ class OrderService
                 );
             }
 
-            foreach ($data['items'] as $item) {
-                $order->items()->create([
-                    'product_id' => $item['product_id'],
-                    'product_name' => $item['product_name'],
-                    'unit_price' => $item['unit_price'],
-                    'quantity' => $item['quantity'],
-                    'supplier_id' => $item['supplier_id'],
-                    'supplier_name' => $item['supplier_name'],
-                    'image_url' => $item['image_url'] ?? null,
-                ]);
+            $authoritativeItems = $this->resolveAuthoritativeItems(
+                $data['items'],
+            );
+
+            foreach ($authoritativeItems as $item) {
+                $order->items()->create($item);
             }
 
             return $order->load('items');
         });
     }
+
     private function resolveIdempotentOrder(
         Order $order,
         string $payloadHash,
@@ -112,7 +120,140 @@ class OrderService
     }
 
     /**
-     * Produce a deterministic hash for the logical create-order payload.
+     * Resolve the current Product/Supplier state and build the immutable
+     * historical snapshot stored in OrderItem.
+     *
+     * Products are locked while this aggregate is created so their
+     * commercial state cannot change between validation and snapshot write.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveAuthoritativeItems(array $items): array
+    {
+        $productIds = collect($items)
+            ->pluck('product_id')
+            ->unique()
+            ->sort()
+            ->values();
+
+        $products = Product::query()
+            ->with('supplier:id,name')
+            ->whereIn('id', $productIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        $supplierIds = $products
+            ->pluck('supplier_id')
+            ->unique()
+            ->values();
+
+        /*
+         * Supplier eligibility is enforced server-side, not inferred from
+         * supplier_id supplied by Flutter.
+         */
+        $validSupplierIds = Business::query()
+            ->whereIn('id', $supplierIds)
+            ->where('status', 'active')
+            ->whereHas('capabilities', function ($query): void {
+                $query
+                    ->where('business_capabilities.code', 'supplier')
+                    ->whereNull('business_capabilities.retired_at')
+                    ->whereNull(
+                        'business_capability_assignments.disabled_at',
+                    );
+            })
+            ->lockForUpdate()
+            ->pluck('id')
+            ->flip();
+
+        $resolved = [];
+
+        foreach ($items as $index => $item) {
+            /** @var Product|null $product */
+            $product = $products->get($item['product_id']);
+
+            if ($product === null) {
+                throw ValidationException::withMessages([
+                    "items.$index.product_id" => [
+                        'The selected product does not exist.',
+                    ],
+                ]);
+            }
+
+            if (
+                !$product->is_available
+                || !$validSupplierIds->has($product->supplier_id)
+                || $product->supplier === null
+            ) {
+                throw ValidationException::withMessages([
+                    "items.$index.product_id" => [
+                        'The selected product is not currently available.',
+                    ],
+                ]);
+            }
+
+            if ($product->quantity < $item['quantity']) {
+                throw ValidationException::withMessages([
+                    "items.$index.quantity" => [
+                        'The requested quantity exceeds current stock.',
+                    ],
+                ]);
+            }
+
+            /*
+             * A supplier change changes the commercial meaning of the item.
+             * Never silently substitute another supplier.
+             */
+            if (
+                $product->supplier_id
+                !== $item['expected_supplier_id']
+            ) {
+                throw new ConflictHttpException(
+                    'The product supplier has changed. Refresh product data and retry.',
+                );
+            }
+
+            /*
+             * Product.price is the current pricing authority in this stage.
+             * Compare in minor units to avoid direct floating-point equality.
+             */
+            if (
+                $this->moneyInMinorUnits($product->price)
+                !== $this->moneyInMinorUnits(
+                    $item['expected_unit_price'],
+                )
+            ) {
+                throw new ConflictHttpException(
+                    'The product price has changed. Refresh product data and retry.',
+                );
+            }
+
+            $resolved[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'unit_price' => $product->price,
+                'quantity' => $item['quantity'],
+                'supplier_id' => $product->supplier_id,
+                'supplier_name' => $product->supplier->name,
+                'image_url' => $product->image_url,
+            ];
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Convert a two-decimal commercial price to integer minor units.
+     */
+    private function moneyInMinorUnits(mixed $value): int
+    {
+        return (int) round(((float) $value) * 100);
+    }
+
+    /**
+     * Produce a deterministic hash for one logical create-order payload.
      *
      * @param array<string, mixed> $data
      */
@@ -147,37 +288,5 @@ class OrderService
         }
 
         return $value;
-    }
-    /**
-     * Ensure every supplier exists and currently has
-     * the active "supplier" capability.
-     *
-     * @param  array<int, array<string, mixed>>  $items
-     */
-    private function validateSuppliers(array $items): void
-    {
-        $supplierIds = collect($items)
-            ->pluck('supplier_id')
-            ->unique()
-            ->values();
-
-        $validSupplierIds = Business::query()
-            ->whereIn('id', $supplierIds)
-            ->whereHas('capabilities', function ($query): void {
-                $query
-                    ->where('business_capabilities.code', 'supplier')
-                    ->whereNull('business_capability_assignments.disabled_at');
-            })
-            ->pluck('id');
-
-        $invalidSupplierIds = $supplierIds->diff($validSupplierIds);
-
-        if ($invalidSupplierIds->isNotEmpty()) {
-            throw ValidationException::withMessages([
-                'items' => [
-                    'One or more suppliers are invalid or do not have an active supplier capability.',
-                ],
-            ]);
-        }
     }
 }
