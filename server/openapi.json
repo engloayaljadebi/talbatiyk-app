@@ -2354,43 +2354,28 @@
                             "properties": {
                                 "product_id": {
                                     "type": "string",
-                                    "maxLength": 255
-                                },
-                                "product_name": {
-                                    "type": "string",
-                                    "maxLength": 255
-                                },
-                                "unit_price": {
-                                    "type": "number",
-                                    "minimum": 0
+                                    "format": "uuid",
+                                    "description": "Product existence is commercial state and must be validated\nafter idempotency replay lookup inside OrderService."
                                 },
                                 "quantity": {
                                     "type": "integer",
                                     "minimum": 1
                                 },
-                                "supplier_id": {
-                                    "type": "string",
-                                    "format": "uuid"
+                                "expected_unit_price": {
+                                    "type": "number",
+                                    "description": "This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price."
                                 },
-                                "supplier_name": {
+                                "expected_supplier_id": {
                                     "type": "string",
-                                    "maxLength": 200
-                                },
-                                "image_url": {
-                                    "type": [
-                                        "string",
-                                        "null"
-                                    ],
-                                    "maxLength": 2048
+                                    "format": "uuid",
+                                    "description": "This is a concurrency expectation, not the authoritative\nsupplier. Laravel resolves the real supplier from Product."
                                 }
                             },
                             "required": [
                                 "product_id",
-                                "product_name",
-                                "unit_price",
                                 "quantity",
-                                "supplier_id",
-                                "supplier_name"
+                                "expected_unit_price",
+                                "expected_supplier_id"
                             ]
                         },
                         "minItems": 1
