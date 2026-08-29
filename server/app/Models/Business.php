@@ -127,6 +127,14 @@ class Business extends Model
     /**
      * تحويل أنواع الحقول تلقائيًا.
      */
+    public function orderRecipients(): HasMany
+    {
+        return $this->hasMany(
+            OrderRecipient::class,
+            'supplier_id',
+        );
+    }
+
     protected function casts(): array
     {
         return [

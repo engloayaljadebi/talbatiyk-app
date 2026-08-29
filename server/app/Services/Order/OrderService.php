@@ -82,7 +82,7 @@ class OrderService
                 ],
             );
 
-            if (!$order->wasRecentlyCreated) {
+            if (! $order->wasRecentlyCreated) {
                 return $this->resolveIdempotentOrder(
                     $order,
                     $payloadHash,
@@ -93,8 +93,27 @@ class OrderService
                 $data['items'],
             );
 
+            $createdItems = collect();
+
             foreach ($authoritativeItems as $item) {
-                $order->items()->create($item);
+                $createdItems->push(
+                    $order->items()->create($item),
+                );
+            }
+
+            foreach ($createdItems->groupBy('supplier_id') as $supplierId => $supplierItems) {
+                $firstItem = $supplierItems->first();
+
+                $recipient = $order->recipients()->create([
+                    'supplier_id' => (string) $supplierId,
+                    'supplier_name' => $firstItem->supplier_name,
+                ]);
+
+                foreach ($supplierItems as $orderItem) {
+                    $recipient->items()->create([
+                        'order_item_id' => $orderItem->id,
+                    ]);
+                }
             }
 
             return $order->load('items');
@@ -108,8 +127,8 @@ class OrderService
         $storedHash = $order->idempotency_payload_hash;
 
         if (
-            !is_string($storedHash)
-            || !hash_equals($storedHash, $payloadHash)
+            ! is_string($storedHash)
+            || ! hash_equals($storedHash, $payloadHash)
         ) {
             throw new ConflictHttpException(
                 'The Idempotency-Key was already used for a different order payload.',
@@ -126,7 +145,7 @@ class OrderService
      * Products are locked while this aggregate is created so their
      * commercial state cannot change between validation and snapshot write.
      *
-     * @param array<int, array<string, mixed>> $items
+     * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
      */
     private function resolveAuthoritativeItems(array $items): array
@@ -183,8 +202,8 @@ class OrderService
             }
 
             if (
-                !$product->is_available
-                || !$validSupplierIds->has($product->supplier_id)
+                ! $product->is_available
+                || ! $validSupplierIds->has($product->supplier_id)
                 || $product->supplier === null
             ) {
                 throw ValidationException::withMessages([
@@ -255,7 +274,7 @@ class OrderService
     /**
      * Produce a deterministic hash for one logical create-order payload.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function payloadHash(array $data): string
     {
@@ -270,7 +289,7 @@ class OrderService
 
     private function normalizeForHash(mixed $value): mixed
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return $value;
         }
 
