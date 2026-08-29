@@ -29,4 +29,14 @@ class BusinessPolicy
             ? Response::allow()
             : Response::denyAsNotFound();
     }
+
+    /**
+     * Response submission has the same supplier membership boundary as inbox read.
+     */
+    public function respondToReceivedOrder(
+        User $user,
+        Business $business,
+    ): Response {
+        return $this->viewReceivedOrders($user, $business);
+    }
 }
