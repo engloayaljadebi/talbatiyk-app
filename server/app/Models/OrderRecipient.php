@@ -6,19 +6,14 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'order_id',
-    'product_id',
-    'product_name',
-    'unit_price',
-    'quantity',
     'supplier_id',
     'supplier_name',
-    'image_url',
 ])]
-class OrderItem extends Model
+class OrderRecipient extends Model
 {
     use HasUuids;
 
@@ -35,16 +30,8 @@ class OrderItem extends Model
         );
     }
 
-    public function recipientItem(): HasOne
+    public function items(): HasMany
     {
-        return $this->hasOne(OrderRecipientItem::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'unit_price' => 'decimal:2',
-            'quantity' => 'integer',
-        ];
+        return $this->hasMany(OrderRecipientItem::class);
     }
 }
