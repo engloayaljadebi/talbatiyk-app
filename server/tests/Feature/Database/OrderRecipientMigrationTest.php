@@ -24,6 +24,12 @@ class OrderRecipientMigrationTest extends TestCase
          * Query Builder is intentional here: Eloquent timestamps would make this
          * fixture test model behavior instead of migration preservation semantics.
          */
+        /*
+         * Later response tables reference the Gate 4.1 tables. Drop them first so
+         * this test can still recreate the pre-Gate-4.1 schema in isolation.
+         */
+        Schema::dropIfExists('order_recipient_item_responses');
+        Schema::dropIfExists('order_recipient_responses');
         Schema::dropIfExists('order_recipient_items');
         Schema::dropIfExists('order_recipients');
 

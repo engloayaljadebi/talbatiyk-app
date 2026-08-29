@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'order_id',
@@ -33,5 +34,16 @@ class OrderRecipient extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderRecipientItem::class);
+    }
+
+    /**
+     * A supplier submits one final response for its Recipient in this stage.
+     */
+    public function response(): HasOne
+    {
+        return $this->hasOne(
+            OrderRecipientResponse::class,
+            'order_recipient_id',
+        );
     }
 }

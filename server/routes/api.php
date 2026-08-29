@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
+use App\Http\Controllers\Api\V1\Order\SupplierOrderResponseController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -98,18 +99,27 @@ Route::prefix('v1')->group(function (): void {
             [SupplierOrderController::class, 'index'],
         );
 
+        Route::post(
+            '/businesses/{business}/received-orders/{recipient}/response',
+            [SupplierOrderResponseController::class, 'store'],
+        )->whereUuid('recipient');
+
         /*
-         | Products Discovery
-         */
+        |--------------------------------------------------------------------------
+        | Products Discovery
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/products', [ProductController::class, 'index']);
+
         /*
-|--------------------------------------------------------------------------
-| Supplier Follow
-|--------------------------------------------------------------------------
-|
-| المتابعة تخص Business المورد نفسه ولا تتحكم في Product Discovery.
-|
-*/
+        |--------------------------------------------------------------------------
+        | Supplier Follow
+        |--------------------------------------------------------------------------
+        |
+        | المتابعة تخص Business المورد نفسه ولا تتحكم في Product Discovery.
+        |
+        */
 
         Route::get(
             '/businesses/{business}/follow',
@@ -125,6 +135,7 @@ Route::prefix('v1')->group(function (): void {
             '/businesses/{business}/follow',
             [SupplierFollowController::class, 'destroy'],
         );
+
         /*
         |--------------------------------------------------------------------------
         | Businesses
