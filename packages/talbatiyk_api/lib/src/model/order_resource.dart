@@ -13,12 +13,12 @@ part 'order_resource.g.dart';
 /// OrderResource
 ///
 /// Properties:
-/// * [id]
-/// * [status]
-/// * [notes]
-/// * [items] - OrderService ظٹط­ظ…ظ‘ظ„ items ظ‚ط¨ظ„ ط¥ظ†ط´ط§ط، ط§ظ„ظ€ ResourceطŒ ظ„ط°ظ„ظƒ ط§ظ„ط¹ظ†ط§طµط± ط¬ط²ط، ط¥ظ„ط²ط§ظ…ظٹ ظ…ظ† Create Order response.
-/// * [createdAt]
-/// * [updatedAt]
+/// * [id] 
+/// * [status] 
+/// * [notes] 
+/// * [items] - OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response.
+/// * [createdAt] 
+/// * [updatedAt] 
 @BuiltValue()
 abstract class OrderResource implements Built<OrderResource, OrderResourceBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -30,7 +30,7 @@ abstract class OrderResource implements Built<OrderResource, OrderResourceBuilde
   @BuiltValueField(wireName: r'notes')
   String? get notes;
 
-  /// OrderService ظٹط­ظ…ظ‘ظ„ items ظ‚ط¨ظ„ ط¥ظ†ط´ط§ط، ط§ظ„ظ€ ResourceطŒ ظ„ط°ظ„ظƒ ط§ظ„ط¹ظ†ط§طµط± ط¬ط²ط، ط¥ظ„ط²ط§ظ…ظٹ ظ…ظ† Create Order response.
+  /// OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response.
   @BuiltValueField(wireName: r'items')
   BuiltList<OrderItemResource> get items;
 
@@ -189,3 +189,4 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
     return result.build();
   }
 }
+

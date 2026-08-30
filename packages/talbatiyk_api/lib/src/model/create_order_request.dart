@@ -13,8 +13,8 @@ part 'create_order_request.g.dart';
 /// CreateOrderRequest
 ///
 /// Properties:
-/// * [notes]
-/// * [items]
+/// * [notes] 
+/// * [items] 
 @BuiltValue()
 abstract class CreateOrderRequest implements Built<CreateOrderRequest, CreateOrderRequestBuilder> {
   @BuiltValueField(wireName: r'notes')
@@ -124,3 +124,4 @@ class _$CreateOrderRequestSerializer implements PrimitiveSerializer<CreateOrderR
     return result.build();
   }
 }
+

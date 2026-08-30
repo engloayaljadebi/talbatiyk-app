@@ -16,6 +16,8 @@ import 'package:talbatiyk_api/src/api/business_location_api.dart';
 import 'package:talbatiyk_api/src/api/order_api.dart';
 import 'package:talbatiyk_api/src/api/product_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_response_api.dart';
 
 class TalbatiykApi {
   static const String basePath = r'http://localhost/api/v1';
@@ -151,5 +153,17 @@ class TalbatiykApi {
   /// by doing that all interceptors will not be executed
   SupplierFollowApi getSupplierFollowApi() {
     return SupplierFollowApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderApi getSupplierOrderApi() {
+    return SupplierOrderApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderResponseApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderResponseApi getSupplierOrderResponseApi() {
+    return SupplierOrderResponseApi(dio, serializers);
   }
 }

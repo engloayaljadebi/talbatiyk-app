@@ -13,6 +13,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AuthRegister201Response.serializer)
       ..add(AuthRegister201ResponseData.serializer)
       ..add(AuthRegister201ResponseDataTokenTypeEnum.serializer)
+      ..add(AvailabilityStatus.serializer)
       ..add(BusinessContactIndexBusiness200Response.serializer)
       ..add(BusinessContactResource.serializer)
       ..add(BusinessContactStoreBusiness201Response.serializer)
@@ -41,6 +42,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(InlineObject1.serializer)
       ..add(LoginRequest.serializer)
       ..add(OrderItemResource.serializer)
+      ..add(OrderRecipientItemResource.serializer)
+      ..add(OrderRecipientItemResponseResource.serializer)
+      ..add(OrderRecipientResource.serializer)
+      ..add(OrderRecipientResponseResource.serializer)
       ..add(OrderResource.serializer)
       ..add(OrderStore201Response.serializer)
       ..add(ProductIndex200Response.serializer)
@@ -51,10 +56,14 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RegisterRequest.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
+      ..add(SubmitSupplierOrderResponseRequest.serializer)
+      ..add(SubmitSupplierOrderResponseRequestItemsInner.serializer)
       ..add(SupplierFollowShow200Response.serializer)
       ..add(SupplierFollowShow200ResponseData.serializer)
       ..add(SupplierFollowStore422Response.serializer)
       ..add(SupplierFollowStore422ResponseErrors.serializer)
+      ..add(SupplierOrderIndex200Response.serializer)
+      ..add(SupplierOrderResponseStore201Response.serializer)
       ..add(UpdateBusinessContactRequest.serializer)
       ..add(UpdateBusinessLocationRequest.serializer)
       ..add(UpdateBusinessLocationRequestStatusEnum.serializer)
@@ -81,6 +90,18 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(OrderItemResource)]),
           () => ListBuilder<OrderItemResource>())
       ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(OrderRecipientItemResource)]),
+          () => ListBuilder<OrderRecipientItemResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(OrderRecipientItemResponseResource)]),
+          () => ListBuilder<OrderRecipientItemResponseResource>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(OrderRecipientResource)]),
+          () => ListBuilder<OrderRecipientResource>())
+      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(ProductIndex200ResponseMetaLinksInner)]),
           () => ListBuilder<ProductIndex200ResponseMetaLinksInner>())
@@ -96,6 +117,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(SubmitSupplierOrderResponseRequestItemsInner)
+          ]),
+          () => ListBuilder<SubmitSupplierOrderResponseRequestItemsInner>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UserResourceContactsInner)]),

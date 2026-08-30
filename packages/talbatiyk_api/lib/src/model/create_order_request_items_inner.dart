@@ -11,15 +11,13 @@ part 'create_order_request_items_inner.g.dart';
 /// CreateOrderRequestItemsInner
 ///
 /// Properties:
-/// * [productId]
-/// * [quantity]
+/// * [productId] - Product existence is commercial state and must be validated after idempotency replay lookup inside OrderService.
+/// * [quantity] 
 /// * [expectedUnitPrice] - This is the price Flutter observed when the user confirmed. Laravel compares it with Product.price and never stores it as the authoritative order price.
 /// * [expectedSupplierId] - This is a concurrency expectation, not the authoritative supplier. Laravel resolves the real supplier from Product.
 @BuiltValue()
-abstract class CreateOrderRequestItemsInner
-    implements
-        Built<CreateOrderRequestItemsInner,
-            CreateOrderRequestItemsInnerBuilder> {
+abstract class CreateOrderRequestItemsInner implements Built<CreateOrderRequestItemsInner, CreateOrderRequestItemsInnerBuilder> {
+  /// Product existence is commercial state and must be validated after idempotency replay lookup inside OrderService.
   @BuiltValueField(wireName: r'product_id')
   String get productId;
 
@@ -36,25 +34,18 @@ abstract class CreateOrderRequestItemsInner
 
   CreateOrderRequestItemsInner._();
 
-  factory CreateOrderRequestItemsInner(
-          [void updates(CreateOrderRequestItemsInnerBuilder b)]) =
-      _$CreateOrderRequestItemsInner;
+  factory CreateOrderRequestItemsInner([void updates(CreateOrderRequestItemsInnerBuilder b)]) = _$CreateOrderRequestItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(CreateOrderRequestItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<CreateOrderRequestItemsInner> get serializer =>
-      _$CreateOrderRequestItemsInnerSerializer();
+  static Serializer<CreateOrderRequestItemsInner> get serializer => _$CreateOrderRequestItemsInnerSerializer();
 }
 
-class _$CreateOrderRequestItemsInnerSerializer
-    implements PrimitiveSerializer<CreateOrderRequestItemsInner> {
+class _$CreateOrderRequestItemsInnerSerializer implements PrimitiveSerializer<CreateOrderRequestItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    CreateOrderRequestItemsInner,
-    _$CreateOrderRequestItemsInner
-  ];
+  final Iterable<Type> types = const [CreateOrderRequestItemsInner, _$CreateOrderRequestItemsInner];
 
   @override
   final String wireName = r'CreateOrderRequestItemsInner';
@@ -92,9 +83,7 @@ class _$CreateOrderRequestItemsInnerSerializer
     CreateOrderRequestItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -165,3 +154,4 @@ class _$CreateOrderRequestItemsInnerSerializer
     return result.build();
   }
 }
+

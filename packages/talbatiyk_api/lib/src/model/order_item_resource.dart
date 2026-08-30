@@ -11,14 +11,14 @@ part 'order_item_resource.g.dart';
 /// OrderItemResource
 ///
 /// Properties:
-/// * [id]
-/// * [productId]
-/// * [productName]
-/// * [unitPrice] - decimal cast ظپظٹ Eloquent ظٹط¹ظٹط¯ string ظ„ظ„ط­ظپط§ط¸ ط¹ظ„ظ‰ ط§ظ„ط¯ظ‚ط©.
-/// * [quantity]
-/// * [supplierId]
-/// * [supplierName]
-/// * [imageUrl]
+/// * [id] 
+/// * [productId] 
+/// * [productName] 
+/// * [unitPrice] - decimal cast في Eloquent يعيد string للحفاظ على الدقة.
+/// * [quantity] 
+/// * [supplierId] 
+/// * [supplierName] 
+/// * [imageUrl] 
 @BuiltValue()
 abstract class OrderItemResource implements Built<OrderItemResource, OrderItemResourceBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -30,7 +30,7 @@ abstract class OrderItemResource implements Built<OrderItemResource, OrderItemRe
   @BuiltValueField(wireName: r'product_name')
   String get productName;
 
-  /// decimal cast ظپظٹ Eloquent ظٹط¹ظٹط¯ string ظ„ظ„ط­ظپط§ط¸ ط¹ظ„ظ‰ ط§ظ„ط¯ظ‚ط©.
+  /// decimal cast في Eloquent يعيد string للحفاظ على الدقة.
   @BuiltValueField(wireName: r'unit_price')
   String get unitPrice;
 
@@ -217,3 +217,4 @@ class _$OrderItemResourceSerializer implements PrimitiveSerializer<OrderItemReso
     return result.build();
   }
 }
+
