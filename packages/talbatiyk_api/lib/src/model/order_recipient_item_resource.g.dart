@@ -18,6 +18,8 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
   @override
   final int requestedQuantity;
   @override
+  final int? selectedQuantity;
+  @override
   final String? imageUrl;
 
   factory _$OrderRecipientItemResource(
@@ -30,6 +32,7 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
       required this.productName,
       required this.unitPrice,
       required this.requestedQuantity,
+      this.selectedQuantity,
       this.imageUrl})
       : super._();
   @override
@@ -50,6 +53,7 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
         productName == other.productName &&
         unitPrice == other.unitPrice &&
         requestedQuantity == other.requestedQuantity &&
+        selectedQuantity == other.selectedQuantity &&
         imageUrl == other.imageUrl;
   }
 
@@ -61,6 +65,7 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
     _$hash = $jc(_$hash, productName.hashCode);
     _$hash = $jc(_$hash, unitPrice.hashCode);
     _$hash = $jc(_$hash, requestedQuantity.hashCode);
+    _$hash = $jc(_$hash, selectedQuantity.hashCode);
     _$hash = $jc(_$hash, imageUrl.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -74,6 +79,7 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
           ..add('productName', productName)
           ..add('unitPrice', unitPrice)
           ..add('requestedQuantity', requestedQuantity)
+          ..add('selectedQuantity', selectedQuantity)
           ..add('imageUrl', imageUrl))
         .toString();
   }
@@ -105,6 +111,11 @@ class OrderRecipientItemResourceBuilder
   set requestedQuantity(int? requestedQuantity) =>
       _$this._requestedQuantity = requestedQuantity;
 
+  int? _selectedQuantity;
+  int? get selectedQuantity => _$this._selectedQuantity;
+  set selectedQuantity(int? selectedQuantity) =>
+      _$this._selectedQuantity = selectedQuantity;
+
   String? _imageUrl;
   String? get imageUrl => _$this._imageUrl;
   set imageUrl(String? imageUrl) => _$this._imageUrl = imageUrl;
@@ -121,6 +132,7 @@ class OrderRecipientItemResourceBuilder
       _productName = $v.productName;
       _unitPrice = $v.unitPrice;
       _requestedQuantity = $v.requestedQuantity;
+      _selectedQuantity = $v.selectedQuantity;
       _imageUrl = $v.imageUrl;
       _$v = null;
     }
@@ -155,6 +167,7 @@ class OrderRecipientItemResourceBuilder
               requestedQuantity,
               r'OrderRecipientItemResource',
               'requestedQuantity'),
+          selectedQuantity: selectedQuantity,
           imageUrl: imageUrl,
         );
     replace(_$result);

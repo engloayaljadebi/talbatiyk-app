@@ -18,6 +18,7 @@ import 'package:talbatiyk_api/src/api/order_response_comparison_api.dart';
 import 'package:talbatiyk_api/src/api/product_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_order_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_fulfillment_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_order_response_api.dart';
 
 class TalbatiykApi {
@@ -166,6 +167,12 @@ class TalbatiykApi {
   /// by doing that all interceptors will not be executed
   SupplierOrderApi getSupplierOrderApi() {
     return SupplierOrderApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderFulfillmentApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderFulfillmentApi getSupplierOrderFulfillmentApi() {
+    return SupplierOrderFulfillmentApi(dio, serializers);
   }
 
   /// Get SupplierOrderResponseApi instance, base route and serializer can be overridden by a given but be careful,

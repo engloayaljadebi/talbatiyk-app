@@ -11,4 +11,11 @@ abstract interface class ReceivedOrdersRepository {
     required String idempotencyKey,
     required List<SubmitReceivedOrderItemResponse> items,
   });
+
+  Future<ReceivedOrderEntity> updateFulfillment({
+    required String businessId,
+    required String recipientId,
+    required int expectedVersion,
+    required ReceivedOrderFulfillmentStatus status,
+  });
 }

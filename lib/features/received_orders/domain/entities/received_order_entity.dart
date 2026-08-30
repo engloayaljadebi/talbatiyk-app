@@ -1,5 +1,29 @@
 enum ReceivedOrderAvailability { full, partial, unavailable }
 
+enum ReceivedOrderFulfillmentStatus {
+  confirmed,
+  preparing,
+  readyForDelivery,
+  outForDelivery,
+  delivered,
+}
+
+extension ReceivedOrderFulfillmentStatusX on ReceivedOrderFulfillmentStatus {
+  ReceivedOrderFulfillmentStatus? get next {
+    return switch (this) {
+      ReceivedOrderFulfillmentStatus.confirmed =>
+        ReceivedOrderFulfillmentStatus.preparing,
+      ReceivedOrderFulfillmentStatus.preparing =>
+        ReceivedOrderFulfillmentStatus.readyForDelivery,
+      ReceivedOrderFulfillmentStatus.readyForDelivery =>
+        ReceivedOrderFulfillmentStatus.outForDelivery,
+      ReceivedOrderFulfillmentStatus.outForDelivery =>
+        ReceivedOrderFulfillmentStatus.delivered,
+      ReceivedOrderFulfillmentStatus.delivered => null,
+    };
+  }
+}
+
 final class ReceivedOrderItemEntity {
   const ReceivedOrderItemEntity({
     required this.id,
@@ -7,6 +31,7 @@ final class ReceivedOrderItemEntity {
     required this.productName,
     required this.unitPrice,
     required this.requestedQuantity,
+    this.selectedQuantity,
     this.imageUrl,
   });
 
@@ -15,6 +40,7 @@ final class ReceivedOrderItemEntity {
   final String productName;
   final String unitPrice;
   final int requestedQuantity;
+  final int? selectedQuantity;
   final String? imageUrl;
 }
 
@@ -66,6 +92,8 @@ final class ReceivedOrderEntity {
     required this.supplierName,
     required this.orderStatus,
     required List<ReceivedOrderItemEntity> items,
+    this.fulfillmentStatus,
+    this.fulfillmentVersion = 1,
     this.notes,
     this.response,
     this.createdAt,
@@ -77,6 +105,8 @@ final class ReceivedOrderEntity {
   final String supplierId;
   final String supplierName;
   final String orderStatus;
+  final ReceivedOrderFulfillmentStatus? fulfillmentStatus;
+  final int fulfillmentVersion;
   final String? notes;
   final List<ReceivedOrderItemEntity> items;
   final ReceivedOrderResponseEntity? response;
@@ -84,6 +114,12 @@ final class ReceivedOrderEntity {
   final DateTime? updatedAt;
 
   bool get hasResponse => response != null;
+
+  bool get hasSelection =>
+      items.any((item) => (item.selectedQuantity ?? 0) > 0);
+
+  ReceivedOrderFulfillmentStatus? get nextFulfillmentStatus =>
+      fulfillmentStatus?.next;
 }
 
 final class SubmitReceivedOrderItemResponse {

@@ -1,4 +1,4 @@
-# talbatiyk_api.model.OrderRecipientItemResource
+# talbatiyk_api.model.UpdateSupplierFulfillmentRequest
 
 ## Load the model package
 ```dart
@@ -8,13 +8,8 @@ import 'package:talbatiyk_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **String** |  | 
-**productId** | **String** |  | 
-**productName** | **String** |  | 
-**unitPrice** | **String** |  | 
-**requestedQuantity** | **int** |  | 
-**selectedQuantity** | **int** |  | 
-**imageUrl** | **String** |  | 
+**expectedVersion** | **int** |  | 
+**status** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

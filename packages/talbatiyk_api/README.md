@@ -123,6 +123,7 @@ Class | Method | HTTP request | Description
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowStore**](doc/SupplierFollowApi.md#supplierfollowstore) | **POST** /businesses/{business}/follow | متابعة المورد
 [*SupplierOrderApi*](doc/SupplierOrderApi.md) | [**supplierOrderIndex**](doc/SupplierOrderApi.md#supplierorderindex) | **GET** /businesses/{business}/received-orders | List orders received by one supplier Business
+[*SupplierOrderFulfillmentApi*](doc/SupplierOrderFulfillmentApi.md) | [**supplierOrderFulfillmentUpdate**](doc/SupplierOrderFulfillmentApi.md#supplierorderfulfillmentupdate) | **PATCH** /businesses/{business}/received-orders/{recipient}/fulfillment | Advance one supplier Recipient through its fulfillment lifecycle
 [*SupplierOrderResponseApi*](doc/SupplierOrderResponseApi.md) | [**supplierOrderResponseStore**](doc/SupplierOrderResponseApi.md#supplierorderresponsestore) | **POST** /businesses/{business}/received-orders/{recipient}/response | Submit the final response for one supplier order recipient
 
 
@@ -152,6 +153,7 @@ Class | Method | HTTP request | Description
  - [CreateBusinessRequestLocation](doc/CreateBusinessRequestLocation.md)
  - [CreateOrderRequest](doc/CreateOrderRequest.md)
  - [CreateOrderRequestItemsInner](doc/CreateOrderRequestItemsInner.md)
+ - [FulfillmentStatus](doc/FulfillmentStatus.md)
  - [InlineObject](doc/InlineObject.md)
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
@@ -182,11 +184,13 @@ Class | Method | HTTP request | Description
  - [SupplierFollowShow200ResponseData](doc/SupplierFollowShow200ResponseData.md)
  - [SupplierFollowStore422Response](doc/SupplierFollowStore422Response.md)
  - [SupplierFollowStore422ResponseErrors](doc/SupplierFollowStore422ResponseErrors.md)
+ - [SupplierOrderFulfillmentUpdate200Response](doc/SupplierOrderFulfillmentUpdate200Response.md)
  - [SupplierOrderIndex200Response](doc/SupplierOrderIndex200Response.md)
  - [SupplierOrderResponseStore201Response](doc/SupplierOrderResponseStore201Response.md)
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)
+ - [UpdateSupplierFulfillmentRequest](doc/UpdateSupplierFulfillmentRequest.md)
  - [UserResource](doc/UserResource.md)
  - [UserResourceContactsInner](doc/UserResourceContactsInner.md)
 

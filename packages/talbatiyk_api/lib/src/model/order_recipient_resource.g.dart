@@ -16,6 +16,10 @@ class _$OrderRecipientResource extends OrderRecipientResource {
   @override
   final String supplierName;
   @override
+  final FulfillmentStatus? fulfillmentStatus;
+  @override
+  final int fulfillmentVersion;
+  @override
   final String orderStatus;
   @override
   final String? notes;
@@ -37,6 +41,8 @@ class _$OrderRecipientResource extends OrderRecipientResource {
       required this.orderId,
       required this.supplierId,
       required this.supplierName,
+      this.fulfillmentStatus,
+      required this.fulfillmentVersion,
       required this.orderStatus,
       this.notes,
       required this.items,
@@ -61,6 +67,8 @@ class _$OrderRecipientResource extends OrderRecipientResource {
         orderId == other.orderId &&
         supplierId == other.supplierId &&
         supplierName == other.supplierName &&
+        fulfillmentStatus == other.fulfillmentStatus &&
+        fulfillmentVersion == other.fulfillmentVersion &&
         orderStatus == other.orderStatus &&
         notes == other.notes &&
         items == other.items &&
@@ -76,6 +84,8 @@ class _$OrderRecipientResource extends OrderRecipientResource {
     _$hash = $jc(_$hash, orderId.hashCode);
     _$hash = $jc(_$hash, supplierId.hashCode);
     _$hash = $jc(_$hash, supplierName.hashCode);
+    _$hash = $jc(_$hash, fulfillmentStatus.hashCode);
+    _$hash = $jc(_$hash, fulfillmentVersion.hashCode);
     _$hash = $jc(_$hash, orderStatus.hashCode);
     _$hash = $jc(_$hash, notes.hashCode);
     _$hash = $jc(_$hash, items.hashCode);
@@ -93,6 +103,8 @@ class _$OrderRecipientResource extends OrderRecipientResource {
           ..add('orderId', orderId)
           ..add('supplierId', supplierId)
           ..add('supplierName', supplierName)
+          ..add('fulfillmentStatus', fulfillmentStatus)
+          ..add('fulfillmentVersion', fulfillmentVersion)
           ..add('orderStatus', orderStatus)
           ..add('notes', notes)
           ..add('items', items)
@@ -122,6 +134,16 @@ class OrderRecipientResourceBuilder
   String? _supplierName;
   String? get supplierName => _$this._supplierName;
   set supplierName(String? supplierName) => _$this._supplierName = supplierName;
+
+  FulfillmentStatus? _fulfillmentStatus;
+  FulfillmentStatus? get fulfillmentStatus => _$this._fulfillmentStatus;
+  set fulfillmentStatus(FulfillmentStatus? fulfillmentStatus) =>
+      _$this._fulfillmentStatus = fulfillmentStatus;
+
+  int? _fulfillmentVersion;
+  int? get fulfillmentVersion => _$this._fulfillmentVersion;
+  set fulfillmentVersion(int? fulfillmentVersion) =>
+      _$this._fulfillmentVersion = fulfillmentVersion;
 
   String? _orderStatus;
   String? get orderStatus => _$this._orderStatus;
@@ -162,6 +184,8 @@ class OrderRecipientResourceBuilder
       _orderId = $v.orderId;
       _supplierId = $v.supplierId;
       _supplierName = $v.supplierName;
+      _fulfillmentStatus = $v.fulfillmentStatus;
+      _fulfillmentVersion = $v.fulfillmentVersion;
       _orderStatus = $v.orderStatus;
       _notes = $v.notes;
       _items = $v.items.toBuilder();
@@ -199,6 +223,11 @@ class OrderRecipientResourceBuilder
                 supplierId, r'OrderRecipientResource', 'supplierId'),
             supplierName: BuiltValueNullFieldError.checkNotNull(
                 supplierName, r'OrderRecipientResource', 'supplierName'),
+            fulfillmentStatus: fulfillmentStatus,
+            fulfillmentVersion: BuiltValueNullFieldError.checkNotNull(
+                fulfillmentVersion,
+                r'OrderRecipientResource',
+                'fulfillmentVersion'),
             orderStatus: BuiltValueNullFieldError.checkNotNull(
                 orderStatus, r'OrderRecipientResource', 'orderStatus'),
             notes: notes,

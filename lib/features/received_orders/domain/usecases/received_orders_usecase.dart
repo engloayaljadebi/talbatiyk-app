@@ -25,4 +25,18 @@ final class ReceivedOrdersUseCase {
       items: items,
     );
   }
+
+  Future<ReceivedOrderEntity> updateFulfillment({
+    required String businessId,
+    required String recipientId,
+    required int expectedVersion,
+    required ReceivedOrderFulfillmentStatus status,
+  }) {
+    return _repository.updateFulfillment(
+      businessId: businessId,
+      recipientId: recipientId,
+      expectedVersion: expectedVersion,
+      status: status,
+    );
+  }
 }

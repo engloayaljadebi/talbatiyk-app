@@ -39,4 +39,14 @@ class BusinessPolicy
     ): Response {
         return $this->viewReceivedOrders($user, $business);
     }
+
+    /**
+     * Fulfillment transitions use the same private supplier membership boundary.
+     */
+    public function updateReceivedOrderFulfillment(
+        User $user,
+        Business $business,
+    ): Response {
+        return $this->viewReceivedOrders($user, $business);
+    }
 }

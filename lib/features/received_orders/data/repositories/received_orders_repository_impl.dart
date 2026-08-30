@@ -35,4 +35,21 @@ final class ReceivedOrdersRepositoryImpl implements ReceivedOrdersRepository {
 
     return ReceivedOrdersMapper.responseFromResource(resource);
   }
+
+  @override
+  Future<ReceivedOrderEntity> updateFulfillment({
+    required String businessId,
+    required String recipientId,
+    required int expectedVersion,
+    required ReceivedOrderFulfillmentStatus status,
+  }) async {
+    final resource = await _remoteDataSource.updateFulfillment(
+      businessId: businessId,
+      recipientId: recipientId,
+      expectedVersion: expectedVersion,
+      status: status,
+    );
+
+    return ReceivedOrdersMapper.fromResource(resource);
+  }
 }
