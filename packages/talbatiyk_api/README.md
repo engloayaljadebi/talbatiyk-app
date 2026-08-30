@@ -157,6 +157,7 @@ Class | Method | HTTP request | Description
  - [InlineObject](doc/InlineObject.md)
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
+ - [OrderAggregateStatus](doc/OrderAggregateStatus.md)
  - [OrderItemResource](doc/OrderItemResource.md)
  - [OrderRecipientItemResource](doc/OrderRecipientItemResource.md)
  - [OrderRecipientItemResponseResource](doc/OrderRecipientItemResponseResource.md)

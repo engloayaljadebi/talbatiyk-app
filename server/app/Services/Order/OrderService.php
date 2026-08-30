@@ -23,6 +23,10 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 */
 class OrderService
 {
+    public function __construct(
+        private readonly OrderAggregateStatusResolver $aggregateStatusResolver,
+    ) {}
+
     /**
      * Create a new order for the authenticated user.
      *
@@ -52,13 +56,15 @@ class OrderService
             ->first();
 
         if ($existingOrder !== null) {
-            return $this->resolveIdempotentOrder(
-                $existingOrder,
-                $payloadHash,
+            return $this->withAggregateStatus(
+                $this->resolveIdempotentOrder(
+                    $existingOrder,
+                    $payloadHash,
+                ),
             );
         }
 
-        return DB::transaction(function () use (
+        $order = DB::transaction(function () use (
             $user,
             $data,
             $idempotencyKey,
@@ -118,6 +124,20 @@ class OrderService
 
             return $order->load('items');
         });
+
+        return $this->withAggregateStatus($order);
+    }
+
+    private function withAggregateStatus(Order $order): Order
+    {
+        $order->setAttribute(
+            'aggregate_status',
+            $this->aggregateStatusResolver
+                ->resolveCurrent($order)
+                ->value,
+        );
+
+        return $order;
     }
 
     private function resolveIdempotentOrder(

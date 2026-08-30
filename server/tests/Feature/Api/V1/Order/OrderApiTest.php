@@ -170,6 +170,10 @@ class OrderApiTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('data.status', 'pending')
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'pending_responses',
+            )
             ->assertJsonPath('data.notes', 'Test order')
             ->assertJsonPath(
                 'data.items.0.supplier_id',
@@ -522,6 +526,7 @@ class OrderApiTest extends TestCase
                 'data' => [
                     'id',
                     'status',
+                    'aggregate_status',
                     'notes',
                     'items' => [
                         '*' => [
@@ -540,6 +545,10 @@ class OrderApiTest extends TestCase
                 ],
             ])
             ->assertJsonPath('data.status', 'pending')
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'pending_responses',
+            )
             ->assertJsonPath('data.notes', 'Test order')
             ->assertJsonPath(
                 'data.items.0.product_id',

@@ -315,6 +315,113 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
             (int) $recipientB->fulfillment_version,
         );
 
+        $this->actAs($buyer);
+
+        $this
+            ->getJson(
+                "/api/v1/orders/{$order->id}/supplier-responses",
+            )
+            ->assertOk()
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'in_fulfillment',
+            );
+
+        $this->actAs($memberA);
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplierA, $recipientA),
+                [
+                    'expected_version' => 4,
+                    'status' => 'out_for_delivery',
+                ],
+            )
+            ->assertOk();
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplierA, $recipientA),
+                [
+                    'expected_version' => 5,
+                    'status' => 'delivered',
+                ],
+            )
+            ->assertOk();
+
+        $this->actAs($buyer);
+
+        $this
+            ->getJson(
+                "/api/v1/orders/{$order->id}/supplier-responses",
+            )
+            ->assertOk()
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'partially_completed',
+            );
+
+        $this->actAs($memberB);
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplierB, $recipientB),
+                [
+                    'expected_version' => 3,
+                    'status' => 'ready_for_delivery',
+                ],
+            )
+            ->assertOk();
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplierB, $recipientB),
+                [
+                    'expected_version' => 4,
+                    'status' => 'out_for_delivery',
+                ],
+            )
+            ->assertOk();
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplierB, $recipientB),
+                [
+                    'expected_version' => 5,
+                    'status' => 'delivered',
+                ],
+            )
+            ->assertOk();
+
+        $this->actAs($buyer);
+
+        $this
+            ->getJson(
+                "/api/v1/orders/{$order->id}/supplier-responses",
+            )
+            ->assertOk()
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'completed',
+            );
+
+        $recipientA->refresh();
+        $recipientB->refresh();
+
+        $this->assertSame(
+            'delivered',
+            $recipientA->fulfillment_status->value,
+        );
+
+        $this->assertSame(
+            'delivered',
+            $recipientB->fulfillment_status->value,
+        );
+
+        /*
+         * Supplier fulfillment advances Recipient-local versions only.
+         * The Order version remains the customer selection concurrency token.
+         */
         $this->assertSame(
             2,
             (int) $order->fresh()->version,

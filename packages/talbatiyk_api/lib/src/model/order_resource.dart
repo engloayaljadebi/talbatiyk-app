@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -15,6 +16,7 @@ part 'order_resource.g.dart';
 /// Properties:
 /// * [id] 
 /// * [status] 
+/// * [aggregateStatus] 
 /// * [notes] 
 /// * [items] - OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response.
 /// * [createdAt] 
@@ -26,6 +28,10 @@ abstract class OrderResource implements Built<OrderResource, OrderResourceBuilde
 
   @BuiltValueField(wireName: r'status')
   String get status;
+
+  @BuiltValueField(wireName: r'aggregate_status')
+  OrderAggregateStatus get aggregateStatus;
+  // enum aggregateStatusEnum {  pending_responses,  responses_received,  suppliers_selected,  in_fulfillment,  partially_completed,  completed,  cancelled,  expired,  };
 
   @BuiltValueField(wireName: r'notes')
   String? get notes;
@@ -72,6 +78,11 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
     yield serializers.serialize(
       object.status,
       specifiedType: const FullType(String),
+    );
+    yield r'aggregate_status';
+    yield serializers.serialize(
+      object.aggregateStatus,
+      specifiedType: const FullType(OrderAggregateStatus),
     );
     yield r'notes';
     yield object.notes == null ? null : serializers.serialize(
@@ -129,6 +140,13 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
             specifiedType: const FullType(String),
           ) as String;
           result.status = valueDes;
+          break;
+        case r'aggregate_status':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(OrderAggregateStatus),
+          ) as OrderAggregateStatus;
+          result.aggregateStatus = valueDes;
           break;
         case r'notes':
           final valueDes = serializers.deserialize(

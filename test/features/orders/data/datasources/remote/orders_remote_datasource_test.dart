@@ -45,6 +45,7 @@ void main() {
             'data': {
               'id': 'order-1',
               'status': 'pending',
+              'aggregate_status': 'pending_responses',
               'notes': 'Call before delivery',
               'items': [
                 {

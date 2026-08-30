@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Enums\Order\OrderAggregateStatus;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +19,9 @@ class OrderResource extends JsonResource
             'id' => $this->id,
 
             'status' => $this->status,
+
+            /** @var OrderAggregateStatus */
+            'aggregate_status' => $this->aggregate_status,
             'notes' => $this->notes,
 
             // OrderService يحمّل items قبل إنشاء الـ Resource،
