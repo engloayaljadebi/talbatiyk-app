@@ -116,6 +116,8 @@ Class | Method | HTTP request | Description
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationStore**](doc/BusinessLocationApi.md#businesslocationstore) | **POST** /businesses/{business}/locations | إنشاء موقع جديد
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationUpdate**](doc/BusinessLocationApi.md#businesslocationupdate) | **PATCH** /businesses/{business}/locations/{location} | تعديل موقع موجود
 [*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
+[*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonShow**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonshow) | **GET** /orders/{order}/supplier-responses | Compare all final supplier responses for one owned Order
+[*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonUpdate**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonupdate) | **PUT** /orders/{order}/supplier-selection | Replace the customer&#39;s supplier-response selection atomically
 [*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
@@ -159,6 +161,11 @@ Class | Method | HTTP request | Description
  - [OrderRecipientResource](doc/OrderRecipientResource.md)
  - [OrderRecipientResponseResource](doc/OrderRecipientResponseResource.md)
  - [OrderResource](doc/OrderResource.md)
+ - [OrderResponseComparisonItemResource](doc/OrderResponseComparisonItemResource.md)
+ - [OrderResponseComparisonItemResourceSupplier](doc/OrderResponseComparisonItemResourceSupplier.md)
+ - [OrderResponseComparisonResource](doc/OrderResponseComparisonResource.md)
+ - [OrderResponseComparisonSelectionResource](doc/OrderResponseComparisonSelectionResource.md)
+ - [OrderResponseComparisonShow200Response](doc/OrderResponseComparisonShow200Response.md)
  - [OrderStore201Response](doc/OrderStore201Response.md)
  - [ProductIndex200Response](doc/ProductIndex200Response.md)
  - [ProductIndex200ResponseLinks](doc/ProductIndex200ResponseLinks.md)
@@ -167,6 +174,8 @@ Class | Method | HTTP request | Description
  - [ProductResource](doc/ProductResource.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [RegisterRequestContactValue](doc/RegisterRequestContactValue.md)
+ - [SelectOrderSupplierResponsesRequest](doc/SelectOrderSupplierResponsesRequest.md)
+ - [SelectOrderSupplierResponsesRequestSelectionsInner](doc/SelectOrderSupplierResponsesRequestSelectionsInner.md)
  - [SubmitSupplierOrderResponseRequest](doc/SubmitSupplierOrderResponseRequest.md)
  - [SubmitSupplierOrderResponseRequestItemsInner](doc/SubmitSupplierOrderResponseRequestItemsInner.md)
  - [SupplierFollowShow200Response](doc/SupplierFollowShow200Response.md)

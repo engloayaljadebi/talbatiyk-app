@@ -62,6 +62,10 @@ final class GeneratedApiClient {
   SupplierOrderResponseApi get supplierOrderResponses =>
       client.getSupplierOrderResponseApi();
 
+  /// Customer supplier-response comparison and selection endpoints.
+  OrderResponseComparisonApi get orderResponseComparisons =>
+      client.getOrderResponseComparisonApi();
+
   /// يربط Sanctum Personal Access Token بالطلبات المحمية.
   void setAccessToken(String token) {
     client.setBearerAuth(_bearerSecurityName, token);

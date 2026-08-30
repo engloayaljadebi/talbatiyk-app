@@ -39,6 +39,12 @@ doc/OrderRecipientItemResponseResource.md
 doc/OrderRecipientResource.md
 doc/OrderRecipientResponseResource.md
 doc/OrderResource.md
+doc/OrderResponseComparisonApi.md
+doc/OrderResponseComparisonItemResource.md
+doc/OrderResponseComparisonItemResourceSupplier.md
+doc/OrderResponseComparisonResource.md
+doc/OrderResponseComparisonSelectionResource.md
+doc/OrderResponseComparisonShow200Response.md
 doc/OrderStore201Response.md
 doc/ProductApi.md
 doc/ProductIndex200Response.md
@@ -48,6 +54,8 @@ doc/ProductIndex200ResponseMetaLinksInner.md
 doc/ProductResource.md
 doc/RegisterRequest.md
 doc/RegisterRequestContactValue.md
+doc/SelectOrderSupplierResponsesRequest.md
+doc/SelectOrderSupplierResponsesRequestSelectionsInner.md
 doc/SubmitSupplierOrderResponseRequest.md
 doc/SubmitSupplierOrderResponseRequestItemsInner.md
 doc/SupplierFollowApi.md
@@ -70,6 +78,7 @@ lib/src/api/business_api.dart
 lib/src/api/business_contact_api.dart
 lib/src/api/business_location_api.dart
 lib/src/api/order_api.dart
+lib/src/api/order_response_comparison_api.dart
 lib/src/api/product_api.dart
 lib/src/api/supplier_follow_api.dart
 lib/src/api/supplier_order_api.dart
@@ -115,6 +124,11 @@ lib/src/model/order_recipient_item_response_resource.dart
 lib/src/model/order_recipient_resource.dart
 lib/src/model/order_recipient_response_resource.dart
 lib/src/model/order_resource.dart
+lib/src/model/order_response_comparison_item_resource.dart
+lib/src/model/order_response_comparison_item_resource_supplier.dart
+lib/src/model/order_response_comparison_resource.dart
+lib/src/model/order_response_comparison_selection_resource.dart
+lib/src/model/order_response_comparison_show200_response.dart
 lib/src/model/order_store201_response.dart
 lib/src/model/product_index200_response.dart
 lib/src/model/product_index200_response_links.dart
@@ -123,6 +137,8 @@ lib/src/model/product_index200_response_meta_links_inner.dart
 lib/src/model/product_resource.dart
 lib/src/model/register_request.dart
 lib/src/model/register_request_contact_value.dart
+lib/src/model/select_order_supplier_responses_request.dart
+lib/src/model/select_order_supplier_responses_request_selections_inner.dart
 lib/src/model/submit_supplier_order_response_request.dart
 lib/src/model/submit_supplier_order_response_request_items_inner.dart
 lib/src/model/supplier_follow_show200_response.dart
@@ -139,14 +155,4 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
-test/availability_status_test.dart
-test/order_recipient_item_resource_test.dart
-test/order_recipient_item_response_resource_test.dart
-test/order_recipient_resource_test.dart
-test/order_recipient_response_resource_test.dart
-test/submit_supplier_order_response_request_items_inner_test.dart
-test/submit_supplier_order_response_request_test.dart
-test/supplier_order_api_test.dart
-test/supplier_order_index200_response_test.dart
-test/supplier_order_response_api_test.dart
-test/supplier_order_response_store201_response_test.dart
+test/order_response_comparison_selection_resource_test.dart

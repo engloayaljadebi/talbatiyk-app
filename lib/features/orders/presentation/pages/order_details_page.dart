@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../order_response_comparison/presentation/pages/order_response_comparison_page.dart';
 import '../../domain/entities/orders_entity.dart';
 import '../controllers/orders_controller.dart';
 import '../extensions/order_status_presentation.dart';
@@ -90,6 +91,18 @@ class OrderDetailsPage extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // سيستقبل بيانات المورد الفعلية بعد تحديد استجابة الـ API.
+          _SupplierResponsesCard(
+            onOpen: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      OrderResponseComparisonPage(orderId: currentOrder.id),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+
           _SupplierCard(supplier: currentOrder.supplier),
           const SizedBox(height: 16),
 
@@ -611,6 +624,47 @@ class _ProgressStep extends StatelessWidget {
 ///
 /// تعرض الاسم والمعرّف المحفوظين وقت إنشاء الطلبية.
 /// البيانات قد تكون غير موجودة في الطلبيات القديمة.
+class _SupplierResponsesCard extends StatelessWidget {
+  const _SupplierResponsesCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      title: 'ردود الموردين',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'راجع الكميات المتاحة والأسعار المعروضة من الموردين المرتبطين بعناصر الطلب، ثم حدد الكميات المقبولة.',
+            style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: const Key('open-supplier-responses'),
+              onPressed: onOpen,
+              icon: const Icon(Icons.compare_arrows_rounded),
+              label: const Text('عرض ردود الموردين'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                minimumSize: const Size.fromHeight(48),
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SupplierCard extends StatelessWidget {
   const _SupplierCard({required this.supplier});
 

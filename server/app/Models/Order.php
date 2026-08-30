@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'idempotency_key',
     'idempotency_payload_hash',
     'status',
+    'version',
     'notes',
 ])]
 class Order extends Model
@@ -32,5 +33,12 @@ class Order extends Model
     public function recipients(): HasMany
     {
         return $this->hasMany(OrderRecipient::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'version' => 'integer',
+        ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'order_recipient_response_id',
@@ -34,6 +35,14 @@ class OrderRecipientItemResponse extends Model
         return $this->belongsTo(
             OrderRecipientItem::class,
             'order_recipient_item_id',
+        );
+    }
+
+    public function selection(): HasOne
+    {
+        return $this->hasOne(
+            OrderItemSelection::class,
+            'order_recipient_item_response_id',
         );
     }
 

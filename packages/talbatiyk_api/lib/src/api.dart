@@ -14,6 +14,7 @@ import 'package:talbatiyk_api/src/api/business_api.dart';
 import 'package:talbatiyk_api/src/api/business_contact_api.dart';
 import 'package:talbatiyk_api/src/api/business_location_api.dart';
 import 'package:talbatiyk_api/src/api/order_api.dart';
+import 'package:talbatiyk_api/src/api/order_response_comparison_api.dart';
 import 'package:talbatiyk_api/src/api/product_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_order_api.dart';
@@ -141,6 +142,12 @@ class TalbatiykApi {
   /// by doing that all interceptors will not be executed
   OrderApi getOrderApi() {
     return OrderApi(dio, serializers);
+  }
+
+  /// Get OrderResponseComparisonApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OrderResponseComparisonApi getOrderResponseComparisonApi() {
+    return OrderResponseComparisonApi(dio, serializers);
   }
 
   /// Get ProductApi instance, base route and serializer can be overridden by a given but be careful,
