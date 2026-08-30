@@ -47,6 +47,11 @@ import 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.d
 import 'package:talbatiyk_api/src/model/order_recipient_resource.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_response_resource.dart';
 import 'package:talbatiyk_api/src/model/order_resource.dart';
+import 'package:talbatiyk_api/src/model/order_response_comparison_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_response_comparison_item_resource_supplier.dart';
+import 'package:talbatiyk_api/src/model/order_response_comparison_resource.dart';
+import 'package:talbatiyk_api/src/model/order_response_comparison_selection_resource.dart';
+import 'package:talbatiyk_api/src/model/order_response_comparison_show200_response.dart';
 import 'package:talbatiyk_api/src/model/order_store201_response.dart';
 import 'package:talbatiyk_api/src/model/product_index200_response.dart';
 import 'package:talbatiyk_api/src/model/product_index200_response_links.dart';
@@ -55,6 +60,8 @@ import 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inn
 import 'package:talbatiyk_api/src/model/product_resource.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
+import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.dart';
+import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request_selections_inner.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request_items_inner.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
@@ -105,6 +112,11 @@ part 'serializers.g.dart';
   OrderRecipientResource,
   OrderRecipientResponseResource,
   OrderResource,
+  OrderResponseComparisonItemResource,
+  OrderResponseComparisonItemResourceSupplier,
+  OrderResponseComparisonResource,
+  OrderResponseComparisonSelectionResource,
+  OrderResponseComparisonShow200Response,
   OrderStore201Response,
   ProductIndex200Response,
   ProductIndex200ResponseLinks,
@@ -113,6 +125,8 @@ part 'serializers.g.dart';
   ProductResource,
   RegisterRequest,
   RegisterRequestContactValue,
+  SelectOrderSupplierResponsesRequest,
+  SelectOrderSupplierResponsesRequestSelectionsInner,
   SubmitSupplierOrderResponseRequest,
   SubmitSupplierOrderResponseRequestItemsInner,
   SupplierFollowShow200Response,

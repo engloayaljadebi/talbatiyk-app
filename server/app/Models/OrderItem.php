@@ -40,6 +40,11 @@ class OrderItem extends Model
         return $this->hasOne(OrderRecipientItem::class);
     }
 
+    public function selection(): HasOne
+    {
+        return $this->hasOne(OrderItemSelection::class);
+    }
+
     protected function casts(): array
     {
         return [

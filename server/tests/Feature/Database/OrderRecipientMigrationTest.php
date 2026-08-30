@@ -28,6 +28,7 @@ class OrderRecipientMigrationTest extends TestCase
          * Later response tables reference the Gate 4.1 tables. Drop them first so
          * this test can still recreate the pre-Gate-4.1 schema in isolation.
          */
+        Schema::dropIfExists('order_item_selections');
         Schema::dropIfExists('order_recipient_item_responses');
         Schema::dropIfExists('order_recipient_responses');
         Schema::dropIfExists('order_recipient_items');

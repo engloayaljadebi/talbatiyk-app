@@ -47,6 +47,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(OrderRecipientResource.serializer)
       ..add(OrderRecipientResponseResource.serializer)
       ..add(OrderResource.serializer)
+      ..add(OrderResponseComparisonItemResource.serializer)
+      ..add(OrderResponseComparisonItemResourceSupplier.serializer)
+      ..add(OrderResponseComparisonResource.serializer)
+      ..add(OrderResponseComparisonSelectionResource.serializer)
+      ..add(OrderResponseComparisonShow200Response.serializer)
       ..add(OrderStore201Response.serializer)
       ..add(ProductIndex200Response.serializer)
       ..add(ProductIndex200ResponseLinks.serializer)
@@ -56,6 +61,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RegisterRequest.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
+      ..add(SelectOrderSupplierResponsesRequest.serializer)
+      ..add(SelectOrderSupplierResponsesRequestSelectionsInner.serializer)
       ..add(SubmitSupplierOrderResponseRequest.serializer)
       ..add(SubmitSupplierOrderResponseRequestItemsInner.serializer)
       ..add(SupplierFollowShow200Response.serializer)
@@ -103,11 +110,21 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<OrderRecipientResource>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(OrderResponseComparisonItemResource)]),
+          () => ListBuilder<OrderResponseComparisonItemResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(ProductIndex200ResponseMetaLinksInner)]),
           () => ListBuilder<ProductIndex200ResponseMetaLinksInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ProductResource)]),
           () => ListBuilder<ProductResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(SelectOrderSupplierResponsesRequestSelectionsInner)
+          ]),
+          () =>
+              ListBuilder<SelectOrderSupplierResponsesRequestSelectionsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

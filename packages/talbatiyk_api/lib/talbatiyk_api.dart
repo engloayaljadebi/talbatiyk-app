@@ -15,6 +15,7 @@ export 'package:talbatiyk_api/src/api/business_api.dart';
 export 'package:talbatiyk_api/src/api/business_contact_api.dart';
 export 'package:talbatiyk_api/src/api/business_location_api.dart';
 export 'package:talbatiyk_api/src/api/order_api.dart';
+export 'package:talbatiyk_api/src/api/order_response_comparison_api.dart';
 export 'package:talbatiyk_api/src/api/product_api.dart';
 export 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
 export 'package:talbatiyk_api/src/api/supplier_order_api.dart';
@@ -53,6 +54,11 @@ export 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.d
 export 'package:talbatiyk_api/src/model/order_recipient_resource.dart';
 export 'package:talbatiyk_api/src/model/order_recipient_response_resource.dart';
 export 'package:talbatiyk_api/src/model/order_resource.dart';
+export 'package:talbatiyk_api/src/model/order_response_comparison_item_resource.dart';
+export 'package:talbatiyk_api/src/model/order_response_comparison_item_resource_supplier.dart';
+export 'package:talbatiyk_api/src/model/order_response_comparison_resource.dart';
+export 'package:talbatiyk_api/src/model/order_response_comparison_selection_resource.dart';
+export 'package:talbatiyk_api/src/model/order_response_comparison_show200_response.dart';
 export 'package:talbatiyk_api/src/model/order_store201_response.dart';
 export 'package:talbatiyk_api/src/model/product_index200_response.dart';
 export 'package:talbatiyk_api/src/model/product_index200_response_links.dart';
@@ -61,6 +67,8 @@ export 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inn
 export 'package:talbatiyk_api/src/model/product_resource.dart';
 export 'package:talbatiyk_api/src/model/register_request.dart';
 export 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
+export 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.dart';
+export 'package:talbatiyk_api/src/model/select_order_supplier_responses_request_selections_inner.dart';
 export 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
 export 'package:talbatiyk_api/src/model/submit_supplier_order_response_request_items_inner.dart';
 export 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';

@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderResponseController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
@@ -93,6 +94,16 @@ Route::prefix('v1')->group(function (): void {
         */
 
         Route::post('/orders', [OrderController::class, 'store']);
+
+        Route::get(
+            '/orders/{order}/supplier-responses',
+            [OrderResponseComparisonController::class, 'show'],
+        )->whereUuid('order');
+
+        Route::put(
+            '/orders/{order}/supplier-selection',
+            [OrderResponseComparisonController::class, 'update'],
+        )->whereUuid('order');
 
         Route::get(
             '/businesses/{business}/received-orders',

@@ -1391,6 +1391,133 @@
                 }
             }
         },
+        "/orders/{order}/supplier-responses": {
+            "get": {
+                "operationId": "orderResponseComparison.show",
+                "summary": "Compare all final supplier responses for one owned Order",
+                "tags": [
+                    "OrderResponseComparison"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`OrderResponseComparisonResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResponseComparisonResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "404": {
+                        "description": "Order not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{order}/supplier-selection": {
+            "put": {
+                "operationId": "orderResponseComparison.update",
+                "summary": "Replace the customer's supplier-response selection atomically",
+                "tags": [
+                    "OrderResponseComparison"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SelectOrderSupplierResponsesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderResponseComparisonResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResponseComparisonResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "description": "Order not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The order version is stale.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "operationId": "product.index",
@@ -2857,6 +2984,152 @@
                 ],
                 "title": "OrderResource"
             },
+            "OrderResponseComparisonItemResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    },
+                    "product_name": {
+                        "type": "string"
+                    },
+                    "requested_quantity": {
+                        "type": "integer"
+                    },
+                    "order_unit_price": {
+                        "type": "string"
+                    },
+                    "supplier": {
+                        "type": "object",
+                        "properties": {
+                            "recipient_id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "supplier_id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "supplier_name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "recipient_id",
+                            "supplier_id",
+                            "supplier_name"
+                        ]
+                    },
+                    "response": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/OrderRecipientItemResponseResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "selection": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/OrderResponseComparisonSelectionResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "product_id",
+                    "product_name",
+                    "requested_quantity",
+                    "order_unit_price",
+                    "supplier",
+                    "response",
+                    "selection"
+                ],
+                "title": "OrderResponseComparisonItemResource"
+            },
+            "OrderResponseComparisonResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderResponseComparisonItemResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "version",
+                    "status",
+                    "notes",
+                    "items",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderResponseComparisonResource"
+            },
+            "OrderResponseComparisonSelectionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "order_recipient_item_response_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "selected_quantity": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "order_recipient_item_response_id",
+                    "selected_quantity"
+                ],
+                "title": "OrderResponseComparisonSelectionResource"
+            },
             "ProductResource": {
                 "type": "object",
                 "properties": {
@@ -3002,6 +3275,41 @@
                     "password_confirmation"
                 ],
                 "title": "RegisterRequest"
+            },
+            "SelectOrderSupplierResponsesRequest": {
+                "type": "object",
+                "properties": {
+                    "expected_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "selections": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "order_recipient_item_response_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "selected_quantity": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "required": [
+                                "order_recipient_item_response_id",
+                                "selected_quantity"
+                            ]
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "expected_version",
+                    "selections"
+                ],
+                "title": "SelectOrderSupplierResponsesRequest"
             },
             "SubmitSupplierOrderResponseRequest": {
                 "type": "object",
