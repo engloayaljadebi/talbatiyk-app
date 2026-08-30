@@ -23,6 +23,7 @@ class SupplierOrderQueryService
             ->with([
                 'order:id,status,notes,created_at,updated_at',
                 'items.orderItem:id,order_id,product_id,product_name,unit_price,quantity,image_url',
+                'items.response.selection',
                 'response.items',
             ])
             ->orderByDesc('created_at')

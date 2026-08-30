@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Order\FulfillmentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'order_id',
     'supplier_id',
     'supplier_name',
+    'fulfillment_status',
+    'fulfillment_version',
 ])]
 class OrderRecipient extends Model
 {
@@ -45,5 +48,21 @@ class OrderRecipient extends Model
             OrderRecipientResponse::class,
             'order_recipient_id',
         );
+    }
+
+    public function fulfillmentHistory(): HasMany
+    {
+        return $this->hasMany(
+            OrderRecipientFulfillmentHistory::class,
+            'order_recipient_id',
+        );
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'fulfillment_status' => FulfillmentStatus::class,
+            'fulfillment_version' => 'integer',
+        ];
     }
 }

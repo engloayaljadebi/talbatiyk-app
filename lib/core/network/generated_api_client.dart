@@ -62,6 +62,10 @@ final class GeneratedApiClient {
   SupplierOrderResponseApi get supplierOrderResponses =>
       client.getSupplierOrderResponseApi();
 
+  /// Supplier fulfillment lifecycle endpoints.
+  SupplierOrderFulfillmentApi get supplierOrderFulfillment =>
+      client.getSupplierOrderFulfillmentApi();
+
   /// Customer supplier-response comparison and selection endpoints.
   OrderResponseComparisonApi get orderResponseComparisons =>
       client.getOrderResponseComparisonApi();

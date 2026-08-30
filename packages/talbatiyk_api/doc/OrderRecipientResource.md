@@ -12,6 +12,8 @@ Name | Type | Description | Notes
 **orderId** | **String** |  | 
 **supplierId** | **String** |  | 
 **supplierName** | **String** |  | 
+**fulfillmentStatus** | [**FulfillmentStatus**](FulfillmentStatus.md) |  | 
+**fulfillmentVersion** | **int** |  | 
 **orderStatus** | **String** |  | 
 **notes** | **String** |  | 
 **items** | [**BuiltList&lt;OrderRecipientItemResource&gt;**](OrderRecipientItemResource.md) |  | 

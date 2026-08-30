@@ -38,6 +38,7 @@ import 'package:talbatiyk_api/src/model/create_business_request_contact.dart';
 import 'package:talbatiyk_api/src/model/create_business_request_location.dart';
 import 'package:talbatiyk_api/src/model/create_order_request.dart';
 import 'package:talbatiyk_api/src/model/create_order_request_items_inner.dart';
+import 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
@@ -68,11 +69,13 @@ import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_store422_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_store422_response_errors.dart';
+import 'package:talbatiyk_api/src/model/supplier_order_fulfillment_update200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_order_index200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_order_response_store201_response.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_request.dart';
+import 'package:talbatiyk_api/src/model/update_supplier_fulfillment_request.dart';
 import 'package:talbatiyk_api/src/model/user_resource.dart';
 import 'package:talbatiyk_api/src/model/user_resource_contacts_inner.dart';
 
@@ -103,6 +106,7 @@ part 'serializers.g.dart';
   CreateBusinessRequestLocation,
   CreateOrderRequest,
   CreateOrderRequestItemsInner,
+  FulfillmentStatus,
   InlineObject,
   InlineObject1,
   LoginRequest,
@@ -133,11 +137,13 @@ part 'serializers.g.dart';
   SupplierFollowShow200ResponseData,
   SupplierFollowStore422Response,
   SupplierFollowStore422ResponseErrors,
+  SupplierOrderFulfillmentUpdate200Response,
   SupplierOrderIndex200Response,
   SupplierOrderResponseStore201Response,
   UpdateBusinessContactRequest,
   UpdateBusinessLocationRequest,
   UpdateBusinessRequest,
+  UpdateSupplierFulfillmentRequest,
   UserResource,
   UserResourceContactsInner,
 ])

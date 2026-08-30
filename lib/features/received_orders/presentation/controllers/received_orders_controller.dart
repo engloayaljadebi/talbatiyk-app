@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/received_order_entity.dart';
+import '../../domain/errors/stale_recipient_fulfillment_version_exception.dart';
 import '../../domain/usecases/received_orders_usecase.dart';
 import '../state/received_orders_state.dart';
 
@@ -115,6 +116,8 @@ final class ReceivedOrdersController extends ChangeNotifier {
               supplierId: current.supplierId,
               supplierName: current.supplierName,
               orderStatus: current.orderStatus,
+              fulfillmentStatus: current.fulfillmentStatus,
+              fulfillmentVersion: current.fulfillmentVersion,
               items: current.items,
               notes: current.notes,
               response: response,
@@ -139,6 +142,87 @@ final class ReceivedOrdersController extends ChangeNotifier {
       state = state.copyWith(
         clearSubmittingRecipientId: true,
         errorMessage: 'تعذر إرسال الرد. حاول مرة أخرى.',
+      );
+
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateFulfillment({required ReceivedOrderEntity order}) async {
+    if (state.isUpdatingFulfillment) {
+      return false;
+    }
+
+    final nextStatus = order.nextFulfillmentStatus;
+
+    if (order.fulfillmentStatus == null || !order.hasSelection) {
+      state = state.copyWith(
+        errorMessage:
+            'لا يمكن بدء التنفيذ قبل اختيار العميل لكمية من هذا المورد.',
+      );
+      notifyListeners();
+      return false;
+    }
+
+    if (nextStatus == null) {
+      state = state.copyWith(errorMessage: 'تم إكمال تنفيذ هذا الطلب بالفعل.');
+      notifyListeners();
+      return false;
+    }
+
+    state = state.copyWith(
+      updatingFulfillmentRecipientId: order.id,
+      clearErrorMessage: true,
+    );
+    notifyListeners();
+
+    try {
+      final updated = await _useCase.updateFulfillment(
+        businessId: _businessId,
+        recipientId: order.id,
+        expectedVersion: order.fulfillmentVersion,
+        status: nextStatus,
+      );
+
+      final updatedOrders = state.orders
+          .map((current) => current.id == order.id ? updated : current)
+          .toList(growable: false);
+
+      state = state.copyWith(
+        orders: List<ReceivedOrderEntity>.unmodifiable(updatedOrders),
+        clearUpdatingFulfillmentRecipientId: true,
+        clearErrorMessage: true,
+      );
+
+      notifyListeners();
+      return true;
+    } on StaleRecipientFulfillmentVersionException {
+      try {
+        final freshOrders = await _useCase.getReceivedOrders(
+          businessId: _businessId,
+        );
+
+        state = state.copyWith(
+          orders: List<ReceivedOrderEntity>.unmodifiable(freshOrders),
+          clearUpdatingFulfillmentRecipientId: true,
+          errorMessage:
+              'تم تحديث حالة التنفيذ لأن بيانات الطلب تغيرت. راجع الحالة الحالية ثم حاول مجددًا.',
+        );
+      } catch (_) {
+        state = state.copyWith(
+          clearUpdatingFulfillmentRecipientId: true,
+          errorMessage:
+              'تغيرت حالة التنفيذ وتعذر تحميل أحدث البيانات. أعد تحميل الطلبات.',
+        );
+      }
+
+      notifyListeners();
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        clearUpdatingFulfillmentRecipientId: true,
+        errorMessage: 'تعذر تحديث حالة تنفيذ الطلب. حاول مرة أخرى.',
       );
 
       notifyListeners();

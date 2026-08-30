@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:talbatiyk_api/src/model/order_recipient_response_resource.dart';
+import 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_item_resource.dart';
 import 'package:built_value/built_value.dart';
@@ -18,6 +19,8 @@ part 'order_recipient_resource.g.dart';
 /// * [orderId] 
 /// * [supplierId] 
 /// * [supplierName] 
+/// * [fulfillmentStatus] 
+/// * [fulfillmentVersion] 
 /// * [orderStatus] 
 /// * [notes] 
 /// * [items] 
@@ -37,6 +40,13 @@ abstract class OrderRecipientResource implements Built<OrderRecipientResource, O
 
   @BuiltValueField(wireName: r'supplier_name')
   String get supplierName;
+
+  @BuiltValueField(wireName: r'fulfillment_status')
+  FulfillmentStatus? get fulfillmentStatus;
+  // enum fulfillmentStatusEnum {  confirmed,  preparing,  ready_for_delivery,  out_for_delivery,  delivered,  };
+
+  @BuiltValueField(wireName: r'fulfillment_version')
+  int get fulfillmentVersion;
 
   @BuiltValueField(wireName: r'order_status')
   String get orderStatus;
@@ -98,6 +108,16 @@ class _$OrderRecipientResourceSerializer implements PrimitiveSerializer<OrderRec
     yield serializers.serialize(
       object.supplierName,
       specifiedType: const FullType(String),
+    );
+    yield r'fulfillment_status';
+    yield object.fulfillmentStatus == null ? null : serializers.serialize(
+      object.fulfillmentStatus,
+      specifiedType: const FullType.nullable(FulfillmentStatus),
+    );
+    yield r'fulfillment_version';
+    yield serializers.serialize(
+      object.fulfillmentVersion,
+      specifiedType: const FullType(int),
     );
     yield r'order_status';
     yield serializers.serialize(
@@ -181,6 +201,21 @@ class _$OrderRecipientResourceSerializer implements PrimitiveSerializer<OrderRec
             specifiedType: const FullType(String),
           ) as String;
           result.supplierName = valueDes;
+          break;
+        case r'fulfillment_status':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(FulfillmentStatus),
+          ) as FulfillmentStatus?;
+          if (valueDes == null) continue;
+          result.fulfillmentStatus = valueDes;
+          break;
+        case r'fulfillment_version':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.fulfillmentVersion = valueDes;
           break;
         case r'order_status':
           final valueDes = serializers.deserialize(

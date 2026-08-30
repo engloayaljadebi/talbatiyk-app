@@ -1956,6 +1956,87 @@
                 }
             }
         },
+        "/businesses/{business}/received-orders/{recipient}/fulfillment": {
+            "patch": {
+                "operationId": "supplierOrderFulfillment.update",
+                "summary": "Advance one supplier Recipient through its fulfillment lifecycle",
+                "tags": [
+                    "SupplierOrderFulfillment"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "recipient",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSupplierFulfillmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderRecipientResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderRecipientResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "409": {
+                        "description": "The fulfillment version is stale, the supplier is not selected, or the transition is invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/businesses/{business}/received-orders/{recipient}/response": {
             "post": {
                 "operationId": "supplierOrderResponse.store",
@@ -2667,6 +2748,17 @@
                 ],
                 "title": "CreateOrderRequest"
             },
+            "FulfillmentStatus": {
+                "type": "string",
+                "enum": [
+                    "confirmed",
+                    "preparing",
+                    "ready_for_delivery",
+                    "out_for_delivery",
+                    "delivered"
+                ],
+                "title": "FulfillmentStatus"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -2754,6 +2846,12 @@
                     "requested_quantity": {
                         "type": "integer"
                     },
+                    "selected_quantity": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
                     "image_url": {
                         "type": [
                             "string",
@@ -2767,6 +2865,7 @@
                     "product_name",
                     "unit_price",
                     "requested_quantity",
+                    "selected_quantity",
                     "image_url"
                 ],
                 "title": "OrderRecipientItemResource"
@@ -2849,6 +2948,19 @@
                     "supplier_name": {
                         "type": "string"
                     },
+                    "fulfillment_status": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FulfillmentStatus"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "fulfillment_version": {
+                        "type": "integer"
+                    },
                     "order_status": {
                         "type": "string"
                     },
@@ -2887,6 +2999,8 @@
                     "order_id",
                     "supplier_id",
                     "supplier_name",
+                    "fulfillment_status",
+                    "fulfillment_version",
                     "order_status",
                     "notes",
                     "items",
@@ -3489,6 +3603,29 @@
                     }
                 },
                 "title": "UpdateBusinessRequest"
+            },
+            "UpdateSupplierFulfillmentRequest": {
+                "type": "object",
+                "properties": {
+                    "expected_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "preparing",
+                            "ready_for_delivery",
+                            "out_for_delivery",
+                            "delivered"
+                        ]
+                    }
+                },
+                "required": [
+                    "expected_version",
+                    "status"
+                ],
+                "title": "UpdateSupplierFulfillmentRequest"
             },
             "UserResource": {
                 "type": "object",

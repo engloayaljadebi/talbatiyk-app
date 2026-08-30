@@ -10,6 +10,8 @@ abstract final class ReceivedOrdersMapper {
       supplierId: resource.supplierId,
       supplierName: resource.supplierName,
       orderStatus: resource.orderStatus,
+      fulfillmentStatus: _fulfillmentStatusFromApi(resource.fulfillmentStatus),
+      fulfillmentVersion: resource.fulfillmentVersion,
       notes: resource.notes,
       items: resource.items.map(_itemFromResource).toList(growable: false),
       response: resource.response == null
@@ -43,6 +45,7 @@ abstract final class ReceivedOrdersMapper {
       productName: resource.productName,
       unitPrice: resource.unitPrice,
       requestedQuantity: resource.requestedQuantity,
+      selectedQuantity: resource.selectedQuantity,
       imageUrl: resource.imageUrl,
     );
   }
@@ -61,6 +64,36 @@ abstract final class ReceivedOrdersMapper {
       createdAt: resource.createdAt,
       updatedAt: resource.updatedAt,
     );
+  }
+
+  static ReceivedOrderFulfillmentStatus? _fulfillmentStatusFromApi(
+    api.FulfillmentStatus? value,
+  ) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value == api.FulfillmentStatus.confirmed) {
+      return ReceivedOrderFulfillmentStatus.confirmed;
+    }
+
+    if (value == api.FulfillmentStatus.preparing) {
+      return ReceivedOrderFulfillmentStatus.preparing;
+    }
+
+    if (value == api.FulfillmentStatus.readyForDelivery) {
+      return ReceivedOrderFulfillmentStatus.readyForDelivery;
+    }
+
+    if (value == api.FulfillmentStatus.outForDelivery) {
+      return ReceivedOrderFulfillmentStatus.outForDelivery;
+    }
+
+    if (value == api.FulfillmentStatus.delivered) {
+      return ReceivedOrderFulfillmentStatus.delivered;
+    }
+
+    throw StateError('Unsupported supplier fulfillment status: $value');
   }
 
   static ReceivedOrderAvailability _availabilityFromApi(

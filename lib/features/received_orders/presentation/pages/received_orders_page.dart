@@ -45,9 +45,15 @@ final class ReceivedOrdersPage extends ConsumerWidget {
             return _ReceivedOrderCard(
               order: order,
               isSubmitting: state.isSubmittingRecipient(order.id),
+              isUpdatingFulfillment: state.isUpdatingFulfillmentRecipient(
+                order.id,
+              ),
               onRespond: order.hasResponse
                   ? null
                   : () => _openResponseDialog(context, controller, order),
+              onAdvanceFulfillment: order.nextFulfillmentStatus == null
+                  ? null
+                  : () => _advanceFulfillment(context, controller, order),
             );
           },
         ),
@@ -72,6 +78,24 @@ final class ReceivedOrdersPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _advanceFulfillment(
+    BuildContext context,
+    ReceivedOrdersController controller,
+    ReceivedOrderEntity order,
+  ) async {
+    final succeeded = await controller.updateFulfillment(order: order);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (succeeded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تحديث حالة تنفيذ الطلب بنجاح.')),
+      );
+    }
   }
 
   Future<void> _openResponseDialog(
@@ -109,12 +133,16 @@ final class _ReceivedOrderCard extends StatelessWidget {
   const _ReceivedOrderCard({
     required this.order,
     required this.isSubmitting,
+    required this.isUpdatingFulfillment,
     required this.onRespond,
+    required this.onAdvanceFulfillment,
   });
 
   final ReceivedOrderEntity order;
   final bool isSubmitting;
+  final bool isUpdatingFulfillment;
   final VoidCallback? onRespond;
+  final VoidCallback? onAdvanceFulfillment;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +169,13 @@ final class _ReceivedOrderCard extends StatelessWidget {
                 _StatusChip(hasResponse: order.hasResponse),
               ],
             ),
+            if (order.fulfillmentStatus != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: _FulfillmentStatusChip(status: order.fulfillmentStatus!),
+              ),
+            ],
             const SizedBox(height: 12),
             Text(
               '${order.items.length} عناصر',
@@ -164,7 +199,17 @@ final class _ReceivedOrderCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text('المطلوب: ${item.requestedQuantity}'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('المطلوب: ${item.requestedQuantity}'),
+                        if (item.selectedQuantity != null)
+                          Text(
+                            'المختار: ${item.selectedQuantity}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -180,6 +225,29 @@ final class _ReceivedOrderCard extends StatelessWidget {
                       )
                     : const Text('الرد على الطلب'),
               ),
+              if (order.hasResponse && !order.hasSelection) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'بانتظار اختيار العميل للكمية التي سيتم تنفيذها.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (order.hasSelection &&
+                  order.fulfillmentStatus != null &&
+                  order.nextFulfillmentStatus != null) ...[
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                  onPressed: isUpdatingFulfillment
+                      ? null
+                      : onAdvanceFulfillment,
+                  child: isUpdatingFulfillment
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(order.fulfillmentStatus!.advanceActionLabel),
+                ),
+              ],
             ],
           ],
         ),
@@ -202,6 +270,42 @@ final class _StatusChip extends StatelessWidget {
       ),
       label: Text(hasResponse ? 'تم الرد' : 'بانتظار الرد'),
     );
+  }
+}
+
+final class _FulfillmentStatusChip extends StatelessWidget {
+  const _FulfillmentStatusChip({required this.status});
+
+  final ReceivedOrderFulfillmentStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: const Icon(Icons.local_shipping_outlined, size: 18),
+      label: Text(status.displayLabel),
+    );
+  }
+}
+
+extension on ReceivedOrderFulfillmentStatus {
+  String get displayLabel {
+    return switch (this) {
+      ReceivedOrderFulfillmentStatus.confirmed => 'تم التأكيد',
+      ReceivedOrderFulfillmentStatus.preparing => 'قيد التجهيز',
+      ReceivedOrderFulfillmentStatus.readyForDelivery => 'جاهز للتسليم',
+      ReceivedOrderFulfillmentStatus.outForDelivery => 'خرج للتسليم',
+      ReceivedOrderFulfillmentStatus.delivered => 'تم التسليم',
+    };
+  }
+
+  String get advanceActionLabel {
+    return switch (this) {
+      ReceivedOrderFulfillmentStatus.confirmed => 'بدء التجهيز',
+      ReceivedOrderFulfillmentStatus.preparing => 'تحديد كجاهز للتسليم',
+      ReceivedOrderFulfillmentStatus.readyForDelivery => 'بدء التوصيل',
+      ReceivedOrderFulfillmentStatus.outForDelivery => 'تأكيد التسليم',
+      ReceivedOrderFulfillmentStatus.delivered => 'تم التسليم',
+    };
   }
 }
 

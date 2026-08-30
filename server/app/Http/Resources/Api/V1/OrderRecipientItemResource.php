@@ -11,6 +11,9 @@ class OrderRecipientItemResource extends JsonResource
     {
         $orderItem = $this->orderItem;
 
+        $selectedQuantity =
+            $this->response?->selection?->selected_quantity;
+
         return [
             /** @format uuid */
             'id' => $this->id,
@@ -19,6 +22,10 @@ class OrderRecipientItemResource extends JsonResource
             'product_name' => $orderItem->product_name,
             'unit_price' => $orderItem->unit_price,
             'requested_quantity' => $orderItem->quantity,
+
+            /** @var int|null */
+            'selected_quantity' => $selectedQuantity,
+
             'image_url' => $orderItem->image_url,
         ];
     }

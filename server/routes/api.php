@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
+use App\Http\Controllers\Api\V1\Order\SupplierOrderFulfillmentController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderResponseController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -113,6 +114,10 @@ Route::prefix('v1')->group(function (): void {
         Route::post(
             '/businesses/{business}/received-orders/{recipient}/response',
             [SupplierOrderResponseController::class, 'store'],
+        )->whereUuid('recipient');
+        Route::patch(
+            '/businesses/{business}/received-orders/{recipient}/fulfillment',
+            [SupplierOrderFulfillmentController::class, 'update'],
         )->whereUuid('recipient');
 
         /*

@@ -16,6 +16,7 @@ part 'order_recipient_item_resource.g.dart';
 /// * [productName] 
 /// * [unitPrice] 
 /// * [requestedQuantity] 
+/// * [selectedQuantity] 
 /// * [imageUrl] 
 @BuiltValue()
 abstract class OrderRecipientItemResource implements Built<OrderRecipientItemResource, OrderRecipientItemResourceBuilder> {
@@ -33,6 +34,9 @@ abstract class OrderRecipientItemResource implements Built<OrderRecipientItemRes
 
   @BuiltValueField(wireName: r'requested_quantity')
   int get requestedQuantity;
+
+  @BuiltValueField(wireName: r'selected_quantity')
+  int? get selectedQuantity;
 
   @BuiltValueField(wireName: r'image_url')
   String? get imageUrl;
@@ -84,6 +88,11 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
     yield serializers.serialize(
       object.requestedQuantity,
       specifiedType: const FullType(int),
+    );
+    yield r'selected_quantity';
+    yield object.selectedQuantity == null ? null : serializers.serialize(
+      object.selectedQuantity,
+      specifiedType: const FullType.nullable(int),
     );
     yield r'image_url';
     yield object.imageUrl == null ? null : serializers.serialize(
@@ -147,6 +156,14 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
             specifiedType: const FullType(int),
           ) as int;
           result.requestedQuantity = valueDes;
+          break;
+        case r'selected_quantity':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.selectedQuantity = valueDes;
           break;
         case r'image_url':
           final valueDes = serializers.deserialize(
