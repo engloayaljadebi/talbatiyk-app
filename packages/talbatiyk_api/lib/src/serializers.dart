@@ -18,6 +18,7 @@ import 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_me200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response_data.dart';
+import 'package:talbatiyk_api/src/model/availability_status.dart';
 import 'package:talbatiyk_api/src/model/business_contact_index_business200_response.dart';
 import 'package:talbatiyk_api/src/model/business_contact_resource.dart';
 import 'package:talbatiyk_api/src/model/business_contact_store_business201_response.dart';
@@ -41,6 +42,10 @@ import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_recipient_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.dart';
+import 'package:talbatiyk_api/src/model/order_recipient_resource.dart';
+import 'package:talbatiyk_api/src/model/order_recipient_response_resource.dart';
 import 'package:talbatiyk_api/src/model/order_resource.dart';
 import 'package:talbatiyk_api/src/model/order_store201_response.dart';
 import 'package:talbatiyk_api/src/model/product_index200_response.dart';
@@ -50,10 +55,14 @@ import 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inn
 import 'package:talbatiyk_api/src/model/product_resource.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
+import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
+import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request_items_inner.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_store422_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_store422_response_errors.dart';
+import 'package:talbatiyk_api/src/model/supplier_order_index200_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_order_response_store201_response.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_request.dart';
@@ -67,6 +76,7 @@ part 'serializers.g.dart';
   AuthMe200Response,
   AuthRegister201Response,
   AuthRegister201ResponseData,
+  AvailabilityStatus,
   BusinessContactIndexBusiness200Response,
   BusinessContactResource,
   BusinessContactStoreBusiness201Response,
@@ -90,6 +100,10 @@ part 'serializers.g.dart';
   InlineObject1,
   LoginRequest,
   OrderItemResource,
+  OrderRecipientItemResource,
+  OrderRecipientItemResponseResource,
+  OrderRecipientResource,
+  OrderRecipientResponseResource,
   OrderResource,
   OrderStore201Response,
   ProductIndex200Response,
@@ -99,10 +113,14 @@ part 'serializers.g.dart';
   ProductResource,
   RegisterRequest,
   RegisterRequestContactValue,
+  SubmitSupplierOrderResponseRequest,
+  SubmitSupplierOrderResponseRequestItemsInner,
   SupplierFollowShow200Response,
   SupplierFollowShow200ResponseData,
   SupplierFollowStore422Response,
   SupplierFollowStore422ResponseErrors,
+  SupplierOrderIndex200Response,
+  SupplierOrderResponseStore201Response,
   UpdateBusinessContactRequest,
   UpdateBusinessLocationRequest,
   UpdateBusinessRequest,

@@ -55,6 +55,13 @@ final class GeneratedApiClient {
   /// Supplier follow endpoints.
   SupplierFollowApi get supplierFollow => client.getSupplierFollowApi();
 
+  /// Supplier received-order endpoints.
+  SupplierOrderApi get supplierOrders => client.getSupplierOrderApi();
+
+  /// Supplier received-order response endpoints.
+  SupplierOrderResponseApi get supplierOrderResponses =>
+      client.getSupplierOrderResponseApi();
+
   /// يربط Sanctum Personal Access Token بالطلبات المحمية.
   void setAccessToken(String token) {
     client.setBearerAuth(_bearerSecurityName, token);

@@ -120,6 +120,8 @@ Class | Method | HTTP request | Description
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowStore**](doc/SupplierFollowApi.md#supplierfollowstore) | **POST** /businesses/{business}/follow | متابعة المورد
+[*SupplierOrderApi*](doc/SupplierOrderApi.md) | [**supplierOrderIndex**](doc/SupplierOrderApi.md#supplierorderindex) | **GET** /businesses/{business}/received-orders | List orders received by one supplier Business
+[*SupplierOrderResponseApi*](doc/SupplierOrderResponseApi.md) | [**supplierOrderResponseStore**](doc/SupplierOrderResponseApi.md#supplierorderresponsestore) | **POST** /businesses/{business}/received-orders/{recipient}/response | Submit the final response for one supplier order recipient
 
 
 ## Documentation For Models
@@ -128,6 +130,7 @@ Class | Method | HTTP request | Description
  - [AuthMe200Response](doc/AuthMe200Response.md)
  - [AuthRegister201Response](doc/AuthRegister201Response.md)
  - [AuthRegister201ResponseData](doc/AuthRegister201ResponseData.md)
+ - [AvailabilityStatus](doc/AvailabilityStatus.md)
  - [BusinessContactIndexBusiness200Response](doc/BusinessContactIndexBusiness200Response.md)
  - [BusinessContactResource](doc/BusinessContactResource.md)
  - [BusinessContactStoreBusiness201Response](doc/BusinessContactStoreBusiness201Response.md)
@@ -151,6 +154,10 @@ Class | Method | HTTP request | Description
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
  - [OrderItemResource](doc/OrderItemResource.md)
+ - [OrderRecipientItemResource](doc/OrderRecipientItemResource.md)
+ - [OrderRecipientItemResponseResource](doc/OrderRecipientItemResponseResource.md)
+ - [OrderRecipientResource](doc/OrderRecipientResource.md)
+ - [OrderRecipientResponseResource](doc/OrderRecipientResponseResource.md)
  - [OrderResource](doc/OrderResource.md)
  - [OrderStore201Response](doc/OrderStore201Response.md)
  - [ProductIndex200Response](doc/ProductIndex200Response.md)
@@ -160,10 +167,14 @@ Class | Method | HTTP request | Description
  - [ProductResource](doc/ProductResource.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [RegisterRequestContactValue](doc/RegisterRequestContactValue.md)
+ - [SubmitSupplierOrderResponseRequest](doc/SubmitSupplierOrderResponseRequest.md)
+ - [SubmitSupplierOrderResponseRequestItemsInner](doc/SubmitSupplierOrderResponseRequestItemsInner.md)
  - [SupplierFollowShow200Response](doc/SupplierFollowShow200Response.md)
  - [SupplierFollowShow200ResponseData](doc/SupplierFollowShow200ResponseData.md)
  - [SupplierFollowStore422Response](doc/SupplierFollowStore422Response.md)
  - [SupplierFollowStore422ResponseErrors](doc/SupplierFollowStore422ResponseErrors.md)
+ - [SupplierOrderIndex200Response](doc/SupplierOrderIndex200Response.md)
+ - [SupplierOrderResponseStore201Response](doc/SupplierOrderResponseStore201Response.md)
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)

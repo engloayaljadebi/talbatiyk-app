@@ -14,6 +14,7 @@ import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/order_store201_response.dart';
 
 class OrderApi {
+
   final Dio _dio;
 
   final Serializers _serializers;
@@ -21,11 +22,11 @@ class OrderApi {
   const OrderApi(this._dio, this._serializers);
 
   /// Create a new order for the authenticated user
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [idempotencyKey] - Stable UUID reused for retries of the same logical order creation.
-  /// * [createOrderRequest]
+  /// * [createOrderRequest] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -35,7 +36,7 @@ class OrderApi {
   ///
   /// Returns a [Future] containing a [Response] with a [OrderStore201Response] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<OrderStore201Response>> orderStore({
+  Future<Response<OrderStore201Response>> orderStore({ 
     required String idempotencyKey,
     required CreateOrderRequest createOrderRequest,
     CancelToken? cancelToken,
@@ -70,11 +71,11 @@ class OrderApi {
 
     try {
       const _type = FullType(CreateOrderRequest);
-      _bodyData =
-          _serializers.serialize(createOrderRequest, specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(createOrderRequest, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -97,12 +98,11 @@ class OrderApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(OrderStore201Response),
-            ) as OrderStore201Response;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(OrderStore201Response),
+      ) as OrderStore201Response;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -124,4 +124,5 @@ class OrderApi {
       extra: _response.extra,
     );
   }
+
 }
