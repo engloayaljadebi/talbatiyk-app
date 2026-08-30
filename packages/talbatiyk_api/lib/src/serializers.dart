@@ -42,6 +42,7 @@ import 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
+import 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_item_resource.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.dart';
@@ -110,6 +111,7 @@ part 'serializers.g.dart';
   InlineObject,
   InlineObject1,
   LoginRequest,
+  OrderAggregateStatus,
   OrderItemResource,
   OrderRecipientItemResource,
   OrderRecipientItemResponseResource,

@@ -69,6 +69,7 @@ void main() {
               recipientItemId: recipientItemId,
               responseItemId: responseItemId,
               version: 1,
+              aggregateStatus: 'responses_received',
               selection: null,
             ),
           ),
@@ -155,6 +156,7 @@ void main() {
               recipientItemId: recipientItemId,
               responseItemId: responseItemId,
               version: 2,
+              aggregateStatus: 'suppliers_selected',
               selection: {
                 'id': selectionId,
                 'order_recipient_item_response_id': responseItemId,
@@ -219,6 +221,7 @@ Map<String, dynamic> _comparisonResponse({
   required String recipientItemId,
   required String responseItemId,
   required int version,
+  required String aggregateStatus,
   required Map<String, dynamic>? selection,
 }) {
   return {
@@ -226,6 +229,7 @@ Map<String, dynamic> _comparisonResponse({
       'id': orderId,
       'version': version,
       'status': 'pending',
+      'aggregate_status': aggregateStatus,
       'notes': null,
       'items': [
         {

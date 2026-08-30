@@ -48,6 +48,10 @@ class OrderResponseComparisonApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.id', $order->id)
             ->assertJsonPath('data.version', 1)
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'responses_received',
+            )
             ->assertJsonCount(1, 'data.items')
             ->assertJsonPath(
                 'data.items.0.id',
@@ -128,6 +132,10 @@ class OrderResponseComparisonApiTest extends TestCase
             )
             ->assertOk()
             ->assertJsonPath('data.version', 2)
+            ->assertJsonPath(
+                'data.aggregate_status',
+                'suppliers_selected',
+            )
             ->assertJsonPath(
                 'data.items.0.selection.order_recipient_item_response_id',
                 $responseItemId,

@@ -15,6 +15,8 @@ class _$OrderResponseComparisonResource
   @override
   final String status;
   @override
+  final OrderAggregateStatus aggregateStatus;
+  @override
   final String? notes;
   @override
   final BuiltList<OrderResponseComparisonItemResource> items;
@@ -31,6 +33,7 @@ class _$OrderResponseComparisonResource
       {required this.id,
       required this.version,
       required this.status,
+      required this.aggregateStatus,
       this.notes,
       required this.items,
       this.createdAt,
@@ -52,6 +55,7 @@ class _$OrderResponseComparisonResource
         id == other.id &&
         version == other.version &&
         status == other.status &&
+        aggregateStatus == other.aggregateStatus &&
         notes == other.notes &&
         items == other.items &&
         createdAt == other.createdAt &&
@@ -64,6 +68,7 @@ class _$OrderResponseComparisonResource
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, version.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, aggregateStatus.hashCode);
     _$hash = $jc(_$hash, notes.hashCode);
     _$hash = $jc(_$hash, items.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
@@ -78,6 +83,7 @@ class _$OrderResponseComparisonResource
           ..add('id', id)
           ..add('version', version)
           ..add('status', status)
+          ..add('aggregateStatus', aggregateStatus)
           ..add('notes', notes)
           ..add('items', items)
           ..add('createdAt', createdAt)
@@ -103,6 +109,11 @@ class OrderResponseComparisonResourceBuilder
   String? _status;
   String? get status => _$this._status;
   set status(String? status) => _$this._status = status;
+
+  OrderAggregateStatus? _aggregateStatus;
+  OrderAggregateStatus? get aggregateStatus => _$this._aggregateStatus;
+  set aggregateStatus(OrderAggregateStatus? aggregateStatus) =>
+      _$this._aggregateStatus = aggregateStatus;
 
   String? _notes;
   String? get notes => _$this._notes;
@@ -132,6 +143,7 @@ class OrderResponseComparisonResourceBuilder
       _id = $v.id;
       _version = $v.version;
       _status = $v.status;
+      _aggregateStatus = $v.aggregateStatus;
       _notes = $v.notes;
       _items = $v.items.toBuilder();
       _createdAt = $v.createdAt;
@@ -165,6 +177,10 @@ class OrderResponseComparisonResourceBuilder
                 version, r'OrderResponseComparisonResource', 'version'),
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'OrderResponseComparisonResource', 'status'),
+            aggregateStatus: BuiltValueNullFieldError.checkNotNull(
+                aggregateStatus,
+                r'OrderResponseComparisonResource',
+                'aggregateStatus'),
             notes: notes,
             items: items.build(),
             createdAt: createdAt,

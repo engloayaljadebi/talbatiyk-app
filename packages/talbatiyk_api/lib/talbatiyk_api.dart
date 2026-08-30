@@ -50,6 +50,7 @@ export 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 export 'package:talbatiyk_api/src/model/inline_object.dart';
 export 'package:talbatiyk_api/src/model/inline_object1.dart';
 export 'package:talbatiyk_api/src/model/login_request.dart';
+export 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
 export 'package:talbatiyk_api/src/model/order_item_resource.dart';
 export 'package:talbatiyk_api/src/model/order_recipient_item_resource.dart';
 export 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.dart';

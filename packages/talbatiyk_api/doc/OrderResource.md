@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
 **status** | **String** |  | 
+**aggregateStatus** | [**OrderAggregateStatus**](OrderAggregateStatus.md) |  | 
 **notes** | **String** |  | 
 **items** | [**BuiltList&lt;OrderItemResource&gt;**](OrderItemResource.md) | OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response. | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 

@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **version** | **int** |  | 
 **status** | **String** |  | 
+**aggregateStatus** | [**OrderAggregateStatus**](OrderAggregateStatus.md) |  | 
 **notes** | **String** |  | 
 **items** | [**BuiltList&lt;OrderResponseComparisonItemResource&gt;**](OrderResponseComparisonItemResource.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 

@@ -2781,6 +2781,20 @@
                 ],
                 "title": "LoginRequest"
             },
+            "OrderAggregateStatus": {
+                "type": "string",
+                "enum": [
+                    "pending_responses",
+                    "responses_received",
+                    "suppliers_selected",
+                    "in_fulfillment",
+                    "partially_completed",
+                    "completed",
+                    "cancelled",
+                    "expired"
+                ],
+                "title": "OrderAggregateStatus"
+            },
             "OrderItemResource": {
                 "type": "object",
                 "properties": {
@@ -3060,6 +3074,9 @@
                     "status": {
                         "type": "string"
                     },
+                    "aggregate_status": {
+                        "$ref": "#/components/schemas/OrderAggregateStatus"
+                    },
                     "notes": {
                         "type": [
                             "string",
@@ -3091,6 +3108,7 @@
                 "required": [
                     "id",
                     "status",
+                    "aggregate_status",
                     "notes",
                     "items",
                     "created_at",
@@ -3184,6 +3202,9 @@
                     "status": {
                         "type": "string"
                     },
+                    "aggregate_status": {
+                        "$ref": "#/components/schemas/OrderAggregateStatus"
+                    },
                     "notes": {
                         "type": [
                             "string",
@@ -3215,6 +3236,7 @@
                     "id",
                     "version",
                     "status",
+                    "aggregate_status",
                     "notes",
                     "items",
                     "created_at",

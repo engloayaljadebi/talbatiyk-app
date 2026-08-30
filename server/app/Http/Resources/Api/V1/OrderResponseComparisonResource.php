@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Enums\Order\OrderAggregateStatus;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,6 +17,9 @@ class OrderResponseComparisonResource extends JsonResource
 
             'version' => (int) $this->version,
             'status' => $this->status,
+
+            /** @var OrderAggregateStatus */
+            'aggregate_status' => $this->aggregate_status,
             /** @var string|null */
             'notes' => $this->notes,
 

@@ -33,6 +33,7 @@ doc/FulfillmentStatus.md
 doc/InlineObject.md
 doc/InlineObject1.md
 doc/LoginRequest.md
+doc/OrderAggregateStatus.md
 doc/OrderApi.md
 doc/OrderItemResource.md
 doc/OrderRecipientItemResource.md
@@ -124,6 +125,7 @@ lib/src/model/fulfillment_status.dart
 lib/src/model/inline_object.dart
 lib/src/model/inline_object1.dart
 lib/src/model/login_request.dart
+lib/src/model/order_aggregate_status.dart
 lib/src/model/order_item_resource.dart
 lib/src/model/order_recipient_item_resource.dart
 lib/src/model/order_recipient_item_response_resource.dart
@@ -163,7 +165,4 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
-test/fulfillment_status_test.dart
-test/supplier_order_fulfillment_api_test.dart
-test/supplier_order_fulfillment_update200_response_test.dart
-test/update_supplier_fulfillment_request_test.dart
+test/order_aggregate_status_test.dart
