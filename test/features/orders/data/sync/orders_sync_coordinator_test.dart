@@ -413,12 +413,4 @@ class _FakeOrdersDataSource implements OrdersDataSource {
   Future<List<OrderModel>> getOrders() {
     throw UnsupportedError('Not used.');
   }
-
-  @override
-  Future<OrderModel> updateOrderStatus({
-    required String orderId,
-    required String status,
-  }) {
-    throw UnsupportedError('Not used.');
-  }
 }

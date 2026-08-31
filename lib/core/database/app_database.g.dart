@@ -2089,6 +2089,18 @@ class $OrderRecordsTable extends OrderRecords
     requiredDuringInsert: false,
     defaultValue: const Constant('pending'),
   );
+  static const VerificationMeta _aggregateStatusMeta = const VerificationMeta(
+    'aggregateStatus',
+  );
+  @override
+  late final GeneratedColumn<String> aggregateStatus = GeneratedColumn<String>(
+    'aggregate_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending_responses'),
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -2125,6 +2137,7 @@ class $OrderRecordsTable extends OrderRecords
   List<GeneratedColumn> get $columns => [
     id,
     status,
+    aggregateStatus,
     notes,
     createdAt,
     updatedAt,
@@ -2150,6 +2163,15 @@ class $OrderRecordsTable extends OrderRecords
       context.handle(
         _statusMeta,
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('aggregate_status')) {
+      context.handle(
+        _aggregateStatusMeta,
+        aggregateStatus.isAcceptableOrUnknown(
+          data['aggregate_status']!,
+          _aggregateStatusMeta,
+        ),
       );
     }
     if (data.containsKey('notes')) {
@@ -2191,6 +2213,10 @@ class $OrderRecordsTable extends OrderRecords
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      aggregateStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}aggregate_status'],
+      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -2215,12 +2241,14 @@ class $OrderRecordsTable extends OrderRecords
 class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   final String id;
   final String status;
+  final String aggregateStatus;
   final String notes;
   final DateTime createdAt;
   final DateTime updatedAt;
   const OrderRecord({
     required this.id,
     required this.status,
+    required this.aggregateStatus,
     required this.notes,
     required this.createdAt,
     required this.updatedAt,
@@ -2230,6 +2258,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['status'] = Variable<String>(status);
+    map['aggregate_status'] = Variable<String>(aggregateStatus);
     map['notes'] = Variable<String>(notes);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -2240,6 +2269,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     return OrderRecordsCompanion(
       id: Value(id),
       status: Value(status),
+      aggregateStatus: Value(aggregateStatus),
       notes: Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -2254,6 +2284,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     return OrderRecord(
       id: serializer.fromJson<String>(json['id']),
       status: serializer.fromJson<String>(json['status']),
+      aggregateStatus: serializer.fromJson<String>(json['aggregateStatus']),
       notes: serializer.fromJson<String>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -2265,6 +2296,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'status': serializer.toJson<String>(status),
+      'aggregateStatus': serializer.toJson<String>(aggregateStatus),
       'notes': serializer.toJson<String>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -2274,12 +2306,14 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   OrderRecord copyWith({
     String? id,
     String? status,
+    String? aggregateStatus,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => OrderRecord(
     id: id ?? this.id,
     status: status ?? this.status,
+    aggregateStatus: aggregateStatus ?? this.aggregateStatus,
     notes: notes ?? this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -2288,6 +2322,9 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     return OrderRecord(
       id: data.id.present ? data.id.value : this.id,
       status: data.status.present ? data.status.value : this.status,
+      aggregateStatus: data.aggregateStatus.present
+          ? data.aggregateStatus.value
+          : this.aggregateStatus,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -2299,6 +2336,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     return (StringBuffer('OrderRecord(')
           ..write('id: $id, ')
           ..write('status: $status, ')
+          ..write('aggregateStatus: $aggregateStatus, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -2307,13 +2345,15 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   }
 
   @override
-  int get hashCode => Object.hash(id, status, notes, createdAt, updatedAt);
+  int get hashCode =>
+      Object.hash(id, status, aggregateStatus, notes, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is OrderRecord &&
           other.id == this.id &&
           other.status == this.status &&
+          other.aggregateStatus == this.aggregateStatus &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -2322,6 +2362,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
 class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   final Value<String> id;
   final Value<String> status;
+  final Value<String> aggregateStatus;
   final Value<String> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -2329,6 +2370,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   const OrderRecordsCompanion({
     this.id = const Value.absent(),
     this.status = const Value.absent(),
+    this.aggregateStatus = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2337,6 +2379,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   OrderRecordsCompanion.insert({
     required String id,
     this.status = const Value.absent(),
+    this.aggregateStatus = const Value.absent(),
     this.notes = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -2347,6 +2390,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   static Insertable<OrderRecord> custom({
     Expression<String>? id,
     Expression<String>? status,
+    Expression<String>? aggregateStatus,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -2355,6 +2399,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (status != null) 'status': status,
+      if (aggregateStatus != null) 'aggregate_status': aggregateStatus,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -2365,6 +2410,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   OrderRecordsCompanion copyWith({
     Value<String>? id,
     Value<String>? status,
+    Value<String>? aggregateStatus,
     Value<String>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -2373,6 +2419,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
     return OrderRecordsCompanion(
       id: id ?? this.id,
       status: status ?? this.status,
+      aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -2388,6 +2435,9 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
+    }
+    if (aggregateStatus.present) {
+      map['aggregate_status'] = Variable<String>(aggregateStatus.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -2409,6 +2459,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
     return (StringBuffer('OrderRecordsCompanion(')
           ..write('id: $id, ')
           ..write('status: $status, ')
+          ..write('aggregateStatus: $aggregateStatus, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -5848,6 +5899,7 @@ typedef $$OrderRecordsTableCreateCompanionBuilder =
     OrderRecordsCompanion Function({
       required String id,
       Value<String> status,
+      Value<String> aggregateStatus,
       Value<String> notes,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -5857,6 +5909,7 @@ typedef $$OrderRecordsTableUpdateCompanionBuilder =
     OrderRecordsCompanion Function({
       Value<String> id,
       Value<String> status,
+      Value<String> aggregateStatus,
       Value<String> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -5904,6 +5957,11 @@ class $$OrderRecordsTableFilterComposer
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get aggregateStatus => $composableBuilder(
+    column: $table.aggregateStatus,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5967,6 +6025,11 @@ class $$OrderRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get aggregateStatus => $composableBuilder(
+    column: $table.aggregateStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -5997,6 +6060,11 @@ class $$OrderRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get aggregateStatus => $composableBuilder(
+    column: $table.aggregateStatus,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -6063,6 +6131,7 @@ class $$OrderRecordsTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> aggregateStatus = const Value.absent(),
                 Value<String> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6070,6 +6139,7 @@ class $$OrderRecordsTableTableManager
               }) => OrderRecordsCompanion(
                 id: id,
                 status: status,
+                aggregateStatus: aggregateStatus,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6079,6 +6149,7 @@ class $$OrderRecordsTableTableManager
               ({
                 required String id,
                 Value<String> status = const Value.absent(),
+                Value<String> aggregateStatus = const Value.absent(),
                 Value<String> notes = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -6086,6 +6157,7 @@ class $$OrderRecordsTableTableManager
               }) => OrderRecordsCompanion.insert(
                 id: id,
                 status: status,
+                aggregateStatus: aggregateStatus,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

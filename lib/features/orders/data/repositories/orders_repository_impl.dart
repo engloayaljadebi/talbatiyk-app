@@ -84,19 +84,6 @@ class OrdersRepositoryImpl implements OrdersRepository {
     }
   }
 
-  @override
-  Future<OrderEntity> updateOrderStatus({
-    required String orderId,
-    required OrderStatus status,
-  }) async {
-    final OrderModel updatedOrder = await localDataSource.updateOrderStatus(
-      orderId: orderId,
-      status: OrdersMapper.statusToDataValue(status),
-    );
-
-    return OrdersMapper.toEntity(updatedOrder);
-  }
-
   bool _shouldRemainQueued(Object error) {
     if (_isConnectivityFailure(error)) {
       return true;

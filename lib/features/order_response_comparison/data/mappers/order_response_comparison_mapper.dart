@@ -1,5 +1,6 @@
 import 'package:talbatiyk_api/talbatiyk_api.dart' as api;
 
+import '../../../orders/domain/entities/orders_entity.dart';
 import '../../domain/entities/order_response_comparison_entity.dart';
 
 final class OrderResponseComparisonMapper {
@@ -12,6 +13,7 @@ final class OrderResponseComparisonMapper {
       id: resource.id,
       version: resource.version,
       status: resource.status,
+      aggregateStatus: _aggregateStatusFromApi(resource.aggregateStatus),
       notes: resource.notes,
       items: List<OrderResponseComparisonItemEntity>.unmodifiable(
         resource.items.map(_itemFromResource),
@@ -61,6 +63,37 @@ final class OrderResponseComparisonMapper {
               selectedQuantity: selection.selectedQuantity,
             ),
     );
+  }
+
+  static OrderAggregateStatus _aggregateStatusFromApi(
+    api.OrderAggregateStatus value,
+  ) {
+    if (value == api.OrderAggregateStatus.pendingResponses) {
+      return OrderAggregateStatus.pendingResponses;
+    }
+    if (value == api.OrderAggregateStatus.responsesReceived) {
+      return OrderAggregateStatus.responsesReceived;
+    }
+    if (value == api.OrderAggregateStatus.suppliersSelected) {
+      return OrderAggregateStatus.suppliersSelected;
+    }
+    if (value == api.OrderAggregateStatus.inFulfillment) {
+      return OrderAggregateStatus.inFulfillment;
+    }
+    if (value == api.OrderAggregateStatus.partiallyCompleted) {
+      return OrderAggregateStatus.partiallyCompleted;
+    }
+    if (value == api.OrderAggregateStatus.completed) {
+      return OrderAggregateStatus.completed;
+    }
+    if (value == api.OrderAggregateStatus.cancelled) {
+      return OrderAggregateStatus.cancelled;
+    }
+    if (value == api.OrderAggregateStatus.expired) {
+      return OrderAggregateStatus.expired;
+    }
+
+    throw StateError('Unsupported aggregate order status: $value');
   }
 
   static OrderResponseAvailability _availabilityFromApi(

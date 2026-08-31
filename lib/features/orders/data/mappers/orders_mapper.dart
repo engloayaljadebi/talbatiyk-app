@@ -19,30 +19,32 @@ class OrdersMapper {
   }
 
   /// تحويل حالة الطلب إلى القيمة المستخدمة في التخزين والـ API.
-  static String statusToDataValue(OrderStatus status) {
+  static String aggregateStatusToDataValue(OrderAggregateStatus status) {
     switch (status) {
-      case OrderStatus.pending:
-        return 'pending';
-      case OrderStatus.confirmed:
-        return 'confirmed';
-      case OrderStatus.preparing:
-        return 'preparing';
-      case OrderStatus.readyForDelivery:
-        return 'ready_for_delivery';
-      case OrderStatus.outForDelivery:
-        return 'out_for_delivery';
-      case OrderStatus.delivered:
-        return 'delivered';
-      case OrderStatus.cancelled:
+      case OrderAggregateStatus.pendingResponses:
+        return 'pending_responses';
+      case OrderAggregateStatus.responsesReceived:
+        return 'responses_received';
+      case OrderAggregateStatus.suppliersSelected:
+        return 'suppliers_selected';
+      case OrderAggregateStatus.inFulfillment:
+        return 'in_fulfillment';
+      case OrderAggregateStatus.partiallyCompleted:
+        return 'partially_completed';
+      case OrderAggregateStatus.completed:
+        return 'completed';
+      case OrderAggregateStatus.cancelled:
         return 'cancelled';
+      case OrderAggregateStatus.expired:
+        return 'expired';
     }
   }
 
-  /// تحويل نموذج البيانات إلى كيان تستخدمه الواجهة.
   static OrderEntity toEntity(OrderModel model) {
     return OrderEntity(
       id: model.id,
       status: _statusToEntity(model.status),
+      aggregateStatus: _aggregateStatusToEntity(model.aggregateStatus),
       items: model.items.map(_modelItemToEntity).toList(growable: false),
       createdAt: model.createdAt,
       supplier: model.supplier == null
@@ -109,6 +111,30 @@ class OrdersMapper {
       supplierName: entity.supplierName,
       imageUrl: entity.imageUrl,
     );
+  }
+
+  static OrderAggregateStatus _aggregateStatusToEntity(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'pending_responses':
+        return OrderAggregateStatus.pendingResponses;
+      case 'responses_received':
+        return OrderAggregateStatus.responsesReceived;
+      case 'suppliers_selected':
+        return OrderAggregateStatus.suppliersSelected;
+      case 'in_fulfillment':
+        return OrderAggregateStatus.inFulfillment;
+      case 'partially_completed':
+        return OrderAggregateStatus.partiallyCompleted;
+      case 'completed':
+        return OrderAggregateStatus.completed;
+      case 'cancelled':
+      case 'canceled':
+        return OrderAggregateStatus.cancelled;
+      case 'expired':
+        return OrderAggregateStatus.expired;
+      default:
+        throw FormatException('Unsupported aggregate order status: $value');
+    }
   }
 
   static OrderStatus _statusToEntity(String value) {

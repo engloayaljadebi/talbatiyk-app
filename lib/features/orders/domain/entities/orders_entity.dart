@@ -9,53 +9,19 @@ enum OrderStatus {
   cancelled,
 }
 
-/// منطق انتقال الطلبية بين الحالات.
-///
-/// يوجد داخل Domain لأنه يمثل قواعد العمل،
-/// ولا يعتمد على Flutter أو تصميم الواجهة.
-extension OrderStatusFlow on OrderStatus {
-  /// الحالة التالية الطبيعية للطلبية.
-  OrderStatus? get nextStatus {
-    switch (this) {
-      case OrderStatus.pending:
-        return OrderStatus.confirmed;
-      case OrderStatus.confirmed:
-        return OrderStatus.preparing;
-      case OrderStatus.preparing:
-        return OrderStatus.readyForDelivery;
-      case OrderStatus.readyForDelivery:
-        return OrderStatus.outForDelivery;
-      case OrderStatus.outForDelivery:
-        return OrderStatus.delivered;
-      case OrderStatus.delivered:
-      case OrderStatus.cancelled:
-        return null;
-    }
-  }
-
-  /// هل وصلت الطلبية إلى حالة نهائية؟
-  bool get isFinal {
-    return this == OrderStatus.delivered || this == OrderStatus.cancelled;
-  }
-
-  /// يتحقق أن الانتقال المطلوب مسموح.
-  bool canTransitionTo(OrderStatus newStatus) {
-    if (isFinal) {
-      return false;
-    }
-
-    if (newStatus == OrderStatus.cancelled) {
-      return true;
-    }
-
-    return nextStatus == newStatus;
-  }
+/// Server-authoritative lifecycle derived from supplier responses,
+/// customer selections, and per-recipient fulfillment.
+enum OrderAggregateStatus {
+  pendingResponses,
+  responsesReceived,
+  suppliersSelected,
+  inFulfillment,
+  partiallyCompleted,
+  completed,
+  cancelled,
+  expired,
 }
 
-/// نسخة بيانات المورد المحفوظة مع الطلبية.
-///
-/// نحفظ الاسم مع المعرّف حتى تبقى بيانات الطلبية قابلة للعرض
-/// حتى أثناء العمل دون إنترنت.
 class OrderSupplierEntity {
   const OrderSupplierEntity({required this.id, required this.name});
 
@@ -139,6 +105,7 @@ class OrderEntity {
   OrderEntity({
     required this.id,
     required this.status,
+    this.aggregateStatus = OrderAggregateStatus.pendingResponses,
     required List<OrderItemEntity> items,
     required this.createdAt,
     this.supplier,
@@ -146,7 +113,13 @@ class OrderEntity {
   }) : items = List<OrderItemEntity>.unmodifiable(items);
 
   final String id;
+
+  /// Legacy order status retained temporarily for compatibility.
   final OrderStatus status;
+
+  /// Last known server-authoritative aggregate lifecycle.
+  final OrderAggregateStatus aggregateStatus;
+
   final List<OrderItemEntity> items;
   final DateTime createdAt;
 
@@ -175,6 +148,7 @@ class OrderEntity {
   OrderEntity copyWith({
     String? id,
     OrderStatus? status,
+    OrderAggregateStatus? aggregateStatus,
     List<OrderItemEntity>? items,
     DateTime? createdAt,
     OrderSupplierEntity? supplier,
@@ -183,6 +157,7 @@ class OrderEntity {
     return OrderEntity(
       id: id ?? this.id,
       status: status ?? this.status,
+      aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
       supplier: supplier ?? this.supplier,

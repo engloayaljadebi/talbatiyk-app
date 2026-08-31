@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
 
+import '../../../orders/presentation/providers/orders_provider.dart';
 import '../../data/datasources/remote/order_response_comparison_remote_datasource.dart';
 import '../../data/repositories/order_response_comparison_repository_impl.dart';
 import '../../domain/repositories/order_response_comparison_repository.dart';
@@ -18,6 +19,7 @@ final orderResponseComparisonRepositoryProvider =
     Provider<OrderResponseComparisonRepository>((ref) {
       return OrderResponseComparisonRepositoryImpl(
         ref.watch(orderResponseComparisonRemoteDataSourceProvider),
+        ref.watch(ordersLocalDataSourceProvider),
       );
     });
 

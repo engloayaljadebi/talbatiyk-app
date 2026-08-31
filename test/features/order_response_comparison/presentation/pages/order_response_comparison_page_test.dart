@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
+import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/repositories/order_response_comparison_repository.dart';
 import 'package:talbatiyk/features/order_response_comparison/presentation/pages/order_response_comparison_page.dart';
 import 'package:talbatiyk/features/order_response_comparison/presentation/providers/order_response_comparison_provider.dart';
@@ -89,6 +90,7 @@ OrderResponseComparisonEntity _comparison({
     id: 'order-1',
     version: version,
     status: 'pending',
+    aggregateStatus: OrderAggregateStatus.responsesReceived,
     notes: null,
     createdAt: null,
     updatedAt: null,

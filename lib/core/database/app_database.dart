@@ -97,6 +97,9 @@ class OrderRecords extends Table {
 
   TextColumn get status => text().withDefault(const Constant('pending'))();
 
+  TextColumn get aggregateStatus =>
+      text().withDefault(const Constant('pending_responses'))();
+
   TextColumn get notes => text().withDefault(const Constant(''))();
 
   DateTimeColumn get createdAt => dateTime()();
@@ -235,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -260,6 +263,9 @@ class AppDatabase extends _$AppDatabase {
           // كل عمليات Outbox القديمة تعتبر pending افتراضيًا.
           // الإضافة Forward-Only وتحافظ على البيانات الموجودة بدون إعادة إنشاء الجدول.
           await m.addColumn(syncOperations, syncOperations.status);
+        }
+        if (from < 6) {
+          await m.addColumn(orderRecords, orderRecords.aggregateStatus);
         }
       },
     );

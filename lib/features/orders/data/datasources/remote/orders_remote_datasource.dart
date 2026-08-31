@@ -97,16 +97,6 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     return _mapOrderResource(responseBody.data);
   }
 
-  @override
-  Future<OrderModel> updateOrderStatus({
-    required String orderId,
-    required String status,
-  }) {
-    throw UnsupportedError(
-      'Order status API endpoint has not been configured yet.',
-    );
-  }
-
   OrderModel _mapOrderResource(OrderResource resource) {
     final createdAt = resource.createdAt;
 
@@ -119,6 +109,7 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     return OrderModel(
       id: resource.id,
       status: resource.status,
+      aggregateStatus: _aggregateStatusToDataValue(resource.aggregateStatus),
       notes: resource.notes ?? '',
       createdAt: createdAt,
       items: resource.items
@@ -134,6 +125,37 @@ class OrdersRemoteDataSource implements OrdersDataSource {
             ),
           )
           .toList(growable: false),
+    );
+  }
+
+  String _aggregateStatusToDataValue(OrderAggregateStatus status) {
+    if (status == OrderAggregateStatus.pendingResponses) {
+      return 'pending_responses';
+    }
+    if (status == OrderAggregateStatus.responsesReceived) {
+      return 'responses_received';
+    }
+    if (status == OrderAggregateStatus.suppliersSelected) {
+      return 'suppliers_selected';
+    }
+    if (status == OrderAggregateStatus.inFulfillment) {
+      return 'in_fulfillment';
+    }
+    if (status == OrderAggregateStatus.partiallyCompleted) {
+      return 'partially_completed';
+    }
+    if (status == OrderAggregateStatus.completed) {
+      return 'completed';
+    }
+    if (status == OrderAggregateStatus.cancelled) {
+      return 'cancelled';
+    }
+    if (status == OrderAggregateStatus.expired) {
+      return 'expired';
+    }
+
+    throw FormatException(
+      'Unsupported generated aggregate order status: $status',
     );
   }
 
