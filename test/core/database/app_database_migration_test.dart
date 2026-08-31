@@ -7,54 +7,63 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test(
-      'migrates SyncOperations from v4 to v5 without losing queued data',
-      () async {
-        final Directory tempDirectory = await Directory.systemTemp.createTemp(
-          'talbatiyk-drift-migration-',
-        );
+    test('migrates persisted data from v4 to v6 without loss', () async {
+      final Directory tempDirectory = await Directory.systemTemp.createTemp(
+        'talbatiyk-drift-migration-',
+      );
 
-        addTearDown(() async {
-          if (await tempDirectory.exists()) {
-            await tempDirectory.delete(recursive: true);
-          }
-        });
+      addTearDown(() async {
+        if (await tempDirectory.exists()) {
+          await tempDirectory.delete(recursive: true);
+        }
+      });
 
-        final File databaseFile = File(
-          '${tempDirectory.path}${Platform.pathSeparator}migration.sqlite',
-        );
+      final File databaseFile = File(
+        '${tempDirectory.path}${Platform.pathSeparator}migration.sqlite',
+      );
 
-        _createLegacyV4Database(databaseFile);
+      _createLegacyV4Database(databaseFile);
 
-        final AppDatabase database = AppDatabase.forTesting(
-          NativeDatabase(databaseFile),
-        );
+      final AppDatabase database = AppDatabase.forTesting(
+        NativeDatabase(databaseFile),
+      );
 
-        addTearDown(database.close);
+      addTearDown(database.close);
 
-        // أول query يفتح قاعدة v4 ويشغل MigrationStrategy إلى v5.
-        final List<SyncOperation> operations = await database
-            .select(database.syncOperations)
-            .get();
+      // أول query يفتح قاعدة v4 ويشغل MigrationStrategy إلى v6.
+      final List<SyncOperation> operations = await database
+          .select(database.syncOperations)
+          .get();
 
-        expect(database.schemaVersion, 5);
-        expect(operations, hasLength(1));
+      final List<OrderRecord> orders = await database
+          .select(database.orderRecords)
+          .get();
 
-        final SyncOperation operation = operations.single;
+      expect(database.schemaVersion, 6);
+      expect(operations, hasLength(1));
+      expect(orders, hasLength(1));
 
-        expect(operation.id, 'order:create:legacy-order');
-        expect(operation.entityType, 'order');
-        expect(operation.entityId, 'legacy-order');
-        expect(operation.operation, 'create');
-        expect(operation.payloadJson, '{"legacy":true}');
-        expect(operation.attempts, 2);
-        expect(operation.lastError, 'temporary failure');
-        expect(operation.nextAttemptAt, isNull);
+      final SyncOperation operation = operations.single;
 
-        // الصف التاريخي يأخذ default الجديد بدل أن يضيع أو يتوقف عن القراءة.
-        expect(operation.status, SyncOperationStatuses.pending);
-      },
-    );
+      expect(operation.id, 'order:create:legacy-order');
+      expect(operation.entityType, 'order');
+      expect(operation.entityId, 'legacy-order');
+      expect(operation.operation, 'create');
+      expect(operation.payloadJson, '{"legacy":true}');
+      expect(operation.attempts, 2);
+      expect(operation.lastError, 'temporary failure');
+      expect(operation.nextAttemptAt, isNull);
+
+      // الصف التاريخي يأخذ default الجديد بدل أن يضيع أو يتوقف عن القراءة.
+      expect(operation.status, SyncOperationStatuses.pending);
+
+      final OrderRecord order = orders.single;
+
+      expect(order.id, 'legacy-order');
+      expect(order.status, 'delivered');
+      expect(order.notes, 'legacy order');
+      expect(order.aggregateStatus, 'pending_responses');
+    });
   });
 }
 
@@ -66,6 +75,35 @@ void _createLegacyV4Database(File file) {
   final sqlite.Database database = sqlite.sqlite3.open(file.path);
 
   try {
+    database.execute('''
+      CREATE TABLE order_records (
+        id TEXT NOT NULL PRIMARY KEY,
+        status TEXT NOT NULL DEFAULT 'pending',
+        notes TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    ''');
+
+    database.execute(
+      '''
+      INSERT INTO order_records (
+        id,
+        status,
+        notes,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?);
+      ''',
+      <Object?>[
+        'legacy-order',
+        'delivered',
+        'legacy order',
+        1724800000,
+        1724800000,
+      ],
+    );
+
     database.execute('''
       CREATE TABLE sync_operations (
         id TEXT NOT NULL PRIMARY KEY,

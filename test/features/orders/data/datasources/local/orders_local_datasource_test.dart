@@ -169,34 +169,37 @@ void main() {
 
       final OrderModel created = await dataSource.createOrder(request);
 
-      final OrderModel updated = await dataSource.updateOrderStatus(
+      await dataSource.updateAggregateStatusSnapshot(
         orderId: created.id,
-        status: 'confirmed',
+        aggregateStatus: 'in_fulfillment',
       );
 
       final List<OrderModel> orders = await dataSource.getOrders();
 
-      expect(updated.status, 'confirmed');
+      expect(orders.single.items.single.supplierId, 'supplier-1');
 
-      expect(updated.items.single.supplierId, 'supplier-1');
+      expect(orders.single.items.single.supplierName, 'مؤسسة الأمل');
 
-      expect(updated.items.single.supplierName, 'مؤسسة الأمل');
-
-      expect(orders.single.status, 'confirmed');
+      expect(orders.single.status, 'pending');
+      expect(orders.single.aggregateStatus, 'in_fulfillment');
 
       expect(orders.single.items.single.supplierId, 'supplier-1');
 
       expect(orders.single.items.single.supplierName, 'مؤسسة الأمل');
     });
 
-    test('throws when updating an order that does not exist', () async {
-      expect(
-        () => dataSource.updateOrderStatus(
+    test(
+      'ignores aggregate snapshot for an order that does not exist',
+      () async {
+        await dataSource.updateAggregateStatusSnapshot(
           orderId: 'missing-order',
-          status: 'confirmed',
-        ),
-        throwsA(isA<StateError>()),
-      );
-    });
+          aggregateStatus: 'completed',
+        );
+
+        final List<OrderModel> orders = await dataSource.getOrders();
+
+        expect(orders, isEmpty);
+      },
+    );
   });
 }

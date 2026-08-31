@@ -88,7 +88,7 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final OrderStatus status = order.status;
+    final OrderAggregateStatus status = order.aggregateStatus;
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(

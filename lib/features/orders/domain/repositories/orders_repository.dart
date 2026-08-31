@@ -8,8 +8,4 @@ abstract class OrdersRepository {
   Future<OrderEntity> createOrder(CreateOrderRequest request);
 
   /// تحديث حالة طلبية.
-  Future<OrderEntity> updateOrderStatus({
-    required String orderId,
-    required OrderStatus status,
-  });
 }

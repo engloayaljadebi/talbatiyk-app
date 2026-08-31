@@ -1,135 +1,94 @@
-// محتوى الملف:
-// - تحويل حالة الطلب إلى اسم عربي.
-// - تحديد لون وأيقونة كل حالة.
-// - تحديد ترتيب الحالة في مراحل تقدم الطلب.
-// - توفير خصائص مشتركة لصفحة الطلبات وصفحة التفاصيل.
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/orders_entity.dart';
 
-/// خصائص العرض الخاصة بحالة الطلب.
-extension OrderStatusPresentation on OrderStatus {
-  /// الاسم العربي للحالة.
+/// Presentation semantics for the server-authoritative aggregate order lifecycle.
+extension OrderAggregateStatusPresentation on OrderAggregateStatus {
   String get label {
     switch (this) {
-      case OrderStatus.pending:
-        return 'قيد المراجعة';
-      case OrderStatus.confirmed:
-        return 'تم التأكيد';
-      case OrderStatus.preparing:
-        return 'قيد التجهيز';
-      case OrderStatus.readyForDelivery:
-        return 'جاهزة للتسليم';
-      case OrderStatus.outForDelivery:
-        return 'في الطريق';
-      case OrderStatus.delivered:
-        return 'تم التسليم';
-      case OrderStatus.cancelled:
+      case OrderAggregateStatus.pendingResponses:
+        return 'بانتظار ردود الموردين';
+      case OrderAggregateStatus.responsesReceived:
+        return 'تم استلام ردود الموردين';
+      case OrderAggregateStatus.suppliersSelected:
+        return 'تم اختيار الموردين';
+      case OrderAggregateStatus.inFulfillment:
+        return 'قيد التنفيذ';
+      case OrderAggregateStatus.partiallyCompleted:
+        return 'مكتمل جزئياً';
+      case OrderAggregateStatus.completed:
+        return 'مكتمل';
+      case OrderAggregateStatus.cancelled:
         return 'ملغاة';
+      case OrderAggregateStatus.expired:
+        return 'منتهية';
     }
   }
 
-  /// اللون الخاص بالحالة.
   Color get color {
     switch (this) {
-      case OrderStatus.pending:
+      case OrderAggregateStatus.pendingResponses:
         return Colors.orange;
-      case OrderStatus.confirmed:
+      case OrderAggregateStatus.responsesReceived:
         return Colors.blue;
-      case OrderStatus.preparing:
-        return Colors.indigo;
-      case OrderStatus.readyForDelivery:
+      case OrderAggregateStatus.suppliersSelected:
         return Colors.teal;
-      case OrderStatus.outForDelivery:
+      case OrderAggregateStatus.inFulfillment:
+        return Colors.indigo;
+      case OrderAggregateStatus.partiallyCompleted:
         return Colors.purple;
-      case OrderStatus.delivered:
+      case OrderAggregateStatus.completed:
         return Colors.green;
-      case OrderStatus.cancelled:
+      case OrderAggregateStatus.cancelled:
         return Colors.red;
+      case OrderAggregateStatus.expired:
+        return Colors.grey;
     }
   }
 
-  /// الأيقونة المناسبة للحالة.
   IconData get icon {
     switch (this) {
-      case OrderStatus.pending:
+      case OrderAggregateStatus.pendingResponses:
         return Icons.schedule_rounded;
-      case OrderStatus.confirmed:
-        return Icons.verified_outlined;
-      case OrderStatus.preparing:
+      case OrderAggregateStatus.responsesReceived:
+        return Icons.mark_email_read_outlined;
+      case OrderAggregateStatus.suppliersSelected:
+        return Icons.how_to_reg_outlined;
+      case OrderAggregateStatus.inFulfillment:
         return Icons.inventory_2_outlined;
-      case OrderStatus.readyForDelivery:
-        return Icons.task_alt_rounded;
-      case OrderStatus.outForDelivery:
-        return Icons.local_shipping_outlined;
-      case OrderStatus.delivered:
+      case OrderAggregateStatus.partiallyCompleted:
+        return Icons.pending_actions_outlined;
+      case OrderAggregateStatus.completed:
         return Icons.check_circle_outline_rounded;
-      case OrderStatus.cancelled:
+      case OrderAggregateStatus.cancelled:
         return Icons.cancel_outlined;
+      case OrderAggregateStatus.expired:
+        return Icons.timer_off_outlined;
     }
   }
 
-  /// رقم المرحلة الحالية داخل مسار الطلب.
   int get progressIndex {
     switch (this) {
-      case OrderStatus.pending:
+      case OrderAggregateStatus.pendingResponses:
         return 0;
-      case OrderStatus.confirmed:
+      case OrderAggregateStatus.responsesReceived:
         return 1;
-      case OrderStatus.preparing:
+      case OrderAggregateStatus.suppliersSelected:
         return 2;
-      case OrderStatus.readyForDelivery:
+      case OrderAggregateStatus.inFulfillment:
         return 3;
-      case OrderStatus.outForDelivery:
+      case OrderAggregateStatus.partiallyCompleted:
         return 4;
-      case OrderStatus.delivered:
+      case OrderAggregateStatus.completed:
         return 5;
-      case OrderStatus.cancelled:
+      case OrderAggregateStatus.cancelled:
+      case OrderAggregateStatus.expired:
         return -1;
     }
   }
 
-  /// هل الطلب ملغى؟
-  bool get isCancelled {
-    return this == OrderStatus.cancelled;
-  }
-
-  /// النص الذي يظهر داخل زر الانتقال للمرحلة التالية.
-  String? get nextActionLabel {
-    switch (this) {
-      case OrderStatus.pending:
-        return 'تأكيد الطلبية';
-      case OrderStatus.confirmed:
-        return 'بدء تجهيز الطلبية';
-      case OrderStatus.preparing:
-        return 'تحديدها جاهزة للتسليم';
-      case OrderStatus.readyForDelivery:
-        return 'بدء توصيل الطلبية';
-      case OrderStatus.outForDelivery:
-        return 'تأكيد استلام الطلبية';
-      case OrderStatus.delivered:
-      case OrderStatus.cancelled:
-        return null;
-    }
-  }
-
-  /// الأيقونة التي تظهر داخل زر المرحلة التالية.
-  IconData? get nextActionIcon {
-    switch (this) {
-      case OrderStatus.pending:
-        return Icons.verified_outlined;
-      case OrderStatus.confirmed:
-        return Icons.inventory_2_outlined;
-      case OrderStatus.preparing:
-        return Icons.task_alt_rounded;
-      case OrderStatus.readyForDelivery:
-        return Icons.local_shipping_outlined;
-      case OrderStatus.outForDelivery:
-        return Icons.check_circle_outline_rounded;
-      case OrderStatus.delivered:
-      case OrderStatus.cancelled:
-        return null;
-    }
+  bool get isTerminalWithoutCompletion {
+    return this == OrderAggregateStatus.cancelled ||
+        this == OrderAggregateStatus.expired;
   }
 }

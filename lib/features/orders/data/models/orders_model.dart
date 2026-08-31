@@ -94,6 +94,7 @@ class OrderModel {
   OrderModel({
     required this.id,
     required this.status,
+    this.aggregateStatus = 'pending_responses',
     required List<OrderItemModel> items,
     required this.createdAt,
     this.supplier,
@@ -102,6 +103,7 @@ class OrderModel {
 
   final String id;
   final String status;
+  final String aggregateStatus;
   final List<OrderItemModel> items;
   final DateTime createdAt;
   final OrderSupplierModel? supplier;
@@ -111,6 +113,7 @@ class OrderModel {
   OrderModel copyWith({
     String? id,
     String? status,
+    String? aggregateStatus,
     List<OrderItemModel>? items,
     DateTime? createdAt,
     OrderSupplierModel? supplier,
@@ -119,6 +122,7 @@ class OrderModel {
     return OrderModel(
       id: id ?? this.id,
       status: status ?? this.status,
+      aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
       supplier: supplier ?? this.supplier,

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
+import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/errors/stale_order_version_exception.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/repositories/order_response_comparison_repository.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/usecases/order_response_comparison_usecase.dart';
@@ -139,6 +140,7 @@ OrderResponseComparisonEntity _comparison({
     id: 'order-1',
     version: version,
     status: 'pending',
+    aggregateStatus: OrderAggregateStatus.responsesReceived,
     notes: null,
     createdAt: null,
     updatedAt: null,

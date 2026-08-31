@@ -564,12 +564,4 @@ class _FakeOrdersRemoteDataSource implements OrdersDataSource {
   Future<List<OrderModel>> getOrders() {
     throw UnsupportedError('GET orders is not used by this test.');
   }
-
-  @override
-  Future<OrderModel> updateOrderStatus({
-    required String orderId,
-    required String status,
-  }) {
-    throw UnsupportedError('Order status updates are not used by this test.');
-  }
 }

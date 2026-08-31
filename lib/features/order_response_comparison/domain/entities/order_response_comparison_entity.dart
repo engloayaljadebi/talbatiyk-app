@@ -1,3 +1,5 @@
+import '../../../orders/domain/entities/orders_entity.dart';
+
 enum OrderResponseAvailability { full, partial, unavailable }
 
 final class OrderResponseComparisonEntity {
@@ -5,6 +7,7 @@ final class OrderResponseComparisonEntity {
     required this.id,
     required this.version,
     required this.status,
+    required this.aggregateStatus,
     required this.notes,
     required this.items,
     required this.createdAt,
@@ -13,7 +16,13 @@ final class OrderResponseComparisonEntity {
 
   final String id;
   final int version;
+
+  /// Legacy server field retained for compatibility.
   final String status;
+
+  /// Server-authoritative lifecycle for the whole order.
+  final OrderAggregateStatus aggregateStatus;
+
   final String? notes;
   final List<OrderResponseComparisonItemEntity> items;
   final DateTime? createdAt;

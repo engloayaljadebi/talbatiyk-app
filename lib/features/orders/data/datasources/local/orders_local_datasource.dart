@@ -33,6 +33,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
         OrderModel(
           id: orderRow.id,
           status: orderRow.status,
+          aggregateStatus: orderRow.aggregateStatus,
           items: itemRows.map(_itemRecordToModel).toList(growable: false),
           createdAt: orderRow.createdAt.toUtc(),
           notes: orderRow.notes,
@@ -54,6 +55,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
     final OrderModel order = OrderModel(
       id: orderId,
       status: 'pending',
+      aggregateStatus: 'pending_responses',
       items: queuedRequest.items,
       createdAt: now,
       notes: queuedRequest.notes,
@@ -95,6 +97,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
     return OrderModel(
       id: order.id,
       status: order.status,
+      aggregateStatus: order.aggregateStatus,
       items: order.items,
       createdAt: order.createdAt.toUtc(),
       notes: order.notes,
@@ -197,38 +200,23 @@ class OrdersLocalDataSource implements OrdersDataSource {
     );
   }
 
-  @override
-  Future<OrderModel> updateOrderStatus({
+  /// Updates only the last known server-authoritative aggregate lifecycle.
+  ///
+  /// A missing local row is intentionally a no-op: comparison data can still
+  /// be viewed even when the order is not present in this local database.
+  Future<void> updateAggregateStatusSnapshot({
     required String orderId,
-    required String status,
+    required String aggregateStatus,
   }) async {
-    final OrderRecord? existing =
-        await (_database.select(_database.orderRecords)
-              ..where((OrderRecords table) => table.id.equals(orderId)))
-            .getSingleOrNull();
-
-    if (existing == null) {
-      throw StateError('Order not found: $orderId');
-    }
-
     final DateTime now = DateTime.now().toUtc();
 
     await (_database.update(
       _database.orderRecords,
     )..where((OrderRecords table) => table.id.equals(orderId))).write(
-      OrderRecordsCompanion(status: Value(status), updatedAt: Value(now)),
-    );
-
-    final List<OrderItemRecord> itemRows = await (_database.select(
-      _database.orderItemRecords,
-    )..where((OrderItemRecords table) => table.orderId.equals(orderId))).get();
-
-    return OrderModel(
-      id: existing.id,
-      status: status,
-      items: itemRows.map(_itemRecordToModel).toList(growable: false),
-      createdAt: existing.createdAt.toUtc(),
-      notes: existing.notes,
+      OrderRecordsCompanion(
+        aggregateStatus: Value(aggregateStatus),
+        updatedAt: Value(now),
+      ),
     );
   }
 
@@ -242,6 +230,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
           OrderRecordsCompanion.insert(
             id: order.id,
             status: Value(order.status),
+            aggregateStatus: Value(order.aggregateStatus),
             notes: Value(order.notes),
             createdAt: order.createdAt.toUtc(),
             updatedAt: updatedAt,

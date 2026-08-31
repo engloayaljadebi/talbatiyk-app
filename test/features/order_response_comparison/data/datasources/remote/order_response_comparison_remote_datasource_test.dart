@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbatiyk/features/order_response_comparison/data/repositories/order_response_comparison_repository_impl.dart';
+import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_datasource.dart';
+import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk/features/order_response_comparison/data/datasources/remote/order_response_comparison_remote_datasource.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
@@ -12,6 +17,9 @@ void main() {
     late HttpServer server;
     late GeneratedApiClient apiClient;
     late OrderResponseComparisonRemoteDataSourceImpl dataSource;
+    late AppDatabase database;
+    late OrdersLocalDataSource ordersLocalDataSource;
+    late OrderResponseComparisonRepositoryImpl repository;
 
     const accessToken = 'order-comparison-test-token';
 
@@ -32,9 +40,29 @@ void main() {
       apiClient.setAccessToken(accessToken);
 
       dataSource = OrderResponseComparisonRemoteDataSourceImpl(apiClient);
+
+      database = AppDatabase.forTesting(NativeDatabase.memory());
+      ordersLocalDataSource = OrdersLocalDataSource(database);
+      repository = OrderResponseComparisonRepositoryImpl(
+        dataSource,
+        ordersLocalDataSource,
+      );
+
+      final DateTime now = DateTime.utc(2026, 8, 31);
+
+      await database
+          .into(database.orderRecords)
+          .insert(
+            OrderRecordsCompanion.insert(
+              id: orderId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
     });
 
     tearDown(() async {
+      await database.close();
       await server.close(force: true);
     });
 
@@ -43,7 +71,7 @@ void main() {
       () async {
         final requestFuture = server.first;
 
-        final resultFuture = dataSource.show(orderId: '  $orderId  ');
+        final resultFuture = repository.getComparison(orderId: '  $orderId  ');
 
         final request = await requestFuture;
 
@@ -92,6 +120,14 @@ void main() {
         expect(item.response, isNotNull);
         expect(item.response!.availableQuantity, 2);
         expect(item.response!.offeredUnitPrice, '11.25');
+        expect(result.aggregateStatus, OrderAggregateStatus.responsesReceived);
+
+        final OrderRecord storedOrder = await (database.select(
+          database.orderRecords,
+        )..where((table) => table.id.equals(orderId))).getSingle();
+
+        expect(storedOrder.status, 'pending');
+        expect(storedOrder.aggregateStatus, 'responses_received');
       },
     );
 
@@ -100,7 +136,7 @@ void main() {
       () async {
         final requestFuture = server.first;
 
-        final resultFuture = dataSource.replaceSelections(
+        final resultFuture = repository.replaceSelections(
           orderId: orderId,
           expectedVersion: 1,
           selections: const [
@@ -174,6 +210,14 @@ void main() {
         expect(result.items.single.selection, isNotNull);
 
         expect(result.items.single.selection!.selectedQuantity, 1);
+        expect(result.aggregateStatus, OrderAggregateStatus.suppliersSelected);
+
+        final OrderRecord storedOrder = await (database.select(
+          database.orderRecords,
+        )..where((table) => table.id.equals(orderId))).getSingle();
+
+        expect(storedOrder.status, 'pending');
+        expect(storedOrder.aggregateStatus, 'suppliers_selected');
       },
     );
 
