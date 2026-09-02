@@ -30,6 +30,7 @@ void main() {
 
   test('creates an order and adds it to state', () async {
     final CreateOrderRequest request = CreateOrderRequest(
+      supplierIds: const ['supplier-1'],
       items: const [
         OrderItemEntity(
           productId: 'product-1',
@@ -58,6 +59,7 @@ void main() {
 
   test('loads orders created through the same data source', () async {
     final CreateOrderRequest request = CreateOrderRequest(
+      supplierIds: const ['supplier-1'],
       items: const [
         OrderItemEntity(
           productId: 'product-1',

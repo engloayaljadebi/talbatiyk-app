@@ -11,7 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Order\OrderService;
 use Database\Seeders\BusinessCapabilitySeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -22,11 +22,15 @@ use Tests\TestCase;
 
 class SupplierOrderFulfillmentConcurrencyTest extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->beforeApplicationDestroyed(function (): void {
+            $this->truncateTablesForAllConnections();
+        });
 
         $this->assertSame(
             'pgsql',
@@ -292,11 +296,13 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
         $responseA = $this->submitResponse(
             $supplierA,
             $recipientA,
+            $productA->id,
         );
 
         $responseB = $this->submitResponse(
             $supplierB,
             $recipientB,
+            $productB->id,
         );
 
         app(SelectOrderSupplierResponsesAction::class)->execute(
@@ -473,6 +479,10 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
             $buyer,
             [
                 'notes' => 'Fulfillment concurrency order',
+                'supplier_ids' => array_values(array_unique(array_map(
+                    static fn (array $entry): string => $entry[0]->supplier_id,
+                    $items,
+                ))),
                 'items' => array_map(
                     static fn (array $entry): array => [
                         'product_id' => $entry[0]->id,
@@ -490,10 +500,22 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
     private function submitResponse(
         Business $supplier,
         OrderRecipient $recipient,
+        ?string $targetProductId = null,
     ): string {
-        $recipient->loadMissing('items');
+        $recipient->loadMissing('items.orderItem');
 
-        $recipientItem = $recipient->items->firstOrFail();
+        $targetRecipientItem = $targetProductId === null
+            ? $recipient->items->firstOrFail()
+            : $recipient->items->first(
+                static fn ($recipientItem): bool => (string) $recipientItem->orderItem->product_id
+                    === $targetProductId,
+            );
+
+        if ($targetRecipientItem === null) {
+            throw new RuntimeException(
+                'Target recipient item was not found.',
+            );
+        }
 
         $response = app(
             SubmitSupplierOrderResponseAction::class,
@@ -501,25 +523,36 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
             $supplier,
             (string) $recipient->id,
             [
-                'items' => [
-                    [
-                        'order_recipient_item_id' => $recipientItem->id,
-                        'availability_status' => 'full',
-                        'available_quantity' => (int) $recipientItem
-                            ->orderItem()
-                            ->value('quantity'),
-                        'offered_unit_price' => '100.00',
-                        'response_notes' => null,
-                    ],
-                ],
+                'items' => $recipient->items
+                    ->map(
+                        static fn ($recipientItem): array => [
+                            'order_recipient_item_id' => $recipientItem->id,
+                            'availability_status' => 'full',
+                            'available_quantity' => (int) $recipientItem
+                                ->orderItem
+                                ->quantity,
+                            'offered_unit_price' => '100.00',
+                            'response_notes' => null,
+                        ],
+                    )
+                    ->values()
+                    ->all(),
             ],
             (string) Str::uuid(),
         );
 
-        return (string) $response
-            ->items
-            ->firstOrFail()
-            ->id;
+        $responseItem = $response->items->firstWhere(
+            'order_recipient_item_id',
+            $targetRecipientItem->id,
+        );
+
+        if ($responseItem === null) {
+            throw new RuntimeException(
+                'Target response item was not found.',
+            );
+        }
+
+        return (string) $responseItem->id;
     }
 
     private function createSupplier(

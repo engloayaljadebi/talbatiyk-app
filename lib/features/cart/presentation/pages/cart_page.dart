@@ -7,6 +7,8 @@ import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dar
 import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
 import 'package:talbatiyk/features/products/presentation/widgets/product_image.dart';
+import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbatiyk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
 
 /// صفحة سلة المشتريات.
 ///
@@ -28,6 +30,9 @@ class CartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final CartController cart = ref.watch(cartProvider);
     final ordersController = ref.watch(ordersProvider);
+    final supplierDiscoveryController = ref.watch(
+      supplierDiscoveryControllerProvider,
+    );
 
     return Scaffold(
       backgroundColor: _background,
@@ -69,7 +74,9 @@ class CartPage extends ConsumerWidget {
                 key: const ValueKey('checkout-bar'),
                 totalQuantity: cart.totalQuantity,
                 totalPrice: cart.totalPrice,
-                isSubmitting: ordersController.state.isSubmitting,
+                isSubmitting:
+                    ordersController.state.isSubmitting ||
+                    supplierDiscoveryController.state.isLoading,
                 onSubmit: () {
                   _submitOrder(context, ref, cart);
                 },
@@ -245,7 +252,50 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    final selectedSuppliers = await _selectSuppliers(context, cart.items);
+    final submittedItems = List<CartItemEntity>.unmodifiable(cart.items);
+
+    final supplierDiscoveryController = ref.read(
+      supplierDiscoveryControllerProvider,
+    );
+
+    final loaded = await supplierDiscoveryController.loadSuppliers();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (!loaded) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              supplierDiscoveryController.state.errorMessage ??
+                  'تعذر تحميل الموردين المتاحين.',
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+
+      return;
+    }
+
+    final suppliers = supplierDiscoveryController.state.suppliers;
+
+    if (suppliers.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('لا يوجد موردون مؤهلون لاستقبال الطلب حاليًا.'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+
+      return;
+    }
+
+    final selectedSuppliers = await _selectSuppliers(context, suppliers);
 
     if (!context.mounted ||
         selectedSuppliers == null ||
@@ -253,18 +303,9 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    final selectedItems = cart.items
-        .where((item) {
-          return selectedSuppliers.contains(_supplierKey(item));
-        })
-        .toList(growable: false);
-
-    if (selectedItems.isEmpty) {
-      return;
-    }
-
     final request = CreateOrderRequest(
-      items: selectedItems
+      supplierIds: selectedSuppliers.toList()..sort(),
+      items: submittedItems
           .map((item) {
             return OrderItemEntity(
               productId: item.product.id,
@@ -303,9 +344,9 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    // نحذف فقط المنتجات التي دخلت في الطلب الناجح.
-    // منتجات الموردين غير المحددين تبقى محفوظة في Cart وDrift.
-    cart.removeProducts(selectedItems.map((item) => item.product.id));
+    // The RFQ contains the entire basket, so every submitted cart item
+    // is consumed after successful creation.
+    cart.clear();
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -317,26 +358,11 @@ class CartPage extends ConsumerWidget {
       );
   }
 
-  /// يتيح اختيار مورد واحد أو عدة موردين من الموردين الموجودين في السلة.
   Future<Set<String>?> _selectSuppliers(
     BuildContext context,
-    List<CartItemEntity> items,
+    List<SupplierCandidateEntity> suppliers,
   ) async {
-    final suppliers = <String, String>{};
-
-    for (final item in items) {
-      final key = _supplierKey(item);
-      final supplierName = item.product.supplierName.trim();
-
-      suppliers[key] = supplierName.isNotEmpty ? supplierName : 'مورد غير محدد';
-    }
-
-    // مورد واحد لا يحتاج إلى خطوة اختيار إضافية.
-    if (suppliers.length == 1) {
-      return suppliers.keys.toSet();
-    }
-
-    final selected = suppliers.keys.toSet();
+    final selected = <String>{};
 
     return showDialog<Set<String>>(
       context: context,
@@ -349,18 +375,18 @@ class CartPage extends ConsumerWidget {
                 width: double.maxFinite,
                 child: ListView(
                   shrinkWrap: true,
-                  children: suppliers.entries
-                      .map((entry) {
+                  children: suppliers
+                      .map((supplier) {
                         return CheckboxListTile(
-                          value: selected.contains(entry.key),
+                          value: selected.contains(supplier.id),
                           contentPadding: EdgeInsets.zero,
-                          title: Text(entry.value),
+                          title: Text(supplier.name),
                           onChanged: (value) {
                             setState(() {
                               if (value == true) {
-                                selected.add(entry.key);
+                                selected.add(supplier.id);
                               } else {
-                                selected.remove(entry.key);
+                                selected.remove(supplier.id);
                               }
                             });
                           },
@@ -386,9 +412,9 @@ class CartPage extends ConsumerWidget {
                           );
                         },
                   child: Text(
-                    selected.length == suppliers.length
-                        ? 'إرسال للجميع'
-                        : 'إرسال للمحدد',
+                    selected.length > 1
+                        ? 'إرسال للموردين المحددين'
+                        : 'إرسال للمورد المحدد',
                   ),
                 ),
               ],
@@ -397,24 +423,6 @@ class CartPage extends ConsumerWidget {
         );
       },
     );
-  }
-
-  /// يبني هوية مستقرة للمورد.
-  /// نفضل supplierId، ثم الاسم لدعم البيانات القديمة.
-  String _supplierKey(CartItemEntity item) {
-    final supplierId = item.product.supplierId.trim();
-
-    if (supplierId.isNotEmpty) {
-      return 'id:$supplierId';
-    }
-
-    final supplierName = item.product.supplierName.trim().toLowerCase();
-
-    if (supplierName.isNotEmpty) {
-      return 'name:$supplierName';
-    }
-
-    return 'unknown:${item.product.id}';
   }
 }
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
@@ -35,9 +36,20 @@ class OrderItem extends Model
         );
     }
 
+    /**
+     * Legacy singular relation retained temporarily for compatibility.
+     */
     public function recipientItem(): HasOne
     {
         return $this->hasOne(OrderRecipientItem::class);
+    }
+
+    /**
+     * Every selected RFQ recipient receives this canonical OrderItem.
+     */
+    public function recipientItems(): HasMany
+    {
+        return $this->hasMany(OrderRecipientItem::class);
     }
 
     public function selection(): HasOne

@@ -200,6 +200,70 @@ class OrdersLocalDataSource implements OrdersDataSource {
     );
   }
 
+  /// Reconciles the complete server-owned order snapshot atomically.
+  ///
+  /// Local create operations with a durable Outbox row are protected because
+  /// they may not exist on the server yet. All other local orders are treated
+  /// as server-owned snapshots and are removed when absent from the current
+  /// authenticated user's authoritative response.
+  Future<void> replaceServerSnapshotPreservingPendingCreates(
+    List<OrderModel> serverOrders,
+  ) async {
+    final List<OrderModel> snapshot = List<OrderModel>.unmodifiable(
+      serverOrders,
+    );
+
+    final Set<String> serverOrderIds = snapshot
+        .map((OrderModel order) => order.id)
+        .toSet();
+
+    final DateTime now = DateTime.now().toUtc();
+
+    await _database.transaction(() async {
+      final pendingCreates =
+          await (_database.select(_database.syncOperations)..where(
+                (SyncOperations table) =>
+                    table.entityType.equals('order') &
+                    table.operation.equals('create'),
+              ))
+              .get();
+
+      final Set<String> protectedLocalOrderIds = pendingCreates
+          .map((operation) => operation.entityId)
+          .toSet();
+
+      final existingOrders = await _database
+          .select(_database.orderRecords)
+          .get();
+
+      final List<String> staleServerOrderIds = existingOrders
+          .map((order) => order.id)
+          .where(
+            (String orderId) =>
+                !serverOrderIds.contains(orderId) &&
+                !protectedLocalOrderIds.contains(orderId),
+          )
+          .toList(growable: false);
+
+      if (staleServerOrderIds.isNotEmpty) {
+        await (_database.delete(_database.orderItemRecords)..where(
+              (OrderItemRecords table) =>
+                  table.orderId.isIn(staleServerOrderIds),
+            ))
+            .go();
+
+        await (_database.delete(_database.orderRecords)..where(
+              (OrderRecords table) => table.id.isIn(staleServerOrderIds),
+            ))
+            .go();
+      }
+
+      for (final OrderModel order in snapshot) {
+        await _saveOrderRows(order, updatedAt: now);
+      }
+    });
+  }
+
   /// Updates only the last known server-authoritative aggregate lifecycle.
   ///
   /// A missing local row is intentionally a no-op: comparison data can still
@@ -266,6 +330,7 @@ class OrdersLocalDataSource implements OrdersDataSource {
     return <String, Object?>{
       'idempotencyKey': request.idempotencyKey,
       'notes': request.notes,
+      'supplierIds': request.supplierIds,
       'items': request.items
           .map(
             (OrderItemModel item) => <String, Object?>{

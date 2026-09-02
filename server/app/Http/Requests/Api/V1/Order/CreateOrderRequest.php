@@ -36,6 +36,17 @@ class CreateOrderRequest extends FormRequest
                 'max:2000',
             ],
 
+            'supplier_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'supplier_ids.*' => [
+                'required',
+                'uuid',
+                'distinct',
+            ],
             'items' => [
                 'required',
                 'array',
@@ -107,7 +118,7 @@ class CreateOrderRequest extends FormRequest
                     return;
                 }
 
-                if (!Str::isUuid($idempotencyKey)) {
+                if (! Str::isUuid($idempotencyKey)) {
                     $validator->errors()->add(
                         'Idempotency-Key',
                         'The Idempotency-Key header must be a valid UUID.',

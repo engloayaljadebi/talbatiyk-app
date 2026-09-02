@@ -58,9 +58,7 @@ class OrdersMapper {
   static CreateOrderModel toCreateModel(CreateOrderRequest request) {
     return CreateOrderModel(
       items: request.items.map(_entityItemToModel).toList(growable: false),
-      supplier: request.supplier == null
-          ? null
-          : _entitySupplierToModel(request.supplier!),
+      supplierIds: request.supplierIds,
       notes: request.notes,
     );
   }
@@ -71,10 +69,6 @@ class OrdersMapper {
 
   static OrderSupplierEntity _modelSupplierToEntity(OrderSupplierModel model) {
     return OrderSupplierEntity(id: model.id, name: model.name);
-  }
-
-  static OrderSupplierModel _entitySupplierToModel(OrderSupplierEntity entity) {
-    return OrderSupplierModel(id: entity.id, name: entity.name);
   }
 
   static OrderItemModel _dtoItemToModel(OrderItemDto dto) {

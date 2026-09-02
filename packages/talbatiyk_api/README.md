@@ -115,10 +115,12 @@ Class | Method | HTTP request | Description
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationShow**](doc/BusinessLocationApi.md#businesslocationshow) | **GET** /businesses/{business}/locations/{location} | عرض موقع واحد تابع للنشاط
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationStore**](doc/BusinessLocationApi.md#businesslocationstore) | **POST** /businesses/{business}/locations | إنشاء موقع جديد
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationUpdate**](doc/BusinessLocationApi.md#businesslocationupdate) | **PATCH** /businesses/{business}/locations/{location} | تعديل موقع موجود
+[*OrderApi*](doc/OrderApi.md) | [**orderIndex**](doc/OrderApi.md#orderindex) | **GET** /orders | Return orders owned by the authenticated customer
 [*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonShow**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonshow) | **GET** /orders/{order}/supplier-responses | Compare all final supplier responses for one owned Order
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonUpdate**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonupdate) | **PUT** /orders/{order}/supplier-selection | Replace the customer&#39;s supplier-response selection atomically
 [*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
+[*SupplierDiscoveryApi*](doc/SupplierDiscoveryApi.md) | [**supplierDiscoveryIndex**](doc/SupplierDiscoveryApi.md#supplierdiscoveryindex) | **GET** /suppliers | 
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowStore**](doc/SupplierFollowApi.md#supplierfollowstore) | **POST** /businesses/{business}/follow | متابعة المورد
@@ -158,6 +160,7 @@ Class | Method | HTTP request | Description
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
  - [OrderAggregateStatus](doc/OrderAggregateStatus.md)
+ - [OrderIndex200Response](doc/OrderIndex200Response.md)
  - [OrderItemResource](doc/OrderItemResource.md)
  - [OrderRecipientItemResource](doc/OrderRecipientItemResource.md)
  - [OrderRecipientItemResponseResource](doc/OrderRecipientItemResponseResource.md)
@@ -181,6 +184,7 @@ Class | Method | HTTP request | Description
  - [SelectOrderSupplierResponsesRequestSelectionsInner](doc/SelectOrderSupplierResponsesRequestSelectionsInner.md)
  - [SubmitSupplierOrderResponseRequest](doc/SubmitSupplierOrderResponseRequest.md)
  - [SubmitSupplierOrderResponseRequestItemsInner](doc/SubmitSupplierOrderResponseRequestItemsInner.md)
+ - [SupplierDiscoveryIndex200Response](doc/SupplierDiscoveryIndex200Response.md)
  - [SupplierFollowShow200Response](doc/SupplierFollowShow200Response.md)
  - [SupplierFollowShow200ResponseData](doc/SupplierFollowShow200ResponseData.md)
  - [SupplierFollowStore422Response](doc/SupplierFollowStore422Response.md)
@@ -188,6 +192,7 @@ Class | Method | HTTP request | Description
  - [SupplierOrderFulfillmentUpdate200Response](doc/SupplierOrderFulfillmentUpdate200Response.md)
  - [SupplierOrderIndex200Response](doc/SupplierOrderIndex200Response.md)
  - [SupplierOrderResponseStore201Response](doc/SupplierOrderResponseStore201Response.md)
+ - [SupplierSummaryResource](doc/SupplierSummaryResource.md)
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)

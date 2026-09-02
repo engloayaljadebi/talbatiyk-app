@@ -18,8 +18,8 @@ class OrderResponseComparisonQueryService
             ->where('user_id', $user->id)
             ->with([
                 'items',
-                'items.recipientItem.recipient',
-                'items.recipientItem.response',
+                'items.recipientItems.recipient',
+                'items.recipientItems.response',
                 'items.selection',
             ])
             ->firstOrFail();

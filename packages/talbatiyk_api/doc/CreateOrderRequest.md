@@ -9,6 +9,7 @@ import 'package:talbatiyk_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **notes** | **String** |  | [optional] 
+**supplierIds** | **BuiltList&lt;String&gt;** |  | 
 **items** | [**BuiltList&lt;CreateOrderRequestItemsInner&gt;**](CreateOrderRequestItemsInner.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

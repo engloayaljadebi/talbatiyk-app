@@ -34,6 +34,7 @@ void main() {
       );
 
       final CreateOrderRequest request = CreateOrderRequest(
+        supplierIds: const ['supplier-1'],
         notes: 'Lost response order',
         items: const [
           OrderItemEntity(

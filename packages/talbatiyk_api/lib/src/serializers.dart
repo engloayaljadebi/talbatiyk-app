@@ -43,6 +43,7 @@ import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
 import 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
+import 'package:talbatiyk_api/src/model/order_index200_response.dart';
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_item_resource.dart';
 import 'package:talbatiyk_api/src/model/order_recipient_item_response_resource.dart';
@@ -66,6 +67,7 @@ import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.
 import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request_selections_inner.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request_items_inner.dart';
+import 'package:talbatiyk_api/src/model/supplier_discovery_index200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_store422_response.dart';
@@ -73,6 +75,7 @@ import 'package:talbatiyk_api/src/model/supplier_follow_store422_response_errors
 import 'package:talbatiyk_api/src/model/supplier_order_fulfillment_update200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_order_index200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_order_response_store201_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_summary_resource.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_request.dart';
@@ -112,6 +115,7 @@ part 'serializers.g.dart';
   InlineObject1,
   LoginRequest,
   OrderAggregateStatus,
+  OrderIndex200Response,
   OrderItemResource,
   OrderRecipientItemResource,
   OrderRecipientItemResponseResource,
@@ -135,6 +139,7 @@ part 'serializers.g.dart';
   SelectOrderSupplierResponsesRequestSelectionsInner,
   SubmitSupplierOrderResponseRequest,
   SubmitSupplierOrderResponseRequestItemsInner,
+  SupplierDiscoveryIndex200Response,
   SupplierFollowShow200Response,
   SupplierFollowShow200ResponseData,
   SupplierFollowStore422Response,
@@ -142,6 +147,7 @@ part 'serializers.g.dart';
   SupplierOrderFulfillmentUpdate200Response,
   SupplierOrderIndex200Response,
   SupplierOrderResponseStore201Response,
+  SupplierSummaryResource,
   UpdateBusinessContactRequest,
   UpdateBusinessLocationRequest,
   UpdateBusinessRequest,

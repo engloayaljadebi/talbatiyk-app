@@ -87,10 +87,10 @@ class OrderCommercialAuthorityTest extends TestCase
             ->withToken($this->tokenFor($user))
             ->withHeader('Idempotency-Key', self::IDEMPOTENCY_KEY)
             ->postJson('/api/v1/orders', [
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
-                        'product_id' =>
-                            '00000000-0000-4000-8000-000000000099',
+                        'product_id' => '00000000-0000-4000-8000-000000000099',
                         'quantity' => 1,
                         'expected_unit_price' => 100,
                         'expected_supplier_id' => $supplier->id,
@@ -241,7 +241,7 @@ class OrderCommercialAuthorityTest extends TestCase
     /**
      * Create the current server-side commercial state used by OrderService.
      *
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      */
     private function createProduct(
         Business $supplier,
@@ -267,7 +267,7 @@ class OrderCommercialAuthorityTest extends TestCase
      * Flutter sends intent plus the commercial values it observed.
      * Laravel must resolve the actual snapshot from Product/Supplier.
      *
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function orderPayload(
@@ -276,6 +276,7 @@ class OrderCommercialAuthorityTest extends TestCase
     ): array {
         return [
             'notes' => 'Commercial authority order',
+            'supplier_ids' => [$product->supplier_id],
             'items' => [
                 array_replace([
                     'product_id' => $product->id,

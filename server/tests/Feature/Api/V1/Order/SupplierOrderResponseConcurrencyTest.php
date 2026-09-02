@@ -41,6 +41,7 @@ class SupplierOrderResponseConcurrencyTest extends TestCase
             $buyer,
             [
                 'notes' => 'Concurrent supplier response order',
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
                         'product_id' => $product->id,

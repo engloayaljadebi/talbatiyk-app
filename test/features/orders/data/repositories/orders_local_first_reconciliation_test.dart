@@ -79,6 +79,7 @@ void main() {
 
       final OrderEntity created = await repository.createOrder(
         CreateOrderRequest(
+          supplierIds: const ['supplier-1'],
           notes: 'Local-first order',
           items: const [
             OrderItemEntity(

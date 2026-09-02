@@ -56,6 +56,7 @@ void main() {
       );
 
       final request = CreateOrderRequest(
+        supplierIds: const ['supplier-1'],
         notes: 'Remote order',
         items: const [
           OrderItemEntity(
@@ -129,6 +130,7 @@ void main() {
         );
 
         final request = CreateOrderRequest(
+          supplierIds: const ['supplier-1'],
           notes: 'Offline order',
           items: const [
             OrderItemEntity(
@@ -231,6 +233,7 @@ void main() {
 
       final OrderEntity created = await repository.createOrder(
         CreateOrderRequest(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemEntity(
               productId: 'product-1',
@@ -295,6 +298,7 @@ void main() {
       );
 
       final request = CreateOrderRequest(
+        supplierIds: const ['supplier-1'],
         items: const [
           OrderItemEntity(
             productId: 'product-1',
@@ -346,6 +350,7 @@ void main() {
         );
 
         final request = CreateOrderRequest(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemEntity(
               productId: 'product-1',
@@ -401,6 +406,7 @@ void main() {
         final repository = OrdersRepositoryImpl(localDataSource);
 
         final request = CreateOrderRequest(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemEntity(
               productId: 'product-1',
@@ -472,6 +478,8 @@ class _FakeRemoteOrdersDataSource implements OrdersDataSource {
 
   @override
   Future<List<OrderModel>> getOrders() async {
-    throw UnsupportedError('Not used by this test.');
+    final OrderModel? order = createdOrder;
+
+    return order == null ? const <OrderModel>[] : <OrderModel>[order];
   }
 }

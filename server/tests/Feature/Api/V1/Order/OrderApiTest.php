@@ -17,6 +17,7 @@ class OrderApiTest extends TestCase
     private const IDEMPOTENCY_KEY = '550e8400-e29b-41d4-a716-446655440000';
 
     private const PRODUCT_ID = '00000000-0000-4000-8000-000000000101';
+
     private const SECOND_PRODUCT_ID = '00000000-0000-4000-8000-000000000102';
 
     public function test_unauthenticated_user_cannot_create_order(): void
@@ -66,6 +67,7 @@ class OrderApiTest extends TestCase
             )
             ->postJson('/api/v1/orders', [
                 'notes' => 'Test order',
+                'supplier_ids' => ['00000000-0000-4000-8000-000000000001'],
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
@@ -97,6 +99,7 @@ class OrderApiTest extends TestCase
 
         $this->assertDatabaseCount('orders', 0);
     }
+
     public function test_expected_supplier_id_must_be_valid_uuid(): void
     {
         $user = User::factory()->create();
@@ -120,6 +123,7 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
     }
+
     public function test_supplier_must_have_active_supplier_capability(): void
     {
         $user = User::factory()->create();
@@ -148,6 +152,7 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
     }
+
     public function test_authenticated_active_user_can_create_order(): void
     {
         $user = User::factory()->create();
@@ -376,6 +381,7 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseCount('orders', 2);
         $this->assertDatabaseCount('order_items', 2);
     }
+
     public function test_order_and_order_items_are_persisted(): void
     {
         $user = User::factory()->create();
@@ -449,6 +455,10 @@ class OrderApiTest extends TestCase
         // One Order may contain authoritative Products from many Suppliers.
         $payload = [
             'notes' => 'Multi supplier order',
+            'supplier_ids' => [
+                $firstSupplier->id,
+                $secondSupplier->id,
+            ],
             'items' => [
                 [
                     'product_id' => $firstProduct->id,
@@ -501,6 +511,7 @@ class OrderApiTest extends TestCase
             'supplier_id' => $secondSupplier->id,
         ]);
     }
+
     public function test_response_contains_correct_order_structure(): void
     {
         $user = User::factory()->create();
@@ -627,7 +638,7 @@ class OrderApiTest extends TestCase
         string $name = 'Test product',
         float $price = 100,
     ): Product {
-        $product = new Product();
+        $product = new Product;
 
         $product->id = $id;
         $product->supplier_id = $supplier->id;
@@ -662,6 +673,7 @@ class OrderApiTest extends TestCase
 
         return [
             'notes' => 'Test order',
+            'supplier_ids' => [$supplier->id],
             'items' => [
                 [
                     'product_id' => $product->id,
@@ -671,4 +683,5 @@ class OrderApiTest extends TestCase
                 ],
             ],
         ];
-    }}
+    }
+}

@@ -119,5 +119,19 @@ class OrderRecipientMigrationTest extends TestCase
         $this->assertDatabaseCount('order_items', 1);
         $this->assertDatabaseCount('order_recipients', 1);
         $this->assertDatabaseCount('order_recipient_items', 1);
+
+        /*
+         * This test intentionally recreates the historical 2026-08-29
+         * recipient schema while Laravel's migration ledger remains at HEAD.
+         *
+         * Restore the current recipient-item constraint shape so the
+         * DatabaseMigrations teardown can roll migrations back in the normal
+         * reverse order without seeing a schema that predates the ledger.
+         */
+        $currentRoutingMigration = require database_path(
+            'migrations/2026_09_01_000001_allow_order_items_multiple_recipients.php',
+        );
+
+        $currentRoutingMigration->up();
     }
 }

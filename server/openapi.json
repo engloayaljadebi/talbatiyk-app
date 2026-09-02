@@ -1331,6 +1331,39 @@
             }
         },
         "/orders": {
+            "get": {
+                "operationId": "order.index",
+                "summary": "Return orders owned by the authenticated customer",
+                "tags": [
+                    "Order"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OrderResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
             "post": {
                 "operationId": "order.store",
                 "summary": "Create a new order for the authenticated user",
@@ -1688,6 +1721,40 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/suppliers": {
+            "get": {
+                "operationId": "supplierDiscovery.index",
+                "tags": [
+                    "SupplierDiscovery"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `SupplierSummaryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SupplierSummaryResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -2709,6 +2776,14 @@
                         ],
                         "maxLength": 2000
                     },
+                    "supplier_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "minItems": 1
+                    },
                     "items": {
                         "type": "array",
                         "items": {
@@ -2744,6 +2819,7 @@
                     }
                 },
                 "required": [
+                    "supplier_ids",
                     "items"
                 ],
                 "title": "CreateOrderRequest"
@@ -3493,6 +3569,23 @@
                     "items"
                 ],
                 "title": "SubmitSupplierOrderResponseRequest"
+            },
+            "SupplierSummaryResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "title": "SupplierSummaryResource"
             },
             "UpdateBusinessContactRequest": {
                 "type": "object",
