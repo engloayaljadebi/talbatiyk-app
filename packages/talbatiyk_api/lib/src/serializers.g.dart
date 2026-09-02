@@ -43,6 +43,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(InlineObject1.serializer)
       ..add(LoginRequest.serializer)
       ..add(OrderAggregateStatus.serializer)
+      ..add(OrderIndex200Response.serializer)
       ..add(OrderItemResource.serializer)
       ..add(OrderRecipientItemResource.serializer)
       ..add(OrderRecipientItemResponseResource.serializer)
@@ -67,6 +68,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(SelectOrderSupplierResponsesRequestSelectionsInner.serializer)
       ..add(SubmitSupplierOrderResponseRequest.serializer)
       ..add(SubmitSupplierOrderResponseRequestItemsInner.serializer)
+      ..add(SupplierDiscoveryIndex200Response.serializer)
       ..add(SupplierFollowShow200Response.serializer)
       ..add(SupplierFollowShow200ResponseData.serializer)
       ..add(SupplierFollowStore422Response.serializer)
@@ -74,6 +76,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(SupplierOrderFulfillmentUpdate200Response.serializer)
       ..add(SupplierOrderIndex200Response.serializer)
       ..add(SupplierOrderResponseStore201Response.serializer)
+      ..add(SupplierSummaryResource.serializer)
       ..add(UpdateBusinessContactRequest.serializer)
       ..add(UpdateBusinessLocationRequest.serializer)
       ..add(UpdateBusinessLocationRequestStatusEnum.serializer)
@@ -95,10 +98,6 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(BusinessResource)]),
           () => ListBuilder<BusinessResource>())
       ..addBuilderFactory(
-          const FullType(
-              BuiltList, const [const FullType(CreateOrderRequestItemsInner)]),
-          () => ListBuilder<CreateOrderRequestItemsInner>())
-      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(OrderItemResource)]),
           () => ListBuilder<OrderItemResource>())
       ..addBuilderFactory(
@@ -113,6 +112,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(
               BuiltList, const [const FullType(OrderRecipientResource)]),
           () => ListBuilder<OrderRecipientResource>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(OrderResource)]),
+          () => ListBuilder<OrderResource>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(OrderResponseComparisonItemResource)]),
@@ -140,10 +142,21 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(CreateOrderRequestItemsInner)]),
+          () => ListBuilder<CreateOrderRequestItemsInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(SubmitSupplierOrderResponseRequestItemsInner)
           ]),
           () => ListBuilder<SubmitSupplierOrderResponseRequestItemsInner>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(SupplierSummaryResource)]),
+          () => ListBuilder<SupplierSummaryResource>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UserResourceContactsInner)]),

@@ -47,13 +47,25 @@ class OrderItemModel {
 class CreateOrderModel {
   CreateOrderModel({
     required List<OrderItemModel> items,
-    this.supplier,
+    required List<String> supplierIds,
     this.notes = '',
     this.idempotencyKey = '',
-  }) : items = List<OrderItemModel>.unmodifiable(items);
+  }) : items = List<OrderItemModel>.unmodifiable(items),
+       supplierIds = List<String>.unmodifiable(
+         supplierIds.map((id) => id.trim()).toSet().toList()..sort(),
+       ) {
+    if (supplierIds.isEmpty ||
+        supplierIds.any((supplierId) => supplierId.trim().isEmpty)) {
+      throw ArgumentError.value(
+        supplierIds,
+        'supplierIds',
+        'Create order requires at least one supplier.',
+      );
+    }
+  }
 
   final List<OrderItemModel> items;
-  final OrderSupplierModel? supplier;
+  final List<String> supplierIds;
   final String notes;
 
   /// Stable for the lifetime of one logical create-order operation.
@@ -61,29 +73,24 @@ class CreateOrderModel {
 
   CreateOrderModel copyWith({
     List<OrderItemModel>? items,
-    OrderSupplierModel? supplier,
+    List<String>? supplierIds,
     String? notes,
     String? idempotencyKey,
   }) {
     return CreateOrderModel(
       items: items ?? this.items,
-      supplier: supplier ?? this.supplier,
+      supplierIds: supplierIds ?? this.supplierIds,
       notes: notes ?? this.notes,
       idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     );
   }
 
   Map<String, dynamic> toJson() {
-    final OrderSupplierModel? orderSupplier = supplier;
-
     return {
       'items': items
           .map((OrderItemModel item) => item.toJson())
           .toList(growable: false),
-
-      if (orderSupplier != null && orderSupplier.id.trim().isNotEmpty)
-        'supplier_id': orderSupplier.id.trim(),
-
+      'supplier_ids': supplierIds,
       if (notes.trim().isNotEmpty) 'notes': notes.trim(),
     };
   }

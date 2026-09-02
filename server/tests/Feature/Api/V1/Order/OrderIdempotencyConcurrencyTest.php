@@ -42,7 +42,7 @@ class OrderIdempotencyConcurrencyTest extends TestCase
         $idempotencyKey = self::IDEMPOTENCY_KEY;
 
         $barrierDirectory = storage_path(
-            'framework/testing/order-idempotency-concurrency-' . uniqid('', true),
+            'framework/testing/order-idempotency-concurrency-'.uniqid('', true),
         );
 
         File::ensureDirectoryExists($barrierDirectory);
@@ -63,7 +63,7 @@ class OrderIdempotencyConcurrencyTest extends TestCase
                 $user = User::query()->findOrFail($userId);
 
                 file_put_contents(
-                    $barrierDirectory . DIRECTORY_SEPARATOR . $worker . '.ready',
+                    $barrierDirectory.DIRECTORY_SEPARATOR.$worker.'.ready',
                     'ready',
                 );
 
@@ -71,7 +71,7 @@ class OrderIdempotencyConcurrencyTest extends TestCase
 
                 while (true) {
                     $readyWorkers = glob(
-                        $barrierDirectory . DIRECTORY_SEPARATOR . '*.ready',
+                        $barrierDirectory.DIRECTORY_SEPARATOR.'*.ready',
                     ) ?: [];
 
                     if (count($readyWorkers) >= 2) {
@@ -154,7 +154,7 @@ class OrderIdempotencyConcurrencyTest extends TestCase
      */
     private function orderPayload(Business $supplier): array
     {
-        $product = new Product();
+        $product = new Product;
 
         $product->id = self::PRODUCT_ID;
         $product->supplier_id = $supplier->id;
@@ -174,6 +174,7 @@ class OrderIdempotencyConcurrencyTest extends TestCase
 
         return [
             'notes' => 'Concurrent idempotency order',
+            'supplier_ids' => [$supplier->id],
             'items' => [
                 [
                     'product_id' => $product->id,

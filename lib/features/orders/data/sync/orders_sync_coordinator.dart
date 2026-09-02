@@ -162,9 +162,58 @@ final class OrdersSyncCoordinator {
       throw const FormatException('Order Outbox payload has no items.');
     }
 
+    final Object? rawSupplierIds = decoded['supplierIds'];
+
+    final List<String> supplierIds;
+
+    if (rawSupplierIds == null) {
+      // Compatibility for create operations queued before explicit recipients.
+      supplierIds =
+          rawItems
+              .map((Object? rawItem) {
+                if (rawItem is! Map<String, dynamic>) {
+                  throw const FormatException('Invalid order Outbox item.');
+                }
+
+                final Object? rawSupplierId = rawItem['supplierId'];
+
+                if (rawSupplierId is! String || rawSupplierId.trim().isEmpty) {
+                  throw const FormatException(
+                    'Legacy order Outbox item has no supplier id.',
+                  );
+                }
+
+                return rawSupplierId.trim();
+              })
+              .toSet()
+              .toList()
+            ..sort();
+    } else {
+      if (rawSupplierIds is! List || rawSupplierIds.isEmpty) {
+        throw const FormatException(
+          'Order Outbox payload has no supplier ids.',
+        );
+      }
+
+      supplierIds =
+          rawSupplierIds
+              .map((Object? rawSupplierId) {
+                if (rawSupplierId is! String || rawSupplierId.trim().isEmpty) {
+                  throw const FormatException(
+                    'Invalid order Outbox supplier id.',
+                  );
+                }
+
+                return rawSupplierId.trim();
+              })
+              .toSet()
+              .toList()
+            ..sort();
+    }
     return CreateOrderModel(
       idempotencyKey: rawIdempotencyKey.trim(),
       notes: decoded['notes'] as String? ?? '',
+      supplierIds: supplierIds,
       items: rawItems
           .map((Object? rawItem) {
             if (rawItem is! Map<String, dynamic>) {

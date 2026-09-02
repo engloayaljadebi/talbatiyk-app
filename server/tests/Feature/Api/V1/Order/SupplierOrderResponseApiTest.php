@@ -428,6 +428,7 @@ class SupplierOrderResponseApiTest extends TestCase
             $buyer,
             [
                 'notes' => 'Supplier response test order',
+                'supplier_ids' => [$supplier->id],
                 'items' => array_map(
                     static fn (Product $product): array => [
                         'product_id' => $product->id,

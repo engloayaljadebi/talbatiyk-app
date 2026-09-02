@@ -9,21 +9,29 @@ class OrderResponseComparisonItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $recipientItem = $this->recipientItem;
-        $recipient = $recipientItem->recipient;
-        $responseItem = $recipientItem->response;
-        $selection = $this->selection;
+        $orderItem = $this->orderItem;
+        $recipient = $this->recipient;
+        $responseItem = $this->response;
+        $selection = $orderItem->selection;
+
+        $selectionForThisResponse =
+            $selection !== null
+            && $responseItem !== null
+            && (string) $selection->order_recipient_item_response_id
+                === (string) $responseItem->id
+                ? $selection
+                : null;
 
         return [
             /** @format uuid */
-            'id' => $this->id,
+            'id' => $orderItem->id,
 
-            'product_id' => $this->product_id,
-            'product_name' => $this->product_name,
+            'product_id' => $orderItem->product_id,
+            'product_name' => $orderItem->product_name,
 
-            'requested_quantity' => (int) $this->quantity,
+            'requested_quantity' => (int) $orderItem->quantity,
 
-            'order_unit_price' => (string) $this->unit_price,
+            'order_unit_price' => (string) $orderItem->unit_price,
 
             'supplier' => [
                 /** @format uuid */
@@ -41,10 +49,10 @@ class OrderResponseComparisonItemResource extends JsonResource
                     $responseItem,
                 ),
 
-            'selection' => $selection === null
+            'selection' => $selectionForThisResponse === null
                 ? null
                 : new OrderResponseComparisonSelectionResource(
-                    $selection,
+                    $selectionForThisResponse,
                 ),
         ];
     }

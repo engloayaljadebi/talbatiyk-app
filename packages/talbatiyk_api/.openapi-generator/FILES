@@ -35,6 +35,7 @@ doc/InlineObject1.md
 doc/LoginRequest.md
 doc/OrderAggregateStatus.md
 doc/OrderApi.md
+doc/OrderIndex200Response.md
 doc/OrderItemResource.md
 doc/OrderRecipientItemResource.md
 doc/OrderRecipientItemResponseResource.md
@@ -60,6 +61,8 @@ doc/SelectOrderSupplierResponsesRequest.md
 doc/SelectOrderSupplierResponsesRequestSelectionsInner.md
 doc/SubmitSupplierOrderResponseRequest.md
 doc/SubmitSupplierOrderResponseRequestItemsInner.md
+doc/SupplierDiscoveryApi.md
+doc/SupplierDiscoveryIndex200Response.md
 doc/SupplierFollowApi.md
 doc/SupplierFollowShow200Response.md
 doc/SupplierFollowShow200ResponseData.md
@@ -71,6 +74,7 @@ doc/SupplierOrderFulfillmentUpdate200Response.md
 doc/SupplierOrderIndex200Response.md
 doc/SupplierOrderResponseApi.md
 doc/SupplierOrderResponseStore201Response.md
+doc/SupplierSummaryResource.md
 doc/UpdateBusinessContactRequest.md
 doc/UpdateBusinessLocationRequest.md
 doc/UpdateBusinessRequest.md
@@ -85,6 +89,7 @@ lib/src/api/business_location_api.dart
 lib/src/api/order_api.dart
 lib/src/api/order_response_comparison_api.dart
 lib/src/api/product_api.dart
+lib/src/api/supplier_discovery_api.dart
 lib/src/api/supplier_follow_api.dart
 lib/src/api/supplier_order_api.dart
 lib/src/api/supplier_order_fulfillment_api.dart
@@ -126,6 +131,7 @@ lib/src/model/inline_object.dart
 lib/src/model/inline_object1.dart
 lib/src/model/login_request.dart
 lib/src/model/order_aggregate_status.dart
+lib/src/model/order_index200_response.dart
 lib/src/model/order_item_resource.dart
 lib/src/model/order_recipient_item_resource.dart
 lib/src/model/order_recipient_item_response_resource.dart
@@ -149,6 +155,7 @@ lib/src/model/select_order_supplier_responses_request.dart
 lib/src/model/select_order_supplier_responses_request_selections_inner.dart
 lib/src/model/submit_supplier_order_response_request.dart
 lib/src/model/submit_supplier_order_response_request_items_inner.dart
+lib/src/model/supplier_discovery_index200_response.dart
 lib/src/model/supplier_follow_show200_response.dart
 lib/src/model/supplier_follow_show200_response_data.dart
 lib/src/model/supplier_follow_store422_response.dart
@@ -156,6 +163,7 @@ lib/src/model/supplier_follow_store422_response_errors.dart
 lib/src/model/supplier_order_fulfillment_update200_response.dart
 lib/src/model/supplier_order_index200_response.dart
 lib/src/model/supplier_order_response_store201_response.dart
+lib/src/model/supplier_summary_resource.dart
 lib/src/model/update_business_contact_request.dart
 lib/src/model/update_business_location_request.dart
 lib/src/model/update_business_request.dart
@@ -165,4 +173,4 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
-test/order_aggregate_status_test.dart
+test/order_index200_response_test.dart

@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -32,6 +33,7 @@ class OrderService
      *
      * @param array{
      *     notes?: string|null,
+     *     supplier_ids: array<int, string>,
      *     items: array<int, array{
      *         product_id: string,
      *         quantity: int,
@@ -45,7 +47,20 @@ class OrderService
         array $data,
         string $idempotencyKey,
     ): Order {
-        $payloadHash = $this->payloadHash($data);
+        $payloadData = $data;
+
+        $payloadData['supplier_ids'] = collect(
+            $data['supplier_ids'],
+        )
+            ->map(
+                static fn (mixed $id): string => trim((string) $id),
+            )
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $payloadHash = $this->payloadHash($payloadData);
 
         /*
          * A successful logical operation must be replayable even if Product
@@ -99,6 +114,10 @@ class OrderService
                 $data['items'],
             );
 
+            $recipientSuppliers = $this->resolveRecipientSuppliers(
+                $data['supplier_ids'],
+            );
+
             $createdItems = collect();
 
             foreach ($authoritativeItems as $item) {
@@ -107,15 +126,13 @@ class OrderService
                 );
             }
 
-            foreach ($createdItems->groupBy('supplier_id') as $supplierId => $supplierItems) {
-                $firstItem = $supplierItems->first();
-
+            foreach ($recipientSuppliers as $supplier) {
                 $recipient = $order->recipients()->create([
-                    'supplier_id' => (string) $supplierId,
-                    'supplier_name' => $firstItem->supplier_name,
+                    'supplier_id' => $supplier->id,
+                    'supplier_name' => $supplier->name,
                 ]);
 
-                foreach ($supplierItems as $orderItem) {
+                foreach ($createdItems as $orderItem) {
                     $recipient->items()->create([
                         'order_item_id' => $orderItem->id,
                     ]);
@@ -168,6 +185,48 @@ class OrderService
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
      */
+    /**
+     * Resolve businesses selected as recipients independently from the
+     * historical supplier attached to each Product.
+     *
+     * @param  array<int, string>  $supplierIds
+     * @return Collection<int, Business>
+     */
+    private function resolveRecipientSuppliers(
+        array $supplierIds,
+    ): Collection {
+        $requestedIds = collect($supplierIds)
+            ->map(static fn (mixed $id): string => trim((string) $id))
+            ->unique()
+            ->sort()
+            ->values();
+
+        $suppliers = Business::query()
+            ->whereIn('id', $requestedIds)
+            ->where('status', 'active')
+            ->whereHas('capabilities', function ($query): void {
+                $query
+                    ->where('business_capabilities.code', 'supplier')
+                    ->whereNull('business_capabilities.retired_at')
+                    ->whereNull(
+                        'business_capability_assignments.disabled_at',
+                    );
+            })
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        if ($suppliers->count() !== $requestedIds->count()) {
+            throw ValidationException::withMessages([
+                'supplier_ids' => [
+                    'One or more selected suppliers are not currently available.',
+                ],
+            ]);
+        }
+
+        return $suppliers;
+    }
+
     private function resolveAuthoritativeItems(array $items): array
     {
         $productIds = collect($items)

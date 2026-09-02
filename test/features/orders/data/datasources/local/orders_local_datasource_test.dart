@@ -23,6 +23,7 @@ void main() {
       'persists a multi-supplier order across data source instances',
       () async {
         final CreateOrderModel request = CreateOrderModel(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemModel(
               productId: 'product-1',
@@ -76,6 +77,7 @@ void main() {
       'creates one order containing items from multiple suppliers',
       () async {
         final CreateOrderModel request = CreateOrderModel(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemModel(
               productId: 'product-1',
@@ -117,6 +119,7 @@ void main() {
 
     test('creates an order and preserves supplier data per item', () async {
       final CreateOrderModel request = CreateOrderModel(
+        supplierIds: const ['supplier-1'],
         items: const [
           OrderItemModel(
             supplierId: 'supplier-1',
@@ -155,6 +158,7 @@ void main() {
 
     test('updates order status and keeps supplier data per item', () async {
       final CreateOrderModel request = CreateOrderModel(
+        supplierIds: const ['supplier-1'],
         items: const [
           OrderItemModel(
             supplierId: 'supplier-1',

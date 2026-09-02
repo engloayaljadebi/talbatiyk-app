@@ -21,6 +21,7 @@
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
+use App\Http\Controllers\Api\V1\Business\SupplierDiscoveryController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -94,6 +95,7 @@ Route::prefix('v1')->group(function (): void {
         |--------------------------------------------------------------------------
         */
 
+        Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
 
         Route::get(
@@ -162,6 +164,8 @@ Route::prefix('v1')->group(function (): void {
          * قائمة الأنشطة التي لدى المستخدم
          * عضوية نشطة فيها.
          */
+        Route::get('/suppliers', [SupplierDiscoveryController::class, 'index']);
+
         Route::get('/businesses', [BusinessController::class, 'index']);
 
         /*

@@ -188,6 +188,7 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
             $buyer,
             [
                 'notes' => 'Independent supplier fulfillment',
+                'supplier_ids' => [$supplierA->id, $supplierB->id],
                 'items' => [
                     [
                         'product_id' => $productA->id,
@@ -221,11 +222,13 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
         $responseItemA = $this->submitResponse(
             $supplierA,
             $recipientA,
+            $productA->id,
         );
 
         $responseItemB = $this->submitResponse(
             $supplierB,
             $recipientB,
+            $productB->id,
         );
 
         app(SelectOrderSupplierResponsesAction::class)->execute(
@@ -458,6 +461,7 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
             $buyer,
             [
                 'notes' => 'Full fulfillment lifecycle',
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
                         'product_id' => $product->id,
@@ -494,10 +498,22 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
     private function submitResponse(
         Business $supplier,
         OrderRecipient $recipient,
+        ?string $targetProductId = null,
     ): string {
-        $recipient->loadMissing('items');
+        $recipient->loadMissing('items.orderItem');
 
-        $recipientItem = $recipient->items->firstOrFail();
+        $targetRecipientItem = $targetProductId === null
+            ? $recipient->items->firstOrFail()
+            : $recipient->items->first(
+                static fn ($recipientItem): bool => (string) $recipientItem->orderItem->product_id
+                    === $targetProductId,
+            );
+
+        if ($targetRecipientItem === null) {
+            throw new \RuntimeException(
+                'Target recipient item was not found.',
+            );
+        }
 
         $response = app(
             SubmitSupplierOrderResponseAction::class,
@@ -505,23 +521,36 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
             $supplier,
             (string) $recipient->id,
             [
-                'items' => [
-                    [
-                        'order_recipient_item_id' => $recipientItem->id,
-                        'availability_status' => 'full',
-                        'available_quantity' => 2,
-                        'offered_unit_price' => '100.00',
-                        'response_notes' => null,
-                    ],
-                ],
+                'items' => $recipient->items
+                    ->map(
+                        static fn ($recipientItem): array => [
+                            'order_recipient_item_id' => $recipientItem->id,
+                            'availability_status' => 'full',
+                            'available_quantity' => (int) $recipientItem
+                                ->orderItem
+                                ->quantity,
+                            'offered_unit_price' => '100.00',
+                            'response_notes' => null,
+                        ],
+                    )
+                    ->values()
+                    ->all(),
             ],
             (string) Str::uuid(),
         );
 
-        return (string) $response
-            ->items
-            ->firstOrFail()
-            ->id;
+        $responseItem = $response->items->firstWhere(
+            'order_recipient_item_id',
+            $targetRecipientItem->id,
+        );
+
+        if ($responseItem === null) {
+            throw new \RuntimeException(
+                'Target response item was not found.',
+            );
+        }
+
+        return (string) $responseItem->id;
     }
 
     private function createSupplier(

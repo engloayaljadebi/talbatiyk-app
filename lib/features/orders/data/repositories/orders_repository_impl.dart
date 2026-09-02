@@ -18,7 +18,23 @@ class OrdersRepositoryImpl implements OrdersRepository {
 
   @override
   Future<List<OrderEntity>> getOrders() async {
-    final models = await localDataSource.getOrders();
+    final OrdersDataSource? remote = remoteDataSource;
+
+    if (remote != null) {
+      try {
+        final List<OrderModel> remoteOrders = await remote.getOrders();
+
+        await localDataSource.replaceServerSnapshotPreservingPendingCreates(
+          remoteOrders,
+        );
+      } catch (error) {
+        if (!_shouldUseLocalReadFallback(error)) {
+          rethrow;
+        }
+      }
+    }
+
+    final List<OrderModel> models = await localDataSource.getOrders();
 
     return List<OrderEntity>.unmodifiable(models.map(OrdersMapper.toEntity));
   }
@@ -82,6 +98,24 @@ class OrdersRepositoryImpl implements OrdersRepository {
       // local Order + Outbox so a later idempotent replay can reconcile it.
       return OrdersMapper.toEntity(localOrder);
     }
+  }
+
+  bool _shouldUseLocalReadFallback(Object error) {
+    if (_isConnectivityFailure(error)) {
+      return true;
+    }
+
+    if (error is! DioException || error.type != DioExceptionType.badResponse) {
+      return false;
+    }
+
+    final int? statusCode = error.response?.statusCode;
+
+    if (statusCode == null) {
+      return false;
+    }
+
+    return statusCode == 408 || statusCode == 429 || statusCode >= 500;
   }
 
   bool _shouldRemainQueued(Object error) {

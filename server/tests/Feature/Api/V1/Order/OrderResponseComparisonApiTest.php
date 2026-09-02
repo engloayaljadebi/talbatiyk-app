@@ -204,6 +204,7 @@ class OrderResponseComparisonApiTest extends TestCase
             $buyer,
             [
                 'notes' => 'Multi supplier comparison order',
+                'supplier_ids' => [$supplierA->id, $supplierB->id],
                 'items' => [
                     [
                         'product_id' => $productA->id,
@@ -234,8 +235,21 @@ class OrderResponseComparisonApiTest extends TestCase
         $this->assertNotNull($recipientA);
         $this->assertNotNull($recipientB);
 
-        $recipientItemA = $recipientA->items->firstOrFail();
-        $recipientItemB = $recipientB->items->firstOrFail();
+        $orderItemA = $order->items()
+            ->where('product_id', $productA->id)
+            ->firstOrFail();
+
+        $orderItemB = $order->items()
+            ->where('product_id', $productB->id)
+            ->firstOrFail();
+
+        $recipientItemA = $recipientA->items()
+            ->where('order_item_id', $orderItemA->id)
+            ->firstOrFail();
+
+        $recipientItemB = $recipientB->items()
+            ->where('order_item_id', $orderItemB->id)
+            ->firstOrFail();
 
         $responseItemAId = $this->submitSupplierResponse(
             $memberA,
@@ -263,7 +277,7 @@ class OrderResponseComparisonApiTest extends TestCase
             ->getJson($this->comparisonEndpoint($order))
             ->assertOk()
             ->assertJsonPath('data.version', 1)
-            ->assertJsonCount(2, 'data.items')
+            ->assertJsonCount(4, 'data.items')
             ->assertJsonFragment([
                 'supplier_id' => $supplierA->id,
                 'supplier_name' => 'Comparison supplier A',
@@ -300,7 +314,7 @@ class OrderResponseComparisonApiTest extends TestCase
             )
             ->assertOk()
             ->assertJsonPath('data.version', 2)
-            ->assertJsonCount(2, 'data.items');
+            ->assertJsonCount(4, 'data.items');
 
         $this->assertDatabaseCount(
             'order_item_selections',
@@ -584,6 +598,7 @@ class OrderResponseComparisonApiTest extends TestCase
             $buyer,
             [
                 'notes' => 'Response comparison test order',
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
                         'product_id' => $product->id,
@@ -623,6 +638,8 @@ class OrderResponseComparisonApiTest extends TestCase
     ): string {
         $this->actAs($member);
 
+        $recipient->loadMissing('items.orderItem');
+
         $response = $this
             ->withHeader(
                 'Idempotency-Key',
@@ -632,20 +649,49 @@ class OrderResponseComparisonApiTest extends TestCase
                 "/api/v1/businesses/{$supplier->id}"
                 ."/received-orders/{$recipient->id}/response",
                 [
-                    'items' => [
-                        [
-                            'order_recipient_item_id' => $recipientItemId,
-                            'availability_status' => $status,
-                            'available_quantity' => $availableQuantity,
-                            'offered_unit_price' => $offeredUnitPrice,
-                            'response_notes' => 'Stage 5 comparison response',
-                        ],
-                    ],
+                    'items' => $recipient->items
+                        ->map(
+                            static function ($recipientItem) use (
+                                $recipientItemId,
+                                $status,
+                                $availableQuantity,
+                                $offeredUnitPrice,
+                            ): array {
+                                $isTarget =
+                                    (string) $recipientItem->id
+                                    === $recipientItemId;
+
+                                return [
+                                    'order_recipient_item_id' => $recipientItem->id,
+                                    'availability_status' => $isTarget ? $status : 'full',
+                                    'available_quantity' => $isTarget
+                                            ? $availableQuantity
+                                            : (int) $recipientItem
+                                                ->orderItem
+                                                ->quantity,
+                                    'offered_unit_price' => $isTarget
+                                            ? $offeredUnitPrice
+                                            : null,
+                                    'response_notes' => 'Stage 5 comparison response',
+                                ];
+                            },
+                        )
+                        ->values()
+                        ->all(),
                 ],
             )
             ->assertCreated();
 
-        return (string) $response->json('data.items.0.id');
+        $targetResponseItem = collect(
+            $response->json('data.items'),
+        )->firstWhere(
+            'order_recipient_item_id',
+            $recipientItemId,
+        );
+
+        $this->assertNotNull($targetResponseItem);
+
+        return (string) $targetResponseItem['id'];
     }
 
     private function createSupplier(

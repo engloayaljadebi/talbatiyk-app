@@ -70,18 +70,30 @@ class OrderItemEntity {
 class CreateOrderRequest {
   CreateOrderRequest({
     required List<OrderItemEntity> items,
-    this.supplier,
+    required List<String> supplierIds,
     this.notes = '',
-  }) : items = List<OrderItemEntity>.unmodifiable(items) {
+  }) : items = List<OrderItemEntity>.unmodifiable(items),
+       supplierIds = List<String>.unmodifiable(
+         supplierIds.map((id) => id.trim()).toSet().toList()..sort(),
+       ) {
     if (items.isEmpty) {
       throw ArgumentError.value(items, 'items', 'Order items cannot be empty.');
+    }
+
+    if (supplierIds.isEmpty ||
+        supplierIds.any((supplierId) => supplierId.isEmpty)) {
+      throw ArgumentError.value(
+        supplierIds,
+        'supplierIds',
+        'Order must target at least one supplier.',
+      );
     }
   }
 
   final List<OrderItemEntity> items;
 
   /// المورد الذي ستُرسل إليه الطلبية.
-  final OrderSupplierEntity? supplier;
+  final List<String> supplierIds;
 
   final String notes;
 

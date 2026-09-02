@@ -223,6 +223,7 @@ class OrderSupplierSelectionFulfillmentIntegrationTest extends TestCase
             $buyer,
             [
                 'notes' => 'Selection fulfillment integration',
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
                         'product_id' => $product->id,

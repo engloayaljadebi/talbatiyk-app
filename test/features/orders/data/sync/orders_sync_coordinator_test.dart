@@ -21,6 +21,7 @@ void main() {
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
+            supplierIds: const ['supplier-1'],
             notes: 'Offline',
             items: const [
               OrderItemModel(
@@ -91,6 +92,7 @@ void main() {
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
+            supplierIds: const ['supplier-1'],
             items: const [
               OrderItemModel(
                 productId: 'product-1',
@@ -142,6 +144,7 @@ void main() {
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
+            supplierIds: const ['supplier-1'],
             items: const [
               OrderItemModel(
                 productId: 'product-1',
@@ -203,6 +206,7 @@ void main() {
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemModel(
               productId: 'product-1',
@@ -276,6 +280,7 @@ void main() {
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemModel(
               productId: 'product-1',
@@ -337,6 +342,7 @@ void main() {
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
+          supplierIds: const ['supplier-1'],
           items: const [
             OrderItemModel(
               productId: 'product-1',

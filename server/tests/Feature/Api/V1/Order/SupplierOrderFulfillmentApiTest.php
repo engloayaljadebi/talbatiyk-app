@@ -247,6 +247,7 @@ class SupplierOrderFulfillmentApiTest extends TestCase
             $buyer,
             [
                 'notes' => 'Supplier fulfillment test order',
+                'supplier_ids' => [$supplier->id],
                 'items' => [
                     [
                         'product_id' => $product->id,

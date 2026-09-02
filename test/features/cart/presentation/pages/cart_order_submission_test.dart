@@ -11,157 +11,60 @@ import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dar
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbatiyk/features/supplier_discovery/domain/repositories/supplier_discovery_repository.dart';
+import 'package:talbatiyk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
 
 const ProductEntity _supplierAProduct = ProductEntity(
   id: 'product-a',
-  name: 'شاحن سريع',
+  name: 'Product A',
   price: 4500,
   imageUrl: '',
-  category: 'شواحن',
-  brand: 'Samsung',
+  category: 'Category A',
+  brand: 'Brand A',
   isAvailable: true,
   supplierId: 'supplier-a',
-  supplierName: 'مؤسسة الأمل',
+  supplierName: 'Source Supplier A',
 );
 
 const ProductEntity _supplierBProduct = ProductEntity(
   id: 'product-b',
-  name: 'سماعة لاسلكية',
+  name: 'Product B',
   price: 7000,
   imageUrl: '',
-  category: 'سماعات',
-  brand: 'Sony',
+  category: 'Category B',
+  brand: 'Brand B',
   isAvailable: true,
   supplierId: 'supplier-b',
-  supplierName: 'شركة النور',
+  supplierName: 'Source Supplier B',
+);
+
+const SupplierCandidateEntity _supplierA = SupplierCandidateEntity(
+  id: 'supplier-a',
+  name: 'Supplier A',
+);
+
+const SupplierCandidateEntity _supplierB = SupplierCandidateEntity(
+  id: 'supplier-b',
+  name: 'Supplier B',
 );
 
 void main() {
-  testWidgets('submits a single-supplier cart and persists the order', (
-    WidgetTester tester,
-  ) async {
-    final database = AppDatabase.forTesting(NativeDatabase.memory());
-
-    final remoteDataSource = _FakeOrdersRemoteDataSource();
-
-    final container = ProviderContainer(
-      overrides: [
-        appDatabaseProvider.overrideWithValue(database),
-        ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
-      ],
-    );
-
-    addTearDown(() async {
-      container.dispose();
-      await database.close();
-    });
-
-    // Arrange
-    final cart = container.read(cartProvider);
-
-    cart.addProduct(_supplierAProduct);
-
-    expect(cart.isNotEmpty, isTrue);
-    expect(cart.quantityOf(_supplierAProduct.id), 1);
-
-    await _pumpCartPage(tester, container);
-
-    expect(find.text(_supplierAProduct.name), findsOneWidget);
-
-    // CartPage itself must not own the application-level
-    // bottom navigation bar.
-    //
-    // MainPage is responsible for the global navigation surface.
-    final cartScaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
-
-    expect(cartScaffold.bottomNavigationBar, isNull);
-
-    // Verify the submit button BEFORE submitting.
-    //
-    // After a successful single-supplier submission,
-    // the cart becomes empty and the button should disappear.
-    final submitButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
-
-    expect(submitButton, findsOneWidget);
-
-    _expectWidgetInsideViewport(tester, submitButton);
-
-    // Act
-    await tester.tap(submitButton);
-    await tester.pump();
-
-    await _waitForSubmission(tester, container);
-
-    // Assert orders state.
-    final ordersState = container.read(ordersProvider).state;
-
-    expect(ordersState.errorMessage, isNull, reason: ordersState.errorMessage);
-
-    expect(ordersState.orders, hasLength(1));
-
-    expect(ordersState.orders.single.items, hasLength(1));
-
-    expect(
-      ordersState.orders.single.items.single.productId,
-      _supplierAProduct.id,
-    );
-
-    expect(
-      ordersState.orders.single.items.single.supplierId,
-      _supplierAProduct.supplierId,
-    );
-
-    // Assert remote request.
-    expect(remoteDataSource.requests, hasLength(1));
-
-    final request = remoteDataSource.requests.single;
-
-    expect(request.items, hasLength(1));
-
-    expect(request.items.single.productId, _supplierAProduct.id);
-
-    expect(request.items.single.supplierId, _supplierAProduct.supplierId);
-
-    // Assert local persistence.
-    final persistedOrders = await container
-        .read(ordersLocalDataSourceProvider)
-        .getOrders();
-
-    expect(persistedOrders, hasLength(1));
-
-    expect(persistedOrders.single.items, hasLength(1));
-
-    expect(persistedOrders.single.items.single.productId, _supplierAProduct.id);
-
-    expect(
-      persistedOrders.single.items.single.supplierId,
-      _supplierAProduct.supplierId,
-    );
-
-    // The successfully submitted product must leave the cart.
-    expect(cart.isEmpty, isTrue);
-
-    expect(cart.quantityOf(_supplierAProduct.id), 0);
-
-    await _expectEmptyCartUi(tester);
-
-    // The checkout action must disappear when the cart is empty.
-    expect(find.widgetWithText(FilledButton, 'إرسال الطلبية'), findsNothing);
-
-    expect(find.text(_supplierAProduct.name), findsNothing);
-  });
-
   testWidgets(
-    'submits only selected supplier and keeps unselected supplier in cart',
+    'requires explicit supplier selection even when one candidate exists',
     (WidgetTester tester) async {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
-
       final remoteDataSource = _FakeOrdersRemoteDataSource();
 
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
           ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+              _supplierA,
+            ]),
+          ),
         ],
       );
 
@@ -170,164 +73,76 @@ void main() {
         await database.close();
       });
 
-      // Arrange
       final cart = container.read(cartProvider);
 
       cart.addProduct(_supplierAProduct);
-      cart.addProduct(_supplierBProduct);
-
-      expect(cart.items, hasLength(2));
 
       await _pumpCartPage(tester, container);
-      // Checkout يبقى جزءًا من CartPage نفسها عندما تحتوي السلة عناصر.
-      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
 
-      expect(find.text(_supplierAProduct.name), findsOneWidget);
+      final checkoutButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
 
-      expect(find.text(_supplierBProduct.name), findsOneWidget);
+      expect(checkoutButton, findsOneWidget);
 
-      final submitButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
+      await tester.tap(checkoutButton);
+      await _waitForSupplierDialog(tester);
 
-      expect(submitButton, findsOneWidget);
-
-      _expectWidgetInsideViewport(tester, submitButton);
-
-      // Open supplier selection.
-      await tester.tap(submitButton);
-      await tester.pump();
-
-      expect(find.byType(AlertDialog), findsOneWidget);
-
-      final supplierACheckbox = find.widgetWithText(
+      final supplierCheckbox = find.widgetWithText(
         CheckboxListTile,
-        _supplierAProduct.supplierName,
+        _supplierA.name,
       );
 
-      final supplierBCheckbox = find.widgetWithText(
-        CheckboxListTile,
-        _supplierBProduct.supplierName,
-      );
+      expect(supplierCheckbox, findsOneWidget);
 
-      expect(supplierACheckbox, findsOneWidget);
+      // Explicit selection: even the only candidate starts unselected.
+      expect(tester.widget<CheckboxListTile>(supplierCheckbox).value, isFalse);
 
-      expect(supplierBCheckbox, findsOneWidget);
-
-      // All suppliers are selected by default.
-      expect(tester.widget<CheckboxListTile>(supplierACheckbox).value, isTrue);
-
-      expect(tester.widget<CheckboxListTile>(supplierBCheckbox).value, isTrue);
-
-      // Unselect Supplier B.
-      await tester.tap(supplierBCheckbox);
+      await tester.tap(supplierCheckbox);
       await tester.pump();
 
-      expect(tester.widget<CheckboxListTile>(supplierBCheckbox).value, isFalse);
+      expect(tester.widget<CheckboxListTile>(supplierCheckbox).value, isTrue);
 
-      // Supplier A stays selected.
-      expect(tester.widget<CheckboxListTile>(supplierACheckbox).value, isTrue);
-
-      // Confirm Supplier A only.
       await _confirmSupplierSelection(tester);
 
-      await _waitForSubmission(tester, container);
+      await _waitForSubmission(tester, container, remoteDataSource);
 
-      // Assert remote request.
       expect(remoteDataSource.requests, hasLength(1));
 
       final request = remoteDataSource.requests.single;
 
+      expect(request.supplierIds, <String>['supplier-a']);
       expect(request.items, hasLength(1));
-
       expect(request.items.single.productId, _supplierAProduct.id);
+      expect(request.items.single.supplierId, 'supplier-a');
 
-      expect(request.items.single.supplierId, _supplierAProduct.supplierId);
-
-      // Assert in-memory orders state.
-      final ordersState = container.read(ordersProvider).state;
-
-      expect(
-        ordersState.errorMessage,
-        isNull,
-        reason: ordersState.errorMessage,
-      );
-
-      expect(ordersState.orders, hasLength(1));
-
-      expect(ordersState.orders.single.items, hasLength(1));
-
-      expect(
-        ordersState.orders.single.items.single.supplierId,
-        _supplierAProduct.supplierId,
-      );
-
-      // Supplier A was submitted and removed.
-      expect(cart.quantityOf(_supplierAProduct.id), 0);
-
-      // Supplier B was not submitted and must remain.
-      expect(cart.quantityOf(_supplierBProduct.id), 1);
-      // عند إفراغ السلة بعد نجاح الطلب يجب إزالة Checkout bar.
-      // Supplier B لم يُرسل وما زال موجودًا، لذلك يجب أن تبقى Checkout bar.
-      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
-      expect(cart.items, hasLength(1));
-
-      expect(cart.isEmpty, isFalse);
-
-      // Assert local persistence.
       final persistedOrders = await container
           .read(ordersLocalDataSourceProvider)
           .getOrders();
 
       expect(persistedOrders, hasLength(1));
-
       expect(persistedOrders.single.items, hasLength(1));
 
-      expect(
-        persistedOrders.single.items.single.productId,
-        _supplierAProduct.id,
-      );
+      expect(cart.isEmpty, isTrue);
 
-      expect(
-        persistedOrders.single.items.single.supplierId,
-        _supplierAProduct.supplierId,
-      );
-
-      // Rebuild UI after cart mutation.
-      await tester.pump();
-
-      expect(find.text(_supplierAProduct.name), findsNothing);
-
-      expect(find.text(_supplierBProduct.name), findsOneWidget);
-
-      expect(
-        find.byKey(const ValueKey('cart-content')),
-        findsOneWidget,
-      ); // بقاء Supplier B يعني أن Checkout يجب أن يبقى متاحًا.
-      expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
-
-      // Because Supplier B remains in the cart,
-      // the checkout action must remain available.
-      final remainingSubmitButton = find.widgetWithText(
-        FilledButton,
-        'إرسال الطلبية',
-      );
-
-      expect(remainingSubmitButton, findsOneWidget);
-
-      _expectWidgetInsideViewport(tester, remainingSubmitButton);
+      await _expectEmptyCartUi(tester);
     },
   );
 
-  testWidgets('submits products from all selected suppliers in one order', (
+  testWidgets('selected recipient receives the entire cross-source basket', (
     WidgetTester tester,
   ) async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());
-
     final remoteDataSource = _FakeOrdersRemoteDataSource();
 
     final container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
         ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+        supplierDiscoveryRepositoryProvider.overrideWithValue(
+          const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+            _supplierA,
+            _supplierB,
+          ]),
+        ),
       ],
     );
 
@@ -336,7 +151,6 @@ void main() {
       await database.close();
     });
 
-    // Arrange
     final cart = container.read(cartProvider);
 
     cart.addProduct(_supplierAProduct);
@@ -345,108 +159,180 @@ void main() {
     expect(cart.items, hasLength(2));
 
     await _pumpCartPage(tester, container);
-    // Supplier B ما زال موجودًا في السلة، لذلك يجب أن تبقى Checkout bar.
-    expect(find.byKey(const ValueKey('checkout-bar')), findsOneWidget);
-    final submitButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
 
-    expect(submitButton, findsOneWidget);
+    final checkoutButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
 
-    _expectWidgetInsideViewport(tester, submitButton);
+    expect(checkoutButton, findsOneWidget);
 
-    // Open supplier selection.
-    await tester.tap(submitButton);
-    await tester.pump();
-
-    expect(find.byType(AlertDialog), findsOneWidget);
-
-    expect(find.byType(CheckboxListTile), findsNWidgets(2));
+    await tester.tap(checkoutButton);
+    await _waitForSupplierDialog(tester);
 
     final supplierACheckbox = find.widgetWithText(
       CheckboxListTile,
-      _supplierAProduct.supplierName,
+      _supplierA.name,
     );
 
     final supplierBCheckbox = find.widgetWithText(
       CheckboxListTile,
-      _supplierBProduct.supplierName,
+      _supplierB.name,
     );
 
-    expect(tester.widget<CheckboxListTile>(supplierACheckbox).value, isTrue);
+    expect(supplierACheckbox, findsOneWidget);
+    expect(supplierBCheckbox, findsOneWidget);
 
-    expect(tester.widget<CheckboxListTile>(supplierBCheckbox).value, isTrue);
+    // Recipient selection is explicit, not inferred from product sources.
+    expect(tester.widget<CheckboxListTile>(supplierACheckbox).value, isFalse);
+    expect(tester.widget<CheckboxListTile>(supplierBCheckbox).value, isFalse);
 
-    // Both suppliers are selected by default.
+    // Select only Supplier A as the RFQ recipient.
+    await tester.tap(supplierACheckbox);
+    await tester.pump();
+
     await _confirmSupplierSelection(tester);
 
-    await _waitForSubmission(tester, container);
+    await _waitForSubmission(tester, container, remoteDataSource);
 
-    // Assert remote request.
     expect(remoteDataSource.requests, hasLength(1));
 
     final request = remoteDataSource.requests.single;
 
+    // Routing authority: only Supplier A is a recipient.
+    expect(request.supplierIds, <String>['supplier-a']);
+
+    // Basket authority: both products are submitted unchanged.
     expect(request.items, hasLength(2));
 
-    expect(request.items.map((item) => item.supplierId).toSet(), <String>{
-      _supplierAProduct.supplierId,
-      _supplierBProduct.supplierId,
-    });
-
     expect(request.items.map((item) => item.productId).toSet(), <String>{
-      _supplierAProduct.id,
-      _supplierBProduct.id,
+      'product-a',
+      'product-b',
     });
 
-    // Assert state.
+    // Product supplier remains catalog/source provenance.
+    expect(request.items.map((item) => item.supplierId).toSet(), <String>{
+      'supplier-a',
+      'supplier-b',
+    });
+
     final ordersState = container.read(ordersProvider).state;
 
     expect(ordersState.errorMessage, isNull, reason: ordersState.errorMessage);
 
     expect(ordersState.orders, hasLength(1));
-
     expect(ordersState.orders.single.items, hasLength(2));
 
-    expect(
-      ordersState.orders.single.items.map((item) => item.supplierId).toSet(),
-      <String>{_supplierAProduct.supplierId, _supplierBProduct.supplierId},
-    );
-
-    // Assert local persistence.
     final persistedOrders = await container
         .read(ordersLocalDataSourceProvider)
         .getOrders();
 
     expect(persistedOrders, hasLength(1));
-
     expect(persistedOrders.single.items, hasLength(2));
 
     expect(
-      persistedOrders.single.items.map((item) => item.supplierId).toSet(),
-      <String>{_supplierAProduct.supplierId, _supplierBProduct.supplierId},
-    );
-
-    expect(
       persistedOrders.single.items.map((item) => item.productId).toSet(),
-      <String>{_supplierAProduct.id, _supplierBProduct.id},
+      <String>{'product-a', 'product-b'},
     );
 
-    // Every supplier was successfully submitted.
+    // The whole basket entered the RFQ, therefore the whole cart is cleared.
     expect(cart.isEmpty, isTrue);
+    expect(cart.quantityOf(_supplierAProduct.id), 0);
+    expect(cart.quantityOf(_supplierBProduct.id), 0);
 
     await _expectEmptyCartUi(tester);
 
-    expect(find.text(_supplierAProduct.name), findsNothing);
-
-    expect(find.text(_supplierBProduct.name), findsNothing);
-
-    expect(find.widgetWithText(FilledButton, 'إرسال الطلبية'), findsNothing);
+    expect(find.byKey(const ValueKey('checkout-bar')), findsNothing);
   });
+
+  testWidgets(
+    'multiple selected recipients receive the same entire basket request',
+    (WidgetTester tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      final remoteDataSource = _FakeOrdersRemoteDataSource();
+
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+              _supplierA,
+              _supplierB,
+            ]),
+          ),
+        ],
+      );
+
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+
+      final cart = container.read(cartProvider);
+
+      cart.addProduct(_supplierAProduct);
+      cart.addProduct(_supplierBProduct);
+
+      await _pumpCartPage(tester, container);
+
+      final checkoutButton = find.widgetWithText(FilledButton, 'إرسال الطلبية');
+
+      await tester.tap(checkoutButton);
+      await _waitForSupplierDialog(tester);
+
+      final supplierACheckbox = find.widgetWithText(
+        CheckboxListTile,
+        _supplierA.name,
+      );
+
+      final supplierBCheckbox = find.widgetWithText(
+        CheckboxListTile,
+        _supplierB.name,
+      );
+
+      await tester.tap(supplierACheckbox);
+      await tester.pump();
+
+      await tester.tap(supplierBCheckbox);
+      await tester.pump();
+
+      expect(tester.widget<CheckboxListTile>(supplierACheckbox).value, isTrue);
+      expect(tester.widget<CheckboxListTile>(supplierBCheckbox).value, isTrue);
+
+      await _confirmSupplierSelection(tester);
+
+      await _waitForSubmission(tester, container, remoteDataSource);
+
+      expect(remoteDataSource.requests, hasLength(1));
+
+      final request = remoteDataSource.requests.single;
+
+      expect(request.supplierIds, <String>['supplier-a', 'supplier-b']);
+
+      expect(request.items, hasLength(2));
+
+      expect(request.items.map((item) => item.productId).toSet(), <String>{
+        'product-a',
+        'product-b',
+      });
+
+      expect(request.items.map((item) => item.supplierId).toSet(), <String>{
+        'supplier-a',
+        'supplier-b',
+      });
+
+      final persistedOrders = await container
+          .read(ordersLocalDataSourceProvider)
+          .getOrders();
+
+      expect(persistedOrders, hasLength(1));
+      expect(persistedOrders.single.items, hasLength(2));
+
+      expect(cart.isEmpty, isTrue);
+
+      await _expectEmptyCartUi(tester);
+    },
+  );
 }
 
-/// Builds CartPage using the exact ProviderContainer created by the test.
-///
-/// This keeps the test hermetic while allowing Cart, Orders and Drift
-/// to share the same controlled test dependencies.
 Future<void> _pumpCartPage(
   WidgetTester tester,
   ProviderContainer container,
@@ -461,7 +347,18 @@ Future<void> _pumpCartPage(
   await tester.pump();
 }
 
-/// Confirms the currently displayed supplier-selection dialog.
+Future<void> _waitForSupplierDialog(WidgetTester tester) async {
+  for (var attempt = 0; attempt < 100; attempt++) {
+    if (find.byType(AlertDialog).evaluate().isNotEmpty) {
+      return;
+    }
+
+    await tester.pump(const Duration(milliseconds: 20));
+  }
+
+  fail('Supplier selection dialog did not appear before timeout.');
+}
+
 Future<void> _confirmSupplierSelection(WidgetTester tester) async {
   final dialog = find.byType(AlertDialog);
 
@@ -478,20 +375,21 @@ Future<void> _confirmSupplierSelection(WidgetTester tester) async {
   await tester.pump();
 }
 
-/// Waits for OrdersController to finish submission without using
-/// pumpAndSettle.
-///
-/// This is intentional: animated progress indicators may keep scheduling
-/// frames and make pumpAndSettle unsuitable for asynchronous submit flows.
 Future<void> _waitForSubmission(
   WidgetTester tester,
   ProviderContainer container,
+  _FakeOrdersRemoteDataSource remoteDataSource,
 ) async {
+  var requestStarted = false;
+
   for (var attempt = 0; attempt < 100; attempt++) {
+    if (remoteDataSource.requests.isNotEmpty) {
+      requestStarted = true;
+    }
+
     final state = container.read(ordersProvider).state;
 
-    if (!state.isSubmitting) {
-      // Give Riverpod/Flutter one frame to reflect the final state in the UI.
+    if (requestStarted && !state.isSubmitting) {
       await tester.pump();
       return;
     }
@@ -502,49 +400,29 @@ Future<void> _waitForSubmission(
   fail('Order submission did not complete before timeout.');
 }
 
-/// Verifies the transition from cart-content to empty-cart.
 Future<void> _expectEmptyCartUi(WidgetTester tester) async {
-  // Start AnimatedSwitcher transition.
   await tester.pump();
 
   expect(find.byKey(const ValueKey('empty-cart')), findsOneWidget);
 
-  // CartPage currently uses a 320ms AnimatedSwitcher.
   await tester.pump(const Duration(milliseconds: 400));
 
   expect(find.byKey(const ValueKey('cart-content')), findsNothing);
 }
 
-/// Confirms that an important action is visually inside the logical
-/// Flutter viewport.
-///
-/// tester.view.physicalSize is expressed in physical pixels, while widget
-/// coordinates are logical pixels, therefore devicePixelRatio must be used.
-void _expectWidgetInsideViewport(WidgetTester tester, Finder finder) {
-  expect(finder, findsOneWidget);
+final class _FakeSupplierDiscoveryRepository
+    implements SupplierDiscoveryRepository {
+  const _FakeSupplierDiscoveryRepository(this.suppliers);
 
-  final rect = tester.getRect(finder);
+  final List<SupplierCandidateEntity> suppliers;
 
-  final logicalWidth =
-      tester.view.physicalSize.width / tester.view.devicePixelRatio;
-
-  final logicalHeight =
-      tester.view.physicalSize.height / tester.view.devicePixelRatio;
-
-  expect(rect.left, greaterThanOrEqualTo(0));
-
-  expect(rect.top, greaterThanOrEqualTo(0));
-
-  expect(rect.right, lessThanOrEqualTo(logicalWidth));
-
-  expect(rect.bottom, lessThanOrEqualTo(logicalHeight));
+  @override
+  Future<List<SupplierCandidateEntity>> getSuppliers() async {
+    return suppliers;
+  }
 }
 
-/// Fake remote Orders datasource.
-///
-/// The purpose of this fake is to verify the exact request that would be
-/// sent to the backend while keeping the widget tests fully deterministic.
-class _FakeOrdersRemoteDataSource implements OrdersDataSource {
+final class _FakeOrdersRemoteDataSource implements OrdersDataSource {
   final List<CreateOrderModel> requests = <CreateOrderModel>[];
 
   @override

@@ -52,6 +52,10 @@ final class GeneratedApiClient {
   /// Order endpoints.
   OrderApi get orders => client.getOrderApi();
 
+  /// Customer-facing eligible supplier discovery endpoints.
+  SupplierDiscoveryApi get supplierDiscovery =>
+      client.getSupplierDiscoveryApi();
+
   /// Supplier follow endpoints.
   SupplierFollowApi get supplierFollow => client.getSupplierFollowApi();
 

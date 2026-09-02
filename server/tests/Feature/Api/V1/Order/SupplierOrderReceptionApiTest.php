@@ -29,7 +29,7 @@ class SupplierOrderReceptionApiTest extends TestCase
         $this->seed(BusinessCapabilitySeeder::class);
     }
 
-    public function test_order_creation_builds_one_recipient_per_supplier(): void
+    public function test_order_creation_broadcasts_all_items_to_selected_suppliers(): void
     {
         $buyer = User::factory()->create();
         $firstSupplier = $this->createSupplier('First recipient supplier');
@@ -54,7 +54,7 @@ class SupplierOrderReceptionApiTest extends TestCase
         );
 
         $this->assertDatabaseCount('order_recipients', 2);
-        $this->assertDatabaseCount('order_recipient_items', 2);
+        $this->assertDatabaseCount('order_recipient_items', 4);
 
         $firstRecipient = OrderRecipient::query()
             ->where('order_id', $order->id)
@@ -85,10 +85,14 @@ class SupplierOrderReceptionApiTest extends TestCase
             'order_recipient_id' => $secondRecipient->id,
             'order_item_id' => $secondOrderItem->id,
         ]);
-
-        $this->assertDatabaseMissing('order_recipient_items', [
+        $this->assertDatabaseHas('order_recipient_items', [
             'order_recipient_id' => $firstRecipient->id,
             'order_item_id' => $secondOrderItem->id,
+        ]);
+
+        $this->assertDatabaseHas('order_recipient_items', [
+            'order_recipient_id' => $secondRecipient->id,
+            'order_item_id' => $firstOrderItem->id,
         ]);
     }
 
@@ -135,7 +139,7 @@ class SupplierOrderReceptionApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.supplier_id', $firstSupplier->id)
-            ->assertJsonCount(1, 'data.0.items')
+            ->assertJsonCount(2, 'data.0.items')
             ->assertJsonPath(
                 'data.0.items.0.product_id',
                 $firstProduct->id,
@@ -144,7 +148,7 @@ class SupplierOrderReceptionApiTest extends TestCase
                 'data.0.items.0.requested_quantity',
                 2,
             )
-            ->assertJsonMissing([
+            ->assertJsonFragment([
                 'product_id' => $secondProduct->id,
             ])
             ->assertJsonMissing([
@@ -290,6 +294,10 @@ class SupplierOrderReceptionApiTest extends TestCase
             $buyer,
             [
                 'notes' => 'Supplier reception test order',
+                'supplier_ids' => array_values(array_unique(array_map(
+                    static fn (Product $product): string => $product->supplier_id,
+                    $products,
+                ))),
                 'items' => array_map(
                     static fn (Product $product): array => [
                         'product_id' => $product->id,
