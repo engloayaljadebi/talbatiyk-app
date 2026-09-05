@@ -173,4 +173,3 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
-test/order_index200_response_test.dart

@@ -2782,7 +2782,8 @@
                             "type": "string",
                             "format": "uuid"
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 10
                     },
                     "items": {
                         "type": "array",
@@ -2815,7 +2816,8 @@
                                 "expected_supplier_id"
                             ]
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 50
                     }
                 },
                 "required": [
@@ -3514,7 +3516,8 @@
                                 "selected_quantity"
                             ]
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 50
                     }
                 },
                 "required": [
@@ -3562,7 +3565,8 @@
                                 "available_quantity"
                             ]
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 50
                     }
                 },
                 "required": [
