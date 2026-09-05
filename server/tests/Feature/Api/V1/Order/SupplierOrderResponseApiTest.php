@@ -260,6 +260,26 @@ class SupplierOrderResponseApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_left_membership_cannot_submit_response(): void
+    {
+        $member = User::factory()->create();
+
+        [$member, $supplier, $recipient, $items] = $this->fixture(
+            member: $member,
+            membershipStatus: 'left',
+        );
+
+        Sanctum::actingAs($member);
+
+        $this
+            ->withHeader('Idempotency-Key', self::IDEMPOTENCY_KEY)
+            ->postJson(
+                $this->endpoint($supplier, $recipient),
+                $this->fullPayload($items),
+            )
+            ->assertNotFound();
+    }
+
     public function test_same_idempotency_key_and_payload_replays_same_response(): void
     {
         [$member, $supplier, $recipient, $items] = $this->fixture();

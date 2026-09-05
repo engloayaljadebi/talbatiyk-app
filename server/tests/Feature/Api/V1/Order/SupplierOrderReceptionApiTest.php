@@ -188,6 +188,25 @@ class SupplierOrderReceptionApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_left_membership_cannot_read_supplier_orders(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            'Left membership supplier',
+            member: $user,
+            membershipStatus: 'left',
+        );
+
+        Sanctum::actingAs($user);
+
+        $this
+            ->getJson(
+                "/api/v1/businesses/{$supplier->id}/received-orders",
+            )
+            ->assertNotFound();
+    }
+
     public function test_historical_received_order_remains_visible_after_supplier_capability_is_disabled(): void
     {
         $buyer = User::factory()->create();
