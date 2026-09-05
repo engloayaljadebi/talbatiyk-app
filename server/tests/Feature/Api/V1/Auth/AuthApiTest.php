@@ -413,6 +413,49 @@ class AuthApiTest extends TestCase
             ->assertUnauthorized();
     }
 
+    public function test_register_rejects_password_over_bcrypt_byte_limit(): void
+    {
+        $password = str_repeat('ع', 37);
+
+        $this
+            ->postJson(
+                '/api/v1/auth/register',
+                $this->registrationPayload([
+                    'password' => $password,
+                    'password_confirmation' => $password,
+                ]),
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'password',
+            ]);
+
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_login_rejects_password_over_bcrypt_byte_limit(): void
+    {
+        $this->createUser(
+            username: 'byte_limit_user',
+        );
+
+        $this
+            ->postJson('/api/v1/auth/login', [
+                'login' => 'byte_limit_user',
+                'password' => str_repeat('ع', 37),
+                'device_name' => 'Android Phone',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'password',
+            ]);
+
+        $this->assertDatabaseCount(
+            'personal_access_tokens',
+            0,
+        );
+    }
+
     /**
      *   * بيانات تسجيل افتراضية لتقليل التكرار داخل الاختبارات.
      */

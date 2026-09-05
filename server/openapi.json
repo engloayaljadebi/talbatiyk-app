@@ -2801,7 +2801,9 @@
                                 },
                                 "expected_unit_price": {
                                     "type": "number",
-                                    "description": "This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price."
+                                    "description": "This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price.",
+                                    "minimum": 0,
+                                    "exclusiveMaximum": 10000000000
                                 },
                                 "expected_supplier_id": {
                                     "type": "string",
@@ -2845,7 +2847,8 @@
                         "maxLength": 320
                     },
                     "password": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     },
                     "device_name": {
                         "type": "string",
@@ -3448,7 +3451,8 @@
                         "maxLength": 160
                     },
                     "password": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     },
                     "contact_type": {
                         "type": "string",
@@ -3476,7 +3480,8 @@
                         "maxLength": 100
                     },
                     "password_confirmation": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     }
                 },
                 "required": [
@@ -3549,7 +3554,9 @@
                                     "type": [
                                         "number",
                                         "null"
-                                    ]
+                                    ],
+                                    "minimum": 0,
+                                    "exclusiveMaximum": 10000000000000000
                                 },
                                 "response_notes": {
                                     "type": [

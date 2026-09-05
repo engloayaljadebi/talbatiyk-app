@@ -238,6 +238,40 @@ class OrderCommercialAuthorityTest extends TestCase
         return $supplier;
     }
 
+    public function test_expected_price_above_product_storage_capacity_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $supplier = $this->createSupplier(
+            'Price capacity supplier',
+        );
+
+        $product = $this->createProduct($supplier);
+
+        $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson(
+                '/api/v1/orders',
+                $this->orderPayload(
+                    $product,
+                    [
+                        'expected_unit_price' =>
+                            '10000000000.00',
+                    ],
+                ),
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'items.0.expected_unit_price',
+            ]);
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     /**
      * Create the current server-side commercial state used by OrderService.
      *

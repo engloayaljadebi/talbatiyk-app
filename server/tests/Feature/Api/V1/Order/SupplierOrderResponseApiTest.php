@@ -529,6 +529,41 @@ class SupplierOrderResponseApiTest extends TestCase
         return $product;
     }
 
+    public function test_offered_price_above_storage_capacity_is_rejected(): void
+    {
+        [$member, $supplier, $recipient, $items] =
+            $this->fixture();
+
+        Sanctum::actingAs($member);
+
+        $payload = $this->fullPayload($items);
+
+        $payload['items'][0]['offered_unit_price'] =
+            '10000000000000000.00';
+
+        $this
+            ->withHeader(
+                'Idempotency-Key',
+                self::IDEMPOTENCY_KEY,
+            )
+            ->postJson(
+                $this->endpoint(
+                    $supplier,
+                    $recipient,
+                ),
+                $payload,
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'items.0.offered_unit_price',
+            ]);
+
+        $this->assertDatabaseCount(
+            'order_recipient_responses',
+            0,
+        );
+    }
+
     /**
      * @param  Collection<int, mixed>  $items
      * @return array{items: array<int, array<string, mixed>>}
