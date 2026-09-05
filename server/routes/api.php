@@ -62,7 +62,10 @@ Route::prefix('v1')->group(function (): void {
              * يجب أن يكون الحساب نشطًا.
              */
             Route::get('/me', [AuthController::class, 'me'])
-                ->middleware('active.user');
+                ->middleware([
+                    'throttle:120,1',
+                    'active.user',
+                ]);
 
             /*
              * تسجيل خروج الجهاز الحالي فقط.
@@ -87,6 +90,7 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware([
         'auth:sanctum',
+        'throttle:120,1',
         'active.user',
     ])->group(function (): void {
         /*
