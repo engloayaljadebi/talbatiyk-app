@@ -25,6 +25,7 @@ use App\Models\Business;
 use App\Models\BusinessMembership;
 use App\Models\BusinessRole;
 use App\Models\User;
+use App\Services\Business\BusinessUpdateService;
 use Database\Seeders\BusinessRoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -547,6 +548,35 @@ class BusinessUpdateApiTest extends TestCase
                 'data.membership.roles.0',
                 'manager',
             );
+    }
+
+    public function test_service_ignores_server_owned_status_field(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'active',
+        ]);
+
+        $business = $this->createBusinessWithRole(
+            user: $user,
+            roleCode: 'owner',
+        );
+
+        $this->app
+            ->make(BusinessUpdateService::class)
+            ->update(
+                $user,
+                $business->id,
+                [
+                    'name' => 'Service allowlist update',
+                    'status' => 'suspended',
+                ],
+            );
+
+        $this->assertDatabaseHas('businesses', [
+            'id' => $business->id,
+            'name' => 'Service allowlist update',
+            'status' => 'active',
+        ]);
     }
 
     /**

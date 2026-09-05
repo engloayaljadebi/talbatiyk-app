@@ -31,6 +31,7 @@ namespace App\Services\Business;
 
 use App\Models\Business;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 class BusinessUpdateService
 {
@@ -76,8 +77,17 @@ class BusinessUpdateService
          * UpdateBusinessRequest يضمن أن $data لا يحتوي
          * إلا على الحقول المسموح بها.
          */
-        if ($data !== []) {
-            $business->fill($data);
+        $attributes = Arr::only(
+            $data,
+            [
+                'name',
+                'legal_name',
+                'description',
+            ],
+        );
+
+        if ($attributes !== []) {
+            $business->fill($attributes);
             $business->save();
         }
 
