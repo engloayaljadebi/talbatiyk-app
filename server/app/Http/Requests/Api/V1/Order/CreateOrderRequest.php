@@ -83,8 +83,9 @@ class CreateOrderRequest extends FormRequest
             'items.*.expected_unit_price' => [
                 'required',
                 'numeric',
-                'min:0',
                 'decimal:0,2',
+                'min:0',
+                'lt:10000000000',
             ],
 
             /*

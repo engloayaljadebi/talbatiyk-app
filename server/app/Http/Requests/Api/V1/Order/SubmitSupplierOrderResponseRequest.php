@@ -54,8 +54,9 @@ class SubmitSupplierOrderResponseRequest extends FormRequest
             'items.*.offered_unit_price' => [
                 'nullable',
                 'numeric',
-                'min:0',
                 'decimal:0,2',
+                'min:0',
+                'lt:10000000000000000',
             ],
 
             'items.*.response_notes' => [
