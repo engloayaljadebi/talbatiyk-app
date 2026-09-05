@@ -26,6 +26,7 @@ class SubmitSupplierOrderResponseRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
+                'max:50',
             ],
 
             'items.*' => [
