@@ -225,6 +225,80 @@ class SupplierOrderFulfillmentApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_user_without_membership_cannot_update_fulfillment(): void
+    {
+        [, $supplier, $recipient] = $this->fixture(
+            selected: true,
+        );
+
+        $outsider = User::factory()->create();
+
+        Sanctum::actingAs($outsider);
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplier, $recipient),
+                [
+                    'expected_version' => 1,
+                    'status' => 'preparing',
+                ],
+            )
+            ->assertNotFound();
+    }
+
+    public function test_suspended_membership_cannot_update_fulfillment(): void
+    {
+        [$member, $supplier, $recipient] = $this->fixture(
+            selected: true,
+        );
+
+        $supplier
+            ->memberships()
+            ->where('user_id', $member->id)
+            ->update([
+                'status' => 'suspended',
+            ]);
+
+        Sanctum::actingAs($member);
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplier, $recipient),
+                [
+                    'expected_version' => 1,
+                    'status' => 'preparing',
+                ],
+            )
+            ->assertNotFound();
+    }
+
+    public function test_left_membership_cannot_update_fulfillment(): void
+    {
+        [$member, $supplier, $recipient] = $this->fixture(
+            selected: true,
+        );
+
+        $supplier
+            ->memberships()
+            ->where('user_id', $member->id)
+            ->update([
+                'status' => 'left',
+                'left_at' => now(),
+            ]);
+
+        Sanctum::actingAs($member);
+
+        $this
+            ->patchJson(
+                $this->endpoint($supplier, $recipient),
+                [
+                    'expected_version' => 1,
+                    'status' => 'preparing',
+                ],
+            )
+            ->assertNotFound();
+    }
+
     /**
      * @return array{0: User, 1: Business, 2: OrderRecipient}
      */
