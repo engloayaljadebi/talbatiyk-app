@@ -1,0 +1,111 @@
+name: OpenAPI Contract CI
+
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - "packages/talbatiyk_api/**"
+      - "package.json"
+      - "package-lock.json"
+      - "openapitools.json"
+      - ".gitattributes"
+      - ".github/workflows/openapi-contract-ci.yml"
+
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - "server/**"
+      - "packages/talbatiyk_api/**"
+      - "package.json"
+      - "package-lock.json"
+      - "openapitools.json"
+      - ".gitattributes"
+      - ".github/workflows/openapi-contract-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install Laravel dependencies
+        working-directory: server
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel environment
+        working-directory: server
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Export OpenAPI contract
+        working-directory: server
+        run: php artisan scramble:export --path=openapi.json --no-interaction
+
+      - name: Verify OpenAPI contract has no drift
+        run: |
+          if ! git diff --exit-code -- server/openapi.json; then
+            echo "::error::server/openapi.json is out of date with the Laravel API contract."
+            exit 1
+          fi
+
+      - name: Install OpenAPI Generator CLI
+        run: npm ci
+
+      - name: Regenerate Dart SDK
+        run: |
+          npx --no-install openapi-generator-cli generate \
+            -i ./server/openapi.json \
+            -g dart-dio \
+            -o ./packages/talbatiyk_api \
+            --additional-properties=pubName=talbatiyk_api,pubVersion=0.1.0,pubHomepage=homepage
+
+      - name: Resolve generated SDK dependencies
+        working-directory: packages/talbatiyk_api
+        run: dart pub get
+
+      - name: Rebuild generated SDK
+        working-directory: packages/talbatiyk_api
+        run: dart run build_runner build
+
+      - name: Verify generated SDK has no drift
+        shell: bash
+        run: |
+          changes="$(git status --porcelain --untracked-files=all -- packages/talbatiyk_api)"
+          if [[ -n "$changes" ]]; then
+            echo "::error::packages/talbatiyk_api is out of date with server/openapi.json."
+            git status --short --untracked-files=all -- packages/talbatiyk_api
+            git diff -- packages/talbatiyk_api
+            exit 1
+          fi
