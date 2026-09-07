@@ -80,7 +80,17 @@ jobs:
           printf '%s\n' "$output"
 
           if [[ $status -ne 0 ]]; then
-            diagnostic="$(printf '%s\n' "$output" | tail -n 30)"
+            diagnostic="$(
+              {
+                printf '%s\n' '===== FIRST 60 LINES ====='
+                printf '%s\n' "$output" | head -n 60
+
+                printf '%s\n' '===== ERROR MATCHES ====='
+                printf '%s\n' "$output" |
+                  grep -E -i -B 3 -A 8 'exception|error|SQLSTATE|PDO|could not|failed|connection|driver|not found' |
+                  head -n 80 || true
+              }
+            )"
             diagnostic="${diagnostic//'%'/'%25'}"
             diagnostic="${diagnostic//$'\r'/'%0D'}"
             diagnostic="${diagnostic//$'\n'/'%0A'}"
