@@ -17,8 +17,7 @@ final class ExclusiveMaximumNumberType extends NumberType
         return array_merge(
             parent::toArray(),
             [
-                'exclusiveMaximum' =>
-                    $this->exclusiveMaximum,
+                'exclusiveMaximum' => $this->exclusiveMaximum,
             ],
         );
     }

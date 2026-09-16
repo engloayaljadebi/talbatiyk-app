@@ -21,8 +21,8 @@
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
-use App\Http\Controllers\Api\V1\Business\SupplierDiscoveryController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
+use App\Http\Controllers\Api\V1\Business\SupplierDiscoveryController;
 use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;

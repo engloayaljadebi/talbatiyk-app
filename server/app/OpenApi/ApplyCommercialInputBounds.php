@@ -24,15 +24,14 @@ final class ApplyCommercialInputBounds
 
         $this->apply(
             openApi: $openApi,
-            requestClass:
-                SubmitSupplierOrderResponseRequest::class,
+            requestClass: SubmitSupplierOrderResponseRequest::class,
             ruleKey: 'items.*.offered_unit_price',
             propertyName: 'offered_unit_price',
         );
     }
 
     /**
-     * @param class-string $requestClass
+     * @param  class-string  $requestClass
      */
     private function apply(
         OpenApi $openApi,
@@ -111,7 +110,7 @@ final class ApplyCommercialInputBounds
     }
 
     /**
-     * @param class-string $requestClass
+     * @param  class-string  $requestClass
      */
     private function exclusiveMaximumFromRules(
         string $requestClass,
@@ -156,7 +155,7 @@ final class ApplyCommercialInputBounds
     }
 
     /**
-     * @param class-string $requestClass
+     * @param  class-string  $requestClass
      */
     private function resolveSchema(
         OpenApi $openApi,
@@ -176,8 +175,7 @@ final class ApplyCommercialInputBounds
         $matches = [];
 
         foreach (
-            $openApi->components->schemas
-            as $name => $schema
+            $openApi->components->schemas as $name => $schema
         ) {
             if (
                 class_basename($name)
@@ -189,7 +187,7 @@ final class ApplyCommercialInputBounds
 
         if (count($matches) !== 1) {
             throw new LogicException(
-                "Unable to resolve OpenAPI schema "
+                'Unable to resolve OpenAPI schema '
                 ."for {$requestClass}.",
             );
         }

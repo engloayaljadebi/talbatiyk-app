@@ -153,7 +153,7 @@ class OrderAggregateStatusResolverTest extends TestCase
     }
 
     /**
-     * @param array<int, OrderRecipient> $recipients
+     * @param  array<int, OrderRecipient>  $recipients
      */
     private function order(array $recipients): Order
     {

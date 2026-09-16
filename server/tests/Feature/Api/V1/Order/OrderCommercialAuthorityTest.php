@@ -259,8 +259,7 @@ class OrderCommercialAuthorityTest extends TestCase
                 $this->orderPayload(
                     $product,
                     [
-                        'expected_unit_price' =>
-                            '10000000000.00',
+                        'expected_unit_price' => '10000000000.00',
                     ],
                 ),
             )
