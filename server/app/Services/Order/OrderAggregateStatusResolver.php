@@ -32,22 +32,19 @@ final class OrderAggregateStatusResolver
         }
 
         $allResponsesReceived = $recipients->every(
-            static fn (OrderRecipient $recipient): bool =>
-                $recipient->getRelation('response') !== null,
+            static fn (OrderRecipient $recipient): bool => $recipient->getRelation('response') !== null,
         );
 
         $selectedRecipients = $recipients
             ->filter(
-                fn (OrderRecipient $recipient): bool =>
-                    $this->hasPositiveSelection($recipient),
+                fn (OrderRecipient $recipient): bool => $this->hasPositiveSelection($recipient),
             )
             ->values();
 
         if ($selectedRecipients->isNotEmpty()) {
             $deliveredCount = $selectedRecipients
                 ->filter(
-                    static fn (OrderRecipient $recipient): bool =>
-                        $recipient->fulfillment_status
+                    static fn (OrderRecipient $recipient): bool => $recipient->fulfillment_status
                         === FulfillmentStatus::Delivered,
                 )
                 ->count();
@@ -72,8 +69,7 @@ final class OrderAggregateStatusResolver
             }
 
             $hasStartedFulfillment = $selectedRecipients->contains(
-                static fn (OrderRecipient $recipient): bool =>
-                    $recipient->fulfillment_status !== null,
+                static fn (OrderRecipient $recipient): bool => $recipient->fulfillment_status !== null,
             );
 
             if ($hasStartedFulfillment) {

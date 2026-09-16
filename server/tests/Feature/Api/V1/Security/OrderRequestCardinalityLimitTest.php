@@ -21,7 +21,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
         $this->assertFalse(
             Validator::make(
                 $payload,
-                (new CreateOrderRequest())->rules(),
+                (new CreateOrderRequest)->rules(),
             )->fails(),
         );
 
@@ -29,7 +29,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
 
         $validator = Validator::make(
             $payload,
-            (new CreateOrderRequest())->rules(),
+            (new CreateOrderRequest)->rules(),
         );
 
         $this->assertTrue($validator->fails());
@@ -52,7 +52,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
         $this->assertFalse(
             Validator::make(
                 $payload,
-                (new CreateOrderRequest())->rules(),
+                (new CreateOrderRequest)->rules(),
             )->fails(),
         );
 
@@ -60,7 +60,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
 
         $validator = Validator::make(
             $payload,
-            (new CreateOrderRequest())->rules(),
+            (new CreateOrderRequest)->rules(),
         );
 
         $this->assertTrue($validator->fails());
@@ -82,7 +82,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
         $this->assertFalse(
             Validator::make(
                 $payload,
-                (new SubmitSupplierOrderResponseRequest())->rules(),
+                (new SubmitSupplierOrderResponseRequest)->rules(),
             )->fails(),
         );
 
@@ -90,7 +90,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
 
         $validator = Validator::make(
             $payload,
-            (new SubmitSupplierOrderResponseRequest())->rules(),
+            (new SubmitSupplierOrderResponseRequest)->rules(),
         );
 
         $this->assertTrue($validator->fails());
@@ -113,7 +113,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
         $this->assertFalse(
             Validator::make(
                 $payload,
-                (new SelectOrderSupplierResponsesRequest())->rules(),
+                (new SelectOrderSupplierResponsesRequest)->rules(),
             )->fails(),
         );
 
@@ -121,7 +121,7 @@ class OrderRequestCardinalityLimitTest extends TestCase
 
         $validator = Validator::make(
             $payload,
-            (new SelectOrderSupplierResponsesRequest())->rules(),
+            (new SelectOrderSupplierResponsesRequest)->rules(),
         );
 
         $this->assertTrue($validator->fails());

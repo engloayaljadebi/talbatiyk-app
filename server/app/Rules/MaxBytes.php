@@ -9,8 +9,7 @@ final class MaxBytes implements ValidationRule
 {
     public function __construct(
         private readonly int $maxBytes,
-    ) {
-    }
+    ) {}
 
     public function validate(
         string $attribute,
