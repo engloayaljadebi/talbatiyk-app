@@ -23,9 +23,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../order_response_comparison/presentation/pages/order_response_comparison_page.dart';
 import '../../domain/entities/orders_entity.dart';
-import '../controllers/orders_controller.dart';
 import '../extensions/order_status_presentation.dart';
 import '../providers/orders_provider.dart';
 
@@ -43,316 +42,90 @@ class OrderDetailsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(ordersProvider);
+    final colors = Theme.of(context).colorScheme;
 
     // قراءة النسخة الأحدث من الطلبية الموجودة داخل الحالة.
     final OrderEntity currentOrder =
         controller.findOrderById(order.id) ?? order;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.surfaceContainerLowest,
       appBar: AppBar(
         title: const Text('تفاصيل الطلبية'),
         centerTitle: true,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: colors.surfaceContainerLowest,
+        foregroundColor: colors.onSurface,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          _OrderHeaderCard(order: currentOrder),
-          const SizedBox(height: 16),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final horizontalPadding = constraints.maxWidth >= 760 ? 24.0 : 16.0;
 
-          _OrderProgressCard(status: currentOrder.status),
-          const SizedBox(height: 16),
-
-          _OrderActionsCard(
-            order: currentOrder,
-
-            // نقل الطلبية إلى المرحلة التالية.
-            onAdvance: () {
-              _advanceOrderStatus(
-                context: context,
-                controller: controller,
-                order: currentOrder,
-              );
-            },
-
-            // إلغاء الطلبية بعد التأكيد.
-            onCancel: () {
-              _cancelOrder(
-                context: context,
-                controller: controller,
-                order: currentOrder,
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // سيستقبل بيانات المورد الفعلية بعد تحديد استجابة الـ API.
-          _SupplierCard(supplier: currentOrder.supplier),
-          const SizedBox(height: 16),
-
-          _OrderItemsCard(items: currentOrder.items),
-
-          if (currentOrder.notes.trim().isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _OrderNotesCard(notes: currentOrder.notes),
-          ],
-
-          const SizedBox(height: 16),
-          _OrderSummaryCard(order: currentOrder),
-        ],
-      ),
-    );
-  }
-
-  /// نقل الطلبية إلى المرحلة التالية بعد موافقة المستخدم.
-  Future<void> _advanceOrderStatus({
-    required BuildContext context,
-    required OrdersController controller,
-    required OrderEntity order,
-  }) async {
-    final OrderStatus? nextStatus = order.status.nextStatus;
-
-    if (nextStatus == null) {
-      return;
-    }
-
-    final bool confirmed = await _showConfirmationDialog(
-      context: context,
-      title: 'تحديث حالة الطلبية',
-      message:
-          'سيتم تغيير حالة الطلبية من '
-          '"${order.status.label}" إلى "${nextStatus.label}".',
-      confirmLabel: order.status.nextActionLabel ?? 'تحديث الحالة',
-      confirmColor: nextStatus.color,
-    );
-
-    if (!confirmed || !context.mounted) {
-      return;
-    }
-
-    final bool success = await controller.updateOrderStatus(
-      orderId: order.id,
-      newStatus: nextStatus,
-    );
-
-    if (!context.mounted) {
-      return;
-    }
-
-    _showResultMessage(
-      context: context,
-      success: success,
-      successMessage: 'تم تحديث حالة الطلبية إلى "${nextStatus.label}"',
-      errorMessage: controller.state.errorMessage ?? 'تعذر تحديث حالة الطلبية',
-    );
-  }
-
-  /// إلغاء الطلبية بعد عرض رسالة تحذير.
-  Future<void> _cancelOrder({
-    required BuildContext context,
-    required OrdersController controller,
-    required OrderEntity order,
-  }) async {
-    final bool confirmed = await _showConfirmationDialog(
-      context: context,
-      title: 'إلغاء الطلبية',
-      message:
-          'هل أنت متأكد من إلغاء الطلبية؟ '
-          'لن تتمكن من تغيير حالتها بعد الإلغاء.',
-      confirmLabel: 'إلغاء الطلبية',
-      confirmColor: AppColors.error,
-    );
-
-    if (!confirmed || !context.mounted) {
-      return;
-    }
-
-    final bool success = await controller.updateOrderStatus(
-      orderId: order.id,
-      newStatus: OrderStatus.cancelled,
-    );
-
-    if (!context.mounted) {
-      return;
-    }
-
-    _showResultMessage(
-      context: context,
-      success: success,
-      successMessage: 'تم إلغاء الطلبية',
-      errorMessage: controller.state.errorMessage ?? 'تعذر إلغاء الطلبية',
-    );
-  }
-
-  /// عرض نافذة تأكيد قبل تنفيذ تغيير حساس.
-  Future<bool> _showConfirmationDialog({
-    required BuildContext context,
-    required String title,
-    required String message,
-    required String confirmLabel,
-    required Color confirmColor,
-  }) async {
-    final bool? result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          content: Text(
-            message,
-            style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-              child: const Text('تراجع'),
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              8,
+              horizontalPadding,
+              40,
             ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: confirmColor,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-              child: Text(confirmLabel),
-            ),
-          ],
-        );
-      },
-    );
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _OrderHeaderCard(order: currentOrder),
+                      const SizedBox(height: 14),
 
-    return result ?? false;
-  }
+                      _OrderProgressCard(status: currentOrder.aggregateStatus),
+                      const SizedBox(height: 14),
 
-  /// إظهار نتيجة عملية تحديث الحالة.
-  void _showResultMessage({
-    required BuildContext context,
-    required bool success,
-    required String successMessage,
-    required String errorMessage,
-  }) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(success ? successMessage : errorMessage),
-          backgroundColor: success ? AppColors.success : AppColors.error,
-        ),
-      );
-  }
-}
+                      _SupplierResponsesCard(
+                        onOpen: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => OrderResponseComparisonPage(
+                                orderId: currentOrder.id,
+                              ),
+                            ),
+                          );
 
-/// بطاقة التحكم في حالة الطلبية.
-///
-/// تظهر زر المرحلة التالية وزر الإلغاء ما دامت
-/// الطلبية لم تصل إلى حالة نهائية.
-class _OrderActionsCard extends StatelessWidget {
-  const _OrderActionsCard({
-    required this.order,
-    required this.onAdvance,
-    required this.onCancel,
-  });
+                          if (!context.mounted) {
+                            return;
+                          }
 
-  final OrderEntity order;
-  final VoidCallback onAdvance;
-  final VoidCallback onCancel;
+                          await controller.loadOrders();
+                        },
+                      ),
+                      const SizedBox(height: 14),
 
-  @override
-  Widget build(BuildContext context) {
-    final OrderStatus status = order.status;
+                      _SupplierCard(supplier: currentOrder.supplier),
+                      const SizedBox(height: 14),
 
-    if (status.isFinal) {
-      return _SectionCard(
-        title: 'إدارة الطلبية',
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: status.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(status.icon, color: status.color),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                status == OrderStatus.delivered
-                    ? 'اكتملت هذه الطلبية وتم تسليمها بنجاح.'
-                    : 'تم إلغاء هذه الطلبية ولا يمكن تغيير حالتها.',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+                      _OrderItemsCard(items: currentOrder.items),
 
-    final String? actionLabel = status.nextActionLabel;
-    final IconData? actionIcon = status.nextActionIcon;
+                      if (currentOrder.notes.trim().isNotEmpty) ...[
+                        const SizedBox(height: 14),
+                        _OrderNotesCard(notes: currentOrder.notes),
+                      ],
 
-    return _SectionCard(
-      title: 'إدارة الطلبية',
-      child: Column(
-        children: [
-          if (actionLabel != null && actionIcon != null)
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onAdvance,
-                icon: Icon(actionIcon),
-                label: Text(actionLabel),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                      const SizedBox(height: 14),
+                      _OrderSummaryCard(order: currentOrder),
+                    ],
                   ),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
-            ),
-
-          const SizedBox(height: 10),
-
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: onCancel,
-              icon: const Icon(Icons.cancel_outlined),
-              label: const Text('إلغاء الطلبية'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                minimumSize: const Size.fromHeight(48),
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-/// بطاقة ملخص الطلب في أعلى الصفحة.
 class _OrderHeaderCard extends StatelessWidget {
   const _OrderHeaderCard({required this.order});
 
@@ -360,50 +133,86 @@ class _OrderHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final OrderStatus status = order.status;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final OrderAggregateStatus status = order.aggregateStatus;
 
     return Material(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.55),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 17),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    'طلبية #${order.id}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'طلبية #${_shortOrderId(order.id)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        order.id,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: TextDirection.ltr,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 _StatusBadge(status: status),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: colors.outlineVariant.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 15),
             Row(
               children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: AppColors.textSecondary,
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: colors.onSurfaceVariant,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 Text(
-                  'تاريخ الطلب: ${_formatDate(order.createdAt)}',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+                  'تاريخ الطلب',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _formatDate(order.createdAt),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -419,32 +228,39 @@ class _OrderHeaderCard extends StatelessWidget {
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
 
-  final OrderStatus status;
+  final OrderAggregateStatus status;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    final theme = Theme.of(context);
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 34),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
-        color: status.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(30),
+        color: status.color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(17),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(status.icon, size: 16, color: status.color),
-            const SizedBox(width: 6),
-            Text(
-              status.label,
-              style: TextStyle(
-                color: status.color,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: status.color,
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            status.label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: status.color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -454,38 +270,42 @@ class _StatusBadge extends StatelessWidget {
 class _OrderProgressCard extends StatelessWidget {
   const _OrderProgressCard({required this.status});
 
-  final OrderStatus status;
+  final OrderAggregateStatus status;
 
-  static const List<OrderStatus> _trackedStatuses = [
-    OrderStatus.pending,
-    OrderStatus.confirmed,
-    OrderStatus.preparing,
-    OrderStatus.readyForDelivery,
-    OrderStatus.outForDelivery,
-    OrderStatus.delivered,
+  static const List<OrderAggregateStatus> _trackedStatuses = [
+    OrderAggregateStatus.pendingResponses,
+    OrderAggregateStatus.responsesReceived,
+    OrderAggregateStatus.suppliersSelected,
+    OrderAggregateStatus.inFulfillment,
+    OrderAggregateStatus.partiallyCompleted,
+    OrderAggregateStatus.completed,
   ];
 
   @override
   Widget build(BuildContext context) {
-    if (status.isCancelled) {
-      return Material(
-        color: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: AppColors.border),
-        ),
-        child: const Padding(
-          padding: EdgeInsets.all(18),
+    final theme = Theme.of(context);
+    if (status.isTerminalWithoutCompletion) {
+      return _SectionCard(
+        title: 'حالة الطلبية',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: status.color.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Row(
             children: [
-              Icon(Icons.cancel_outlined, color: AppColors.error, size: 28),
-              SizedBox(width: 12),
+              Icon(status.icon, color: status.color, size: 22),
+              const SizedBox(width: 11),
               Expanded(
                 child: Text(
-                  'تم إلغاء هذه الطلبية',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w800,
+                  status == OrderAggregateStatus.cancelled
+                      ? 'تم إلغاء هذه الطلبية.'
+                      : 'انتهت صلاحية هذه الطلبية.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.5,
                   ),
                 ),
               ),
@@ -495,17 +315,98 @@ class _OrderProgressCard extends StatelessWidget {
       );
     }
 
+    final int currentIndex = _normalizedProgressIndex(status.progressIndex);
+
     return _SectionCard(
-      title: 'حالة الطلبية',
+      title: 'مسار الطلبية',
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _CurrentStatusSummary(
+            status: status,
+            currentIndex: currentIndex,
+            totalSteps: _trackedStatuses.length,
+          ),
+          const SizedBox(height: 20),
+
           for (int index = 0; index < _trackedStatuses.length; index++)
             _ProgressStep(
               status: _trackedStatuses[index],
-              isCompleted: index <= status.progressIndex,
-              isCurrent: index == status.progressIndex,
+              isCompleted: index <= currentIndex,
+              isCurrent: index == currentIndex,
               showLine: index < _trackedStatuses.length - 1,
+              lineCompleted: index < currentIndex,
             ),
+        ],
+      ),
+    );
+  }
+
+  int _normalizedProgressIndex(int progressIndex) {
+    if (progressIndex < 0) {
+      return 0;
+    }
+
+    if (progressIndex >= _trackedStatuses.length) {
+      return _trackedStatuses.length - 1;
+    }
+
+    return progressIndex;
+  }
+}
+
+class _CurrentStatusSummary extends StatelessWidget {
+  const _CurrentStatusSummary({
+    required this.status,
+    required this.currentIndex,
+    required this.totalSteps,
+  });
+
+  final OrderAggregateStatus status;
+  final int currentIndex;
+  final int totalSteps;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(17),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  status.label,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Text(
+                '${currentIndex + 1} من $totalSteps',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Text(
+            _statusDescription(status),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );
@@ -519,47 +420,62 @@ class _ProgressStep extends StatelessWidget {
     required this.isCompleted,
     required this.isCurrent,
     required this.showLine,
+    required this.lineCompleted,
   });
 
-  final OrderStatus status;
+  final OrderAggregateStatus status;
   final bool isCompleted;
   final bool isCurrent;
   final bool showLine;
+  final bool lineCompleted;
 
   @override
   Widget build(BuildContext context) {
-    final Color stepColor = isCompleted ? status.color : AppColors.disabled;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    final Color activeColor = colors.primary;
+    final Color inactiveColor = colors.outlineVariant.withValues(alpha: 0.9);
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            width: 34,
+            width: 30,
             child: Column(
               children: [
-                Container(
-                  width: 28,
-                  height: 28,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
-                    color: isCompleted ? stepColor : AppColors.background,
+                    color: isCompleted
+                        ? activeColor
+                        : colors.surfaceContainerHighest,
                     shape: BoxShape.circle,
-                    border: Border.all(color: stepColor, width: 2),
+                    border: Border.all(
+                      color: isCompleted ? activeColor : inactiveColor,
+                    ),
                   ),
                   child: Icon(
-                    isCompleted ? Icons.check_rounded : status.icon,
-                    size: 16,
-                    color: isCompleted ? Colors.white : AppColors.textHint,
+                    isCurrent
+                        ? status.icon
+                        : isCompleted
+                        ? Icons.check_rounded
+                        : Icons.circle_outlined,
+                    size: 13,
+                    color: isCompleted
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
                   ),
                 ),
                 if (showLine)
                   Expanded(
                     child: Container(
-                      width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 3),
-                      color: isCompleted
-                          ? stepColor.withValues(alpha: 0.45)
-                          : AppColors.border,
+                      width: 1.5,
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      color: lineCompleted ? activeColor : inactiveColor,
                     ),
                   ),
               ],
@@ -568,16 +484,16 @@ class _ProgressStep extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 3, bottom: showLine ? 18 : 3),
+              padding: EdgeInsets.only(top: 2, bottom: showLine ? 17 : 2),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       status.label,
-                      style: TextStyle(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: isCompleted
-                            ? AppColors.textPrimary
-                            : AppColors.textHint,
+                            ? colors.onSurface
+                            : colors.onSurfaceVariant,
                         fontWeight: isCurrent
                             ? FontWeight.w800
                             : FontWeight.w600,
@@ -585,12 +501,21 @@ class _ProgressStep extends StatelessWidget {
                     ),
                   ),
                   if (isCurrent)
-                    Text(
-                      'الحالة الحالية',
-                      style: TextStyle(
-                        color: status.color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'الآن',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                 ],
@@ -611,6 +536,57 @@ class _ProgressStep extends StatelessWidget {
 ///
 /// تعرض الاسم والمعرّف المحفوظين وقت إنشاء الطلبية.
 /// البيانات قد تكون غير موجودة في الطلبيات القديمة.
+class _SupplierResponsesCard extends StatelessWidget {
+  const _SupplierResponsesCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return _SectionCard(
+      title: 'ردود الموردين',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'راجع الكميات المتاحة والأسعار التي أرسلها الموردون، ثم اختر العرض المناسب لك.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.55,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton(
+              key: const Key('open-supplier-responses'),
+              onPressed: onOpen,
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.compare_arrows_rounded, size: 19),
+                  SizedBox(width: 8),
+                  Text('عرض ردود الموردين'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SupplierCard extends StatelessWidget {
   const _SupplierCard({required this.supplier});
 
@@ -618,6 +594,9 @@ class _SupplierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     final String supplierName = supplier?.name.trim() ?? '';
 
     final String supplierId = supplier?.id.trim() ?? '';
@@ -629,8 +608,8 @@ class _SupplierCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionIcon(icon: Icons.storefront_outlined),
-          const SizedBox(width: 12),
+          const _SectionIcon(icon: Icons.storefront_rounded),
+          const SizedBox(width: 13),
           Expanded(
             child: hasSupplierData
                 ? Column(
@@ -640,31 +619,28 @@ class _SupplierCard extends StatelessWidget {
                         supplierName.isNotEmpty
                             ? supplierName
                             : 'مورد غير مسمى',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 16,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       if (supplierId.isNotEmpty) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 6),
                         Text(
-                          'معرّف المورد: $supplierId',
+                          supplierId,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                          textDirection: TextDirection.ltr,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ],
                   )
-                : const Text(
+                : Text(
                     'بيانات المورد غير متوفرة لهذه الطلبية',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),
@@ -683,6 +659,8 @@ class _OrderItemsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return _SectionCard(
       title: 'المنتجات (${items.length})',
       child: Column(
@@ -690,7 +668,13 @@ class _OrderItemsCard extends StatelessWidget {
           for (int index = 0; index < items.length; index++) ...[
             _OrderItemTile(item: items[index]),
             if (index < items.length - 1)
-              const Divider(height: 25, color: AppColors.border),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                child: Divider(
+                  height: 1,
+                  color: colors.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
           ],
         ],
       ),
@@ -706,11 +690,14 @@ class _OrderItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _OrderItemImage(imageUrl: item.imageUrl),
-        const SizedBox(width: 12),
+        const SizedBox(width: 13),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -719,33 +706,33 @@ class _OrderItemTile extends StatelessWidget {
                 item.productName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
                 ),
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 8),
               Text(
                 'الكمية: ${item.quantity}',
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 'سعر الوحدة: ${_formatPrice(item.unitPrice)} ر.ي',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                '${_formatPrice(item.totalPrice)} ر.ي',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${_formatPrice(item.totalPrice)} ر.ي',
-          style: const TextStyle(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w800,
           ),
         ),
       ],
@@ -762,17 +749,18 @@ class _OrderItemImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String normalizedUrl = imageUrl.trim();
+    final colors = Theme.of(context).colorScheme;
 
     if (normalizedUrl.isEmpty) {
       return const _ProductImagePlaceholder();
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Image.network(
         normalizedUrl,
-        width: 64,
-        height: 64,
+        width: 68,
+        height: 68,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) {
           return const _ProductImagePlaceholder();
@@ -782,16 +770,16 @@ class _OrderItemImage extends StatelessWidget {
             return child;
           }
 
-          return const SizedBox(
-            width: 64,
-            height: 64,
+          return SizedBox(
+            width: 68,
+            height: 68,
             child: Center(
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: 19,
+                height: 19,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary,
+                  color: colors.primary,
                 ),
               ),
             ),
@@ -808,15 +796,20 @@ class _ProductImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
-      width: 64,
-      height: 64,
+      width: 68,
+      height: 68,
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: const Icon(Icons.inventory_2_outlined, color: AppColors.textHint),
+      child: Icon(
+        Icons.inventory_2_outlined,
+        size: 26,
+        color: colors.onSurfaceVariant,
+      ),
     );
   }
 }
@@ -829,11 +822,17 @@ class _OrderNotesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return _SectionCard(
       title: 'ملاحظات الطلب',
       child: Text(
         notes.trim(),
-        style: const TextStyle(color: AppColors.textSecondary, height: 1.6),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colors.onSurfaceVariant,
+          height: 1.65,
+        ),
       ),
     );
   }
@@ -847,14 +846,19 @@ class _OrderSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return _SectionCard(
       title: 'ملخص الطلبية',
       child: Column(
         children: [
           _SummaryRow(label: 'إجمالي الكمية', value: '${order.totalQuantity}'),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: colors.outlineVariant.withValues(alpha: 0.55),
+          ),
+          const SizedBox(height: 14),
           _SummaryRow(
             label: 'الإجمالي النهائي',
             value: '${_formatPrice(order.totalPrice)} ر.ي',
@@ -880,23 +884,29 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Row(
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: emphasize ? AppColors.textPrimary : AppColors.textSecondary,
-            fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: emphasize ? colors.onSurface : colors.onSurfaceVariant,
+            fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
         const Spacer(),
         Text(
           value,
-          style: TextStyle(
-            color: emphasize ? AppColors.primary : AppColors.textPrimary,
-            fontSize: emphasize ? 17 : 14,
-            fontWeight: FontWeight.w800,
-          ),
+          style: emphasize
+              ? theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                )
+              : theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
         ),
       ],
     );
@@ -912,22 +922,29 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Material(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(17),
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.55),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(17, 17, 17, 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.textPrimary,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
+                letterSpacing: -0.15,
               ),
             ),
             const SizedBox(height: 16),
@@ -947,16 +964,49 @@ class _SectionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(13),
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: Icon(icon, color: AppColors.primary),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 21, color: colors.onSurfaceVariant),
     );
   }
+}
+
+/// وصف مختصر للحالة الحالية لعرض المعلومة بسرعة.
+String _statusDescription(OrderAggregateStatus status) {
+  return switch (status) {
+    OrderAggregateStatus.pendingResponses =>
+      'تم إرسال الطلبية للموردين، وبانتظار وصول ردودهم.',
+    OrderAggregateStatus.responsesReceived =>
+      'وصلت ردود الموردين ويمكنك الآن مراجعتها ومقارنتها.',
+    OrderAggregateStatus.suppliersSelected =>
+      'تم اختيار العرض المناسب وأصبحت الطلبية جاهزة للتنفيذ.',
+    OrderAggregateStatus.inFulfillment =>
+      'المورد يعمل حاليًا على تجهيز وتنفيذ الطلبية.',
+    OrderAggregateStatus.partiallyCompleted =>
+      'اكتمل جزء من تنفيذ الطلبية وما زال جزء آخر قيد التنفيذ.',
+    OrderAggregateStatus.completed => 'اكتمل تنفيذ الطلبية بنجاح.',
+    OrderAggregateStatus.cancelled => 'تم إلغاء الطلبية.',
+    OrderAggregateStatus.expired => 'انتهت صلاحية الطلبية.',
+  };
+}
+
+/// إظهار جزء قصير من المعرّف بدل عرض UUID كامل كعنوان.
+String _shortOrderId(String id) {
+  final String normalizedId = id.trim();
+
+  if (normalizedId.length <= 8) {
+    return normalizedId;
+  }
+
+  return normalizedId.substring(normalizedId.length - 7);
 }
 
 /// تنسيق تاريخ الطلب بصيغة يوم/شهر/سنة.

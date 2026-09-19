@@ -10,17 +10,11 @@ class _$CreateOrderRequestItemsInner extends CreateOrderRequestItemsInner {
   @override
   final String productId;
   @override
-  final String productName;
-  @override
-  final num unitPrice;
-  @override
   final int quantity;
   @override
-  final String supplierId;
+  final num expectedUnitPrice;
   @override
-  final String supplierName;
-  @override
-  final String? imageUrl;
+  final String expectedSupplierId;
 
   factory _$CreateOrderRequestItemsInner(
           [void Function(CreateOrderRequestItemsInnerBuilder)? updates]) =>
@@ -28,12 +22,9 @@ class _$CreateOrderRequestItemsInner extends CreateOrderRequestItemsInner {
 
   _$CreateOrderRequestItemsInner._(
       {required this.productId,
-      required this.productName,
-      required this.unitPrice,
       required this.quantity,
-      required this.supplierId,
-      required this.supplierName,
-      this.imageUrl})
+      required this.expectedUnitPrice,
+      required this.expectedSupplierId})
       : super._();
   @override
   CreateOrderRequestItemsInner rebuild(
@@ -49,24 +40,18 @@ class _$CreateOrderRequestItemsInner extends CreateOrderRequestItemsInner {
     if (identical(other, this)) return true;
     return other is CreateOrderRequestItemsInner &&
         productId == other.productId &&
-        productName == other.productName &&
-        unitPrice == other.unitPrice &&
         quantity == other.quantity &&
-        supplierId == other.supplierId &&
-        supplierName == other.supplierName &&
-        imageUrl == other.imageUrl;
+        expectedUnitPrice == other.expectedUnitPrice &&
+        expectedSupplierId == other.expectedSupplierId;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, productId.hashCode);
-    _$hash = $jc(_$hash, productName.hashCode);
-    _$hash = $jc(_$hash, unitPrice.hashCode);
     _$hash = $jc(_$hash, quantity.hashCode);
-    _$hash = $jc(_$hash, supplierId.hashCode);
-    _$hash = $jc(_$hash, supplierName.hashCode);
-    _$hash = $jc(_$hash, imageUrl.hashCode);
+    _$hash = $jc(_$hash, expectedUnitPrice.hashCode);
+    _$hash = $jc(_$hash, expectedSupplierId.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -75,12 +60,9 @@ class _$CreateOrderRequestItemsInner extends CreateOrderRequestItemsInner {
   String toString() {
     return (newBuiltValueToStringHelper(r'CreateOrderRequestItemsInner')
           ..add('productId', productId)
-          ..add('productName', productName)
-          ..add('unitPrice', unitPrice)
           ..add('quantity', quantity)
-          ..add('supplierId', supplierId)
-          ..add('supplierName', supplierName)
-          ..add('imageUrl', imageUrl))
+          ..add('expectedUnitPrice', expectedUnitPrice)
+          ..add('expectedSupplierId', expectedSupplierId))
         .toString();
   }
 }
@@ -95,29 +77,19 @@ class CreateOrderRequestItemsInnerBuilder
   String? get productId => _$this._productId;
   set productId(String? productId) => _$this._productId = productId;
 
-  String? _productName;
-  String? get productName => _$this._productName;
-  set productName(String? productName) => _$this._productName = productName;
-
-  num? _unitPrice;
-  num? get unitPrice => _$this._unitPrice;
-  set unitPrice(num? unitPrice) => _$this._unitPrice = unitPrice;
-
   int? _quantity;
   int? get quantity => _$this._quantity;
   set quantity(int? quantity) => _$this._quantity = quantity;
 
-  String? _supplierId;
-  String? get supplierId => _$this._supplierId;
-  set supplierId(String? supplierId) => _$this._supplierId = supplierId;
+  num? _expectedUnitPrice;
+  num? get expectedUnitPrice => _$this._expectedUnitPrice;
+  set expectedUnitPrice(num? expectedUnitPrice) =>
+      _$this._expectedUnitPrice = expectedUnitPrice;
 
-  String? _supplierName;
-  String? get supplierName => _$this._supplierName;
-  set supplierName(String? supplierName) => _$this._supplierName = supplierName;
-
-  String? _imageUrl;
-  String? get imageUrl => _$this._imageUrl;
-  set imageUrl(String? imageUrl) => _$this._imageUrl = imageUrl;
+  String? _expectedSupplierId;
+  String? get expectedSupplierId => _$this._expectedSupplierId;
+  set expectedSupplierId(String? expectedSupplierId) =>
+      _$this._expectedSupplierId = expectedSupplierId;
 
   CreateOrderRequestItemsInnerBuilder() {
     CreateOrderRequestItemsInner._defaults(this);
@@ -127,12 +99,9 @@ class CreateOrderRequestItemsInnerBuilder
     final $v = _$v;
     if ($v != null) {
       _productId = $v.productId;
-      _productName = $v.productName;
-      _unitPrice = $v.unitPrice;
       _quantity = $v.quantity;
-      _supplierId = $v.supplierId;
-      _supplierName = $v.supplierName;
-      _imageUrl = $v.imageUrl;
+      _expectedUnitPrice = $v.expectedUnitPrice;
+      _expectedSupplierId = $v.expectedSupplierId;
       _$v = null;
     }
     return this;
@@ -156,17 +125,16 @@ class CreateOrderRequestItemsInnerBuilder
         _$CreateOrderRequestItemsInner._(
           productId: BuiltValueNullFieldError.checkNotNull(
               productId, r'CreateOrderRequestItemsInner', 'productId'),
-          productName: BuiltValueNullFieldError.checkNotNull(
-              productName, r'CreateOrderRequestItemsInner', 'productName'),
-          unitPrice: BuiltValueNullFieldError.checkNotNull(
-              unitPrice, r'CreateOrderRequestItemsInner', 'unitPrice'),
           quantity: BuiltValueNullFieldError.checkNotNull(
               quantity, r'CreateOrderRequestItemsInner', 'quantity'),
-          supplierId: BuiltValueNullFieldError.checkNotNull(
-              supplierId, r'CreateOrderRequestItemsInner', 'supplierId'),
-          supplierName: BuiltValueNullFieldError.checkNotNull(
-              supplierName, r'CreateOrderRequestItemsInner', 'supplierName'),
-          imageUrl: imageUrl,
+          expectedUnitPrice: BuiltValueNullFieldError.checkNotNull(
+              expectedUnitPrice,
+              r'CreateOrderRequestItemsInner',
+              'expectedUnitPrice'),
+          expectedSupplierId: BuiltValueNullFieldError.checkNotNull(
+              expectedSupplierId,
+              r'CreateOrderRequestItemsInner',
+              'expectedSupplierId'),
         );
     replace(_$result);
     return _$result;

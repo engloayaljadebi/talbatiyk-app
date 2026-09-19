@@ -14,6 +14,7 @@
 
 namespace App\Http\Requests\Api\V1\Auth;
 
+use App\Rules\MaxBytes;
 use App\Support\ContactValueNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -47,8 +48,11 @@ class LoginRequest extends FormRequest
             ],
 
             'password' => [
+                'bail',
                 'required',
                 'string',
+                'max:72',
+                new MaxBytes(72),
             ],
 
             'device_name' => [

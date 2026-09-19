@@ -6,8 +6,12 @@
 // - عرض رسالة مؤقتة للإجراءات غير المرتبطة بالـ API بعد.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../business/presentation/pages/business_workspace_page.dart';
+import '../../../business/presentation/providers/business_provider.dart';
 
 /// أنواع الحسابات المدعومة داخل تطبيق طلبيتك.
 enum AccountType { supplier, shopOwner }
@@ -17,8 +21,8 @@ extension AccountTypePresentation on AccountType {
   /// الاسم العربي الذي يظهر للمستخدم.
   String get label {
     return switch (this) {
-      AccountType.supplier => 'مورد',
-      AccountType.shopOwner => 'صاحب محل',
+      AccountType.supplier => 'عضو نشاط تجاري',
+      AccountType.shopOwner => 'عميل',
     };
   }
 
@@ -35,7 +39,7 @@ extension AccountTypePresentation on AccountType {
 ///
 /// تستقبل البيانات من الخارج حتى يسهل لاحقًا ربطها
 /// بمزود الحالة والـ API دون إعادة بناء الواجهة.
-class AccountPage extends StatelessWidget {
+class AccountPage extends ConsumerWidget {
   const AccountPage({
     super.key,
     this.displayName = 'مستخدم طلبيتك',
@@ -69,7 +73,46 @@ class AccountPage extends StatelessWidget {
   final VoidCallback? onLogout;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final businessController = ref.watch(businessControllerProvider);
+    final businessState = businessController.state;
+    final authController = ref.watch(authProvider);
+    final user = authController.state.user;
+
+    final String resolvedDisplayName =
+        user?.displayName.trim().isNotEmpty == true
+        ? user!.displayName.trim()
+        : displayName;
+
+    final phoneContacts = user?.contacts.where(
+      (contact) => contact.type.trim().toLowerCase() == 'phone',
+    );
+
+    final phoneContact = phoneContacts == null || phoneContacts.isEmpty
+        ? null
+        : phoneContacts.first;
+
+    final String resolvedPhoneNumber =
+        phoneContact?.value.trim().isNotEmpty == true
+        ? phoneContact!.value.trim()
+        : phoneNumber;
+
+    final String resolvedProfileSubtitle;
+
+    if (businessState.hasBusinesses) {
+      resolvedProfileSubtitle = businessState.businesses.length == 1
+          ? businessState.businesses.first.name
+          : '${businessState.businesses.length} أنشطة تجارية';
+    } else if (user?.username.trim().isNotEmpty == true) {
+      resolvedProfileSubtitle = '@${user!.username.trim()}';
+    } else {
+      resolvedProfileSubtitle = businessName;
+    }
+
+    final AccountType resolvedAccountType = businessState.hasBusinesses
+        ? AccountType.supplier
+        : AccountType.shopOwner;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -84,9 +127,9 @@ class AccountPage extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
         children: [
           _ProfileCard(
-            displayName: displayName,
-            businessName: businessName,
-            accountType: accountType,
+            displayName: resolvedDisplayName,
+            businessName: resolvedProfileSubtitle,
+            accountType: resolvedAccountType,
             onEdit: () =>
                 _executeOrNotify(context, onEditProfile, 'تعديل البيانات'),
           ),
@@ -97,13 +140,13 @@ class AccountPage extends StatelessWidget {
               _AccountOptionTile(
                 icon: Icons.phone_outlined,
                 title: 'رقم الهاتف',
-                subtitle: phoneNumber,
+                subtitle: resolvedPhoneNumber,
                 showArrow: false,
               ),
               _AccountOptionTile(
-                icon: accountType.icon,
+                icon: resolvedAccountType.icon,
                 title: 'نوع الحساب',
-                subtitle: accountType.label,
+                subtitle: resolvedAccountType.label,
                 showArrow: false,
               ),
               _AccountOptionTile(
@@ -115,6 +158,47 @@ class AccountPage extends StatelessWidget {
               ),
             ],
           ),
+          if (businessState.hasBusinesses) ...[
+            const SizedBox(height: 16),
+            _AccountSection(
+              title: 'مساحة الأعمال',
+              children: [
+                _AccountOptionTile(
+                  icon: Icons.storefront_outlined,
+                  title: 'إدارة النشاط التجاري',
+                  subtitle: businessState.businesses.length == 1
+                      ? businessState.businesses.first.name
+                      : '${businessState.businesses.length} أنشطة متاحة',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => BusinessWorkspacePage(
+                          businesses: businessState.businesses,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+          if (businessState.hasFailure) ...[
+            const SizedBox(height: 16),
+            _AccountSection(
+              title: 'مساحة الأعمال',
+              children: [
+                _AccountOptionTile(
+                  icon: Icons.refresh_rounded,
+                  title: 'تعذر تحميل الأنشطة',
+                  subtitle:
+                      businessState.errorMessage ?? 'اضغط لإعادة المحاولة',
+                  onTap: () {
+                    ref.read(businessControllerProvider).loadBusinesses();
+                  },
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           _AccountSection(
             title: 'الإعدادات',

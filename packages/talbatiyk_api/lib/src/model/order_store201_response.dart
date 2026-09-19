@@ -12,7 +12,7 @@ part 'order_store201_response.g.dart';
 /// OrderStore201Response
 ///
 /// Properties:
-/// * [data]
+/// * [data] 
 @BuiltValue()
 abstract class OrderStore201Response implements Built<OrderStore201Response, OrderStore201ResponseBuilder> {
   @BuiltValueField(wireName: r'data')
@@ -104,3 +104,4 @@ class _$OrderStore201ResponseSerializer implements PrimitiveSerializer<OrderStor
     return result.build();
   }
 }
+

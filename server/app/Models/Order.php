@@ -10,7 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id',
+    'idempotency_key',
+    'idempotency_payload_hash',
     'status',
+    'version',
     'notes',
 ])]
 class Order extends Model
@@ -25,5 +28,17 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function recipients(): HasMany
+    {
+        return $this->hasMany(OrderRecipient::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'version' => 'integer',
+        ];
     }
 }

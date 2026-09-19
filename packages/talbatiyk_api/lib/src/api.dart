@@ -14,7 +14,13 @@ import 'package:talbatiyk_api/src/api/business_api.dart';
 import 'package:talbatiyk_api/src/api/business_contact_api.dart';
 import 'package:talbatiyk_api/src/api/business_location_api.dart';
 import 'package:talbatiyk_api/src/api/order_api.dart';
+import 'package:talbatiyk_api/src/api/order_response_comparison_api.dart';
 import 'package:talbatiyk_api/src/api/product_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_discovery_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_fulfillment_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_order_response_api.dart';
 
 class TalbatiykApi {
   static const String basePath = r'http://localhost/api/v1';
@@ -140,9 +146,45 @@ class TalbatiykApi {
     return OrderApi(dio, serializers);
   }
 
+  /// Get OrderResponseComparisonApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OrderResponseComparisonApi getOrderResponseComparisonApi() {
+    return OrderResponseComparisonApi(dio, serializers);
+  }
+
   /// Get ProductApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   ProductApi getProductApi() {
     return ProductApi(dio, serializers);
+  }
+
+  /// Get SupplierDiscoveryApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierDiscoveryApi getSupplierDiscoveryApi() {
+    return SupplierDiscoveryApi(dio, serializers);
+  }
+
+  /// Get SupplierFollowApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierFollowApi getSupplierFollowApi() {
+    return SupplierFollowApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderApi getSupplierOrderApi() {
+    return SupplierOrderApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderFulfillmentApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderFulfillmentApi getSupplierOrderFulfillmentApi() {
+    return SupplierOrderFulfillmentApi(dio, serializers);
+  }
+
+  /// Get SupplierOrderResponseApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierOrderResponseApi getSupplierOrderResponseApi() {
+    return SupplierOrderResponseApi(dio, serializers);
   }
 }

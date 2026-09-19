@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
+import 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -13,12 +14,13 @@ part 'order_resource.g.dart';
 /// OrderResource
 ///
 /// Properties:
-/// * [id]
-/// * [status]
-/// * [notes]
-/// * [items] - OrderService ظٹط­ظ…ظ‘ظ„ items ظ‚ط¨ظ„ ط¥ظ†ط´ط§ط، ط§ظ„ظ€ ResourceطŒ ظ„ط°ظ„ظƒ ط§ظ„ط¹ظ†ط§طµط± ط¬ط²ط، ط¥ظ„ط²ط§ظ…ظٹ ظ…ظ† Create Order response.
-/// * [createdAt]
-/// * [updatedAt]
+/// * [id] 
+/// * [status] 
+/// * [aggregateStatus] 
+/// * [notes] 
+/// * [items] - OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response.
+/// * [createdAt] 
+/// * [updatedAt] 
 @BuiltValue()
 abstract class OrderResource implements Built<OrderResource, OrderResourceBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -27,10 +29,14 @@ abstract class OrderResource implements Built<OrderResource, OrderResourceBuilde
   @BuiltValueField(wireName: r'status')
   String get status;
 
+  @BuiltValueField(wireName: r'aggregate_status')
+  OrderAggregateStatus get aggregateStatus;
+  // enum aggregateStatusEnum {  pending_responses,  responses_received,  suppliers_selected,  in_fulfillment,  partially_completed,  completed,  cancelled,  expired,  };
+
   @BuiltValueField(wireName: r'notes')
   String? get notes;
 
-  /// OrderService ظٹط­ظ…ظ‘ظ„ items ظ‚ط¨ظ„ ط¥ظ†ط´ط§ط، ط§ظ„ظ€ ResourceطŒ ظ„ط°ظ„ظƒ ط§ظ„ط¹ظ†ط§طµط± ط¬ط²ط، ط¥ظ„ط²ط§ظ…ظٹ ظ…ظ† Create Order response.
+  /// OrderService يحمّل items قبل إنشاء الـ Resource، لذلك العناصر جزء إلزامي من Create Order response.
   @BuiltValueField(wireName: r'items')
   BuiltList<OrderItemResource> get items;
 
@@ -72,6 +78,11 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
     yield serializers.serialize(
       object.status,
       specifiedType: const FullType(String),
+    );
+    yield r'aggregate_status';
+    yield serializers.serialize(
+      object.aggregateStatus,
+      specifiedType: const FullType(OrderAggregateStatus),
     );
     yield r'notes';
     yield object.notes == null ? null : serializers.serialize(
@@ -129,6 +140,13 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
             specifiedType: const FullType(String),
           ) as String;
           result.status = valueDes;
+          break;
+        case r'aggregate_status':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(OrderAggregateStatus),
+          ) as OrderAggregateStatus;
+          result.aggregateStatus = valueDes;
           break;
         case r'notes':
           final valueDes = serializers.deserialize(
@@ -189,3 +207,4 @@ class _$OrderResourceSerializer implements PrimitiveSerializer<OrderResource> {
     return result.build();
   }
 }
+

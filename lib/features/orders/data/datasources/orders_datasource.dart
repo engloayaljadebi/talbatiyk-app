@@ -6,10 +6,4 @@ abstract interface class OrdersDataSource {
 
   /// إنشاء طلبية جديدة.
   Future<OrderModel> createOrder(CreateOrderModel request);
-
-  /// تحديث حالة طلبية موجودة.
-  Future<OrderModel> updateOrderStatus({
-    required String orderId,
-    required String status,
-  });
 }

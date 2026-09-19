@@ -14,11 +14,13 @@
 |
 */
 
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,6 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(AssignRequestId::class);
+
         /*
          * مسارات API لا يجب أن تحاول التحويل إلى route('login')
          * عند انتهاء أو غياب Bearer Token.
@@ -60,5 +64,26 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request): bool => $request->is('api/*')
                 || $request->expectsJson(),
         );
+
+        $exceptions->respond(function (Response $response): Response {
+            $request = request();
+
+            if (! $request->is('api/*')) {
+                return $response;
+            }
+
+            $requestId = $request->attributes->get(
+                AssignRequestId::ATTRIBUTE_NAME,
+            );
+
+            if (is_string($requestId) && $requestId !== '') {
+                $response->headers->set(
+                    AssignRequestId::HEADER_NAME,
+                    $requestId,
+                );
+            }
+
+            return $response;
+        });
     })
     ->create();

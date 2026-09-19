@@ -18,6 +18,7 @@ namespace App\Http\Requests\Api\V1\Auth;
 
 use App\Models\User;
 use App\Models\UserContact;
+use App\Rules\MaxBytes;
 use App\Support\ContactValueNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -76,9 +77,12 @@ class RegisterRequest extends FormRequest
             ],
 
             'password' => [
+                'bail',
                 'required',
                 'confirmed',
                 Password::min(8),
+                'max:72',
+                new MaxBytes(72),
             ],
 
             'contact_type' => [

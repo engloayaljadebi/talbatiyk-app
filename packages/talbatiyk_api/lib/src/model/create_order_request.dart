@@ -13,12 +13,16 @@ part 'create_order_request.g.dart';
 /// CreateOrderRequest
 ///
 /// Properties:
-/// * [notes]
-/// * [items]
+/// * [notes] 
+/// * [supplierIds] 
+/// * [items] 
 @BuiltValue()
 abstract class CreateOrderRequest implements Built<CreateOrderRequest, CreateOrderRequestBuilder> {
   @BuiltValueField(wireName: r'notes')
   String? get notes;
+
+  @BuiltValueField(wireName: r'supplier_ids')
+  BuiltList<String> get supplierIds;
 
   @BuiltValueField(wireName: r'items')
   BuiltList<CreateOrderRequestItemsInner> get items;
@@ -53,6 +57,11 @@ class _$CreateOrderRequestSerializer implements PrimitiveSerializer<CreateOrderR
         specifiedType: const FullType.nullable(String),
       );
     }
+    yield r'supplier_ids';
+    yield serializers.serialize(
+      object.supplierIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
     yield r'items';
     yield serializers.serialize(
       object.items,
@@ -89,6 +98,13 @@ class _$CreateOrderRequestSerializer implements PrimitiveSerializer<CreateOrderR
           if (valueDes == null) continue;
           result.notes = valueDes;
           break;
+        case r'supplier_ids':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.supplierIds.replace(valueDes);
+          break;
         case r'items':
           final valueDes = serializers.deserialize(
             value,
@@ -124,3 +140,4 @@ class _$CreateOrderRequestSerializer implements PrimitiveSerializer<CreateOrderR
     return result.build();
   }
 }
+

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../cart/presentation/providers/cart_provider.dart';
-import '../../../cart/presentation/utils/cart_feedback.dart';
+import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import '../utils/product_cart_action.dart';
+import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
+import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';
-import '../widgets/add_to_cart_button.dart';
 import '../widgets/product_image.dart';
-import '../widgets/quantity_selector.dart';
 import 'add_product_page.dart';
 
 enum _ProductAction { edit, delete }
@@ -26,6 +25,8 @@ class ProductDetailsPage extends ConsumerStatefulWidget {
 class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   late ProductEntity _product;
 
+  bool _isProcessingCartAction = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,10 +42,9 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final quantity = ref.watch(
+    final cartQuantity = ref.watch(
       cartProvider.select((cart) => cart.quantityOf(_product.id)),
     );
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
@@ -113,6 +113,20 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                 const SizedBox(height: 14),
                 _ProductInformation(product: _product),
                 const SizedBox(height: 14),
+                _ProductIdentityCard(product: _product),
+                const SizedBox(height: 14),
+
+                AddToCartButton(
+                  quantity: cartQuantity,
+                  isProcessing: _isProcessingCartAction,
+                  onPressed: _product.isAvailable ? _handleAddToCart : null,
+                ),
+                if (!_canManageProduct &&
+                    _product.supplierId.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _SupplierFollowCard(businessId: _product.supplierId.trim()),
+                ],
+                const SizedBox(height: 14),
                 _DescriptionCard(description: _product.description),
                 if (_product.colors.isNotEmpty) ...[
                   const SizedBox(height: 14),
@@ -123,18 +137,27 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _ProductCartBar(
-        product: _product,
-        quantity: quantity,
-        onAdd: () {
-          final result = ref.read(cartProvider).addProduct(_product);
+    );
+  }
 
-          showCartAddResultMessage(context, result);
-        },
-        onRemove: () {
-          ref.read(cartProvider).decreaseProduct(_product.id);
-        },
-      ),
+  Future<void> _handleAddToCart() async {
+    if (_isProcessingCartAction) {
+      return;
+    }
+
+    await addProductWithFollowGate(
+      context: context,
+      ref: ref,
+      product: _product,
+      onProcessingChanged: (isProcessing) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _isProcessingCartAction = isProcessing;
+        });
+      },
     );
   }
 
@@ -374,6 +397,194 @@ class _ProductInformation extends StatelessWidget {
   }
 }
 
+class _ProductIdentityCard extends StatelessWidget {
+  const _ProductIdentityCard({required this.product});
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) {
+    final supplierName = product.supplierName.trim();
+    final supplierId = product.supplierId.trim();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'المورد',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 14),
+
+          // بيانات المورد تأتي من Product Discovery contract نفسه،
+          // لذلك لا نحتاج إلى Request إضافي لعرض التفاصيل الحالية.
+          _IdentityRow(
+            label: 'اسم المورد',
+            value: supplierName.isEmpty ? 'غير متوفر' : supplierName,
+          ),
+          const SizedBox(height: 10),
+          _IdentityRow(
+            label: 'معرف المورد',
+            value: supplierId.isEmpty ? 'غير متوفر' : supplierId,
+          ),
+          const SizedBox(height: 10),
+          _IdentityRow(label: 'معرف المنتج', value: product.id),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupplierFollowCard extends ConsumerWidget {
+  const _SupplierFollowCard({required this.businessId});
+
+  final String businessId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(supplierFollowProvider(businessId));
+    final isFollowing = controller.isFollowing;
+    final errorMessage = controller.errorMessage;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'متابعة المورد',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'تابع المورد للاحتفاظ بعلاقة متابعة مباشرة معه داخل طلبيتك.',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (controller.isLoading && isFollowing == null)
+            const Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 10),
+                  Text('جارٍ التحقق من حالة المتابعة...'),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonalIcon(
+                onPressed: controller.canToggle
+                    ? () async {
+                        await controller.toggle();
+                      }
+                    : null,
+                icon: controller.isUpdating
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        isFollowing == true
+                            ? Icons.check_circle_outline
+                            : Icons.person_add_alt_1,
+                      ),
+                label: Text(
+                  controller.isUpdating
+                      ? 'جارٍ التحديث...'
+                      : isFollowing == true
+                      ? 'تتم المتابعة'
+                      : 'متابعة المورد',
+                ),
+              ),
+            ),
+          if (errorMessage != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: controller.isLoading || controller.isUpdating
+                  ? null
+                  : () async {
+                      if (isFollowing == null) {
+                        await controller.loadStatus();
+                      } else {
+                        await controller.toggle();
+                      }
+                    },
+              icon: const Icon(Icons.refresh),
+              label: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _IdentityRow extends StatelessWidget {
+  const _IdentityRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SelectableText(
+            value,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _InformationItem extends StatelessWidget {
   const _InformationItem({
     required this.icon,
@@ -481,93 +692,6 @@ class _ColorsCard extends StatelessWidget {
                 .toList(growable: false),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductCartBar extends StatelessWidget {
-  const _ProductCartBar({
-    required this.product,
-    required this.quantity,
-    required this.onAdd,
-    required this.onRemove,
-  });
-
-  final ProductEntity product;
-  final int quantity;
-  final VoidCallback onAdd;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 12,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'السعر',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '${_formatPrice(product.price)} ر.ي',
-                      style: const TextStyle(
-                        color: Color(0xFFE53935),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 190,
-                child: !product.isAvailable
-                    ? const _UnavailableAction()
-                    : quantity == 0
-                    ? AddToCartButton(onPressed: onAdd)
-                    : QuantitySelector(
-                        quantity: quantity,
-                        onAdd: onAdd,
-                        onRemove: onRemove,
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UnavailableAction extends StatelessWidget {
-  const _UnavailableAction();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F1F3),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: const Text(
-        'المنتج غير متوفر',
-        style: TextStyle(color: Color(0xFF8E8E93), fontWeight: FontWeight.w600),
       ),
     );
   }

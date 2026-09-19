@@ -12,6 +12,8 @@ class _$OrderResource extends OrderResource {
   @override
   final String status;
   @override
+  final OrderAggregateStatus aggregateStatus;
+  @override
   final String? notes;
   @override
   final BuiltList<OrderItemResource> items;
@@ -26,6 +28,7 @@ class _$OrderResource extends OrderResource {
   _$OrderResource._(
       {required this.id,
       required this.status,
+      required this.aggregateStatus,
       this.notes,
       required this.items,
       this.createdAt,
@@ -44,6 +47,7 @@ class _$OrderResource extends OrderResource {
     return other is OrderResource &&
         id == other.id &&
         status == other.status &&
+        aggregateStatus == other.aggregateStatus &&
         notes == other.notes &&
         items == other.items &&
         createdAt == other.createdAt &&
@@ -55,6 +59,7 @@ class _$OrderResource extends OrderResource {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, aggregateStatus.hashCode);
     _$hash = $jc(_$hash, notes.hashCode);
     _$hash = $jc(_$hash, items.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
@@ -68,6 +73,7 @@ class _$OrderResource extends OrderResource {
     return (newBuiltValueToStringHelper(r'OrderResource')
           ..add('id', id)
           ..add('status', status)
+          ..add('aggregateStatus', aggregateStatus)
           ..add('notes', notes)
           ..add('items', items)
           ..add('createdAt', createdAt)
@@ -87,6 +93,11 @@ class OrderResourceBuilder
   String? _status;
   String? get status => _$this._status;
   set status(String? status) => _$this._status = status;
+
+  OrderAggregateStatus? _aggregateStatus;
+  OrderAggregateStatus? get aggregateStatus => _$this._aggregateStatus;
+  set aggregateStatus(OrderAggregateStatus? aggregateStatus) =>
+      _$this._aggregateStatus = aggregateStatus;
 
   String? _notes;
   String? get notes => _$this._notes;
@@ -114,6 +125,7 @@ class OrderResourceBuilder
     if ($v != null) {
       _id = $v.id;
       _status = $v.status;
+      _aggregateStatus = $v.aggregateStatus;
       _notes = $v.notes;
       _items = $v.items.toBuilder();
       _createdAt = $v.createdAt;
@@ -145,6 +157,8 @@ class OrderResourceBuilder
                 id, r'OrderResource', 'id'),
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'OrderResource', 'status'),
+            aggregateStatus: BuiltValueNullFieldError.checkNotNull(
+                aggregateStatus, r'OrderResource', 'aggregateStatus'),
             notes: notes,
             items: items.build(),
             createdAt: createdAt,

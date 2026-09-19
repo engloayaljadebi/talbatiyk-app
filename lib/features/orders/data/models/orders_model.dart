@@ -47,26 +47,50 @@ class OrderItemModel {
 class CreateOrderModel {
   CreateOrderModel({
     required List<OrderItemModel> items,
-    this.supplier,
+    required List<String> supplierIds,
     this.notes = '',
-  }) : items = List<OrderItemModel>.unmodifiable(items);
+    this.idempotencyKey = '',
+  }) : items = List<OrderItemModel>.unmodifiable(items),
+       supplierIds = List<String>.unmodifiable(
+         supplierIds.map((id) => id.trim()).toSet().toList()..sort(),
+       ) {
+    if (supplierIds.isEmpty ||
+        supplierIds.any((supplierId) => supplierId.trim().isEmpty)) {
+      throw ArgumentError.value(
+        supplierIds,
+        'supplierIds',
+        'Create order requires at least one supplier.',
+      );
+    }
+  }
 
   final List<OrderItemModel> items;
-  final OrderSupplierModel? supplier;
+  final List<String> supplierIds;
   final String notes;
 
-  Map<String, dynamic> toJson() {
-    final OrderSupplierModel? orderSupplier = supplier;
+  /// Stable for the lifetime of one logical create-order operation.
+  final String idempotencyKey;
 
+  CreateOrderModel copyWith({
+    List<OrderItemModel>? items,
+    List<String>? supplierIds,
+    String? notes,
+    String? idempotencyKey,
+  }) {
+    return CreateOrderModel(
+      items: items ?? this.items,
+      supplierIds: supplierIds ?? this.supplierIds,
+      notes: notes ?? this.notes,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
       'items': items
           .map((OrderItemModel item) => item.toJson())
           .toList(growable: false),
-
-      // الباك إند يحتاج معرّف المورد، أما الاسم فهو نسخة محلية للعرض.
-      if (orderSupplier != null && orderSupplier.id.trim().isNotEmpty)
-        'supplier_id': orderSupplier.id.trim(),
-
+      'supplier_ids': supplierIds,
       if (notes.trim().isNotEmpty) 'notes': notes.trim(),
     };
   }
@@ -77,6 +101,7 @@ class OrderModel {
   OrderModel({
     required this.id,
     required this.status,
+    this.aggregateStatus = 'pending_responses',
     required List<OrderItemModel> items,
     required this.createdAt,
     this.supplier,
@@ -85,6 +110,7 @@ class OrderModel {
 
   final String id;
   final String status;
+  final String aggregateStatus;
   final List<OrderItemModel> items;
   final DateTime createdAt;
   final OrderSupplierModel? supplier;
@@ -94,6 +120,7 @@ class OrderModel {
   OrderModel copyWith({
     String? id,
     String? status,
+    String? aggregateStatus,
     List<OrderItemModel>? items,
     DateTime? createdAt,
     OrderSupplierModel? supplier,
@@ -102,6 +129,7 @@ class OrderModel {
     return OrderModel(
       id: id ?? this.id,
       status: status ?? this.status,
+      aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
       supplier: supplier ?? this.supplier,

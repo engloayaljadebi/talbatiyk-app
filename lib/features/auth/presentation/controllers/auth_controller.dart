@@ -19,6 +19,7 @@
 
 import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/auth_entity.dart';
 import '../../domain/usecases/auth_usecase.dart';
 import '../states/auth_state.dart';
 
@@ -119,6 +120,29 @@ final class AuthController extends ChangeNotifier {
   }
 
   /// يسجل خروج المستخدم من الجهاز الحالي.
+  Future<void> refreshCurrentUser() async {
+    if (!state.isAuthenticated) {
+      return;
+    }
+
+    try {
+      final user = await _useCase.getCurrentUser();
+
+      if (!state.isAuthenticated) {
+        return;
+      }
+
+      state = state.copyWith(
+        session: AuthSessionEntity(user: user),
+        clearErrorMessage: true,
+      );
+
+      notifyListeners();
+    } catch (error, stackTrace) {
+      debugPrint('Auth profile refresh failed: $error`n$stackTrace');
+    }
+  }
+
   Future<void> logout() async {
     state = state.copyWith(
       status: AuthStatus.signingOut,

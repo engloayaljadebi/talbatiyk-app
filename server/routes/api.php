@@ -22,7 +22,13 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Business\BusinessContactController;
 use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
+use App\Http\Controllers\Api\V1\Business\SupplierDiscoveryController;
+use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;
+use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
+use App\Http\Controllers\Api\V1\Order\SupplierOrderFulfillmentController;
+use App\Http\Controllers\Api\V1\Order\SupplierOrderResponseController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,7 +62,10 @@ Route::prefix('v1')->group(function (): void {
              * يجب أن يكون الحساب نشطًا.
              */
             Route::get('/me', [AuthController::class, 'me'])
-                ->middleware('active.user');
+                ->middleware([
+                    'throttle:120,1',
+                    'active.user',
+                ]);
 
             /*
              * تسجيل خروج الجهاز الحالي فقط.
@@ -81,6 +90,7 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware([
         'auth:sanctum',
+        'throttle:120,1',
         'active.user',
     ])->group(function (): void {
         /*
@@ -89,12 +99,64 @@ Route::prefix('v1')->group(function (): void {
         |--------------------------------------------------------------------------
         */
 
+        Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
 
+        Route::get(
+            '/orders/{order}/supplier-responses',
+            [OrderResponseComparisonController::class, 'show'],
+        )->whereUuid('order');
+
+        Route::put(
+            '/orders/{order}/supplier-selection',
+            [OrderResponseComparisonController::class, 'update'],
+        )->whereUuid('order');
+
+        Route::get(
+            '/businesses/{business}/received-orders',
+            [SupplierOrderController::class, 'index'],
+        );
+
+        Route::post(
+            '/businesses/{business}/received-orders/{recipient}/response',
+            [SupplierOrderResponseController::class, 'store'],
+        )->whereUuid('recipient');
+        Route::patch(
+            '/businesses/{business}/received-orders/{recipient}/fulfillment',
+            [SupplierOrderFulfillmentController::class, 'update'],
+        )->whereUuid('recipient');
+
         /*
-         | Products Discovery
-         */
+        |--------------------------------------------------------------------------
+        | Products Discovery
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/products', [ProductController::class, 'index']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Supplier Follow
+        |--------------------------------------------------------------------------
+        |
+        | المتابعة تخص Business المورد نفسه ولا تتحكم في Product Discovery.
+        |
+        */
+
+        Route::get(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'show'],
+        );
+
+        Route::post(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'store'],
+        );
+
+        Route::delete(
+            '/businesses/{business}/follow',
+            [SupplierFollowController::class, 'destroy'],
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -106,6 +168,8 @@ Route::prefix('v1')->group(function (): void {
          * قائمة الأنشطة التي لدى المستخدم
          * عضوية نشطة فيها.
          */
+        Route::get('/suppliers', [SupplierDiscoveryController::class, 'index']);
+
         Route::get('/businesses', [BusinessController::class, 'index']);
 
         /*

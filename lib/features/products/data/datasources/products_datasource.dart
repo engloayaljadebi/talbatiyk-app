@@ -1,28 +1,28 @@
 import '../models/products_model.dart';
 
-/// عقد قراءة المنتجات.
-///
-/// يمكن تطبيقه بواسطة قاعدة البيانات المحلية أو API أو مصدر تجريبي.
+/// Read contract shared by local, remote, and composed product sources.
 abstract interface class ProductsDataSource {
-  /// يعيد قائمة المنتجات المتاحة للعرض.
   Future<List<ProductModel>> getProducts();
 }
 
-/// عقد عمليات كتابة المنتجات.
+/// Local cache contract used by customer Product Discovery.
 ///
-/// فصل الكتابة عن القراءة يسمح لبعض المصادر بتنفيذ القراءة فقط،
-/// بينما ينفذ المصدر المحلي والسحابي عمليات الإنشاء والتعديل والحذف.
+/// Cache writes represent server snapshots only. They must never create
+/// Outbox operations or overwrite local product mutations waiting for sync.
+abstract interface class ProductsCacheDataSource {
+  Future<List<ProductModel>> getCachedProducts();
+
+  Future<void> replaceCachedProducts(List<ProductModel> products);
+}
+
+/// Local business-write contract for supplier product management.
+///
+/// These operations are intentionally separate from discovery caching because
+/// create/update/delete may create Outbox operations for later synchronization.
 abstract interface class ProductsWritableDataSource {
-  /// يحفظ منتجًا جديدًا ويعيد النسخة التي تم حفظها.
   Future<ProductModel> createProduct(ProductModel product);
 
-  /// يحدّث منتجًا موجودًا ويعيد النسخة المحدثة.
-  ///
-  /// عند عدم توفر الإنترنت، تُحفظ التغييرات محليًا وتنتظر المزامنة.
   Future<ProductModel> updateProduct(ProductModel product);
 
-  /// يحذف المنتج محليًا ويسجل عملية حذفه للسحابة.
-  ///
-  /// سيكون الحذف منطقيًا أولًا حتى لا نفقد معرف المنتج قبل مزامنته.
   Future<void> deleteProduct(String productId);
 }

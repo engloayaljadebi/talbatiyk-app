@@ -1331,11 +1331,57 @@
             }
         },
         "/orders": {
+            "get": {
+                "operationId": "order.index",
+                "summary": "Return orders owned by the authenticated customer",
+                "tags": [
+                    "Order"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OrderResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
             "post": {
                 "operationId": "order.store",
                 "summary": "Create a new order for the authenticated user",
                 "tags": [
                     "Order"
+                ],
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "description": "Stable UUID reused for retries of the same logical order creation.",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                    }
                 ],
                 "requestBody": {
                     "required": true,
@@ -1374,6 +1420,133 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/orders/{order}/supplier-responses": {
+            "get": {
+                "operationId": "orderResponseComparison.show",
+                "summary": "Compare all final supplier responses for one owned Order",
+                "tags": [
+                    "OrderResponseComparison"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`OrderResponseComparisonResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResponseComparisonResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "404": {
+                        "description": "Order not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{order}/supplier-selection": {
+            "put": {
+                "operationId": "orderResponseComparison.update",
+                "summary": "Replace the customer's supplier-response selection atomically",
+                "tags": [
+                    "OrderResponseComparison"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SelectOrderSupplierResponsesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderResponseComparisonResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResponseComparisonResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "description": "Order not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The order version is stale.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1551,6 +1724,477 @@
                     }
                 }
             }
+        },
+        "/suppliers": {
+            "get": {
+                "operationId": "supplierDiscovery.index",
+                "tags": [
+                    "SupplierDiscovery"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `SupplierSummaryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SupplierSummaryResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/businesses/{business}/follow": {
+            "get": {
+                "operationId": "supplierFollow.show",
+                "summary": "\u062d\u0627\u0644\u0629 \u0645\u062a\u0627\u0628\u0639\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062d\u0627\u0644\u064a \u0644\u0644\u0645\u0648\u0631\u062f",
+                "tags": [
+                    "SupplierFollow"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "business_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_following": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "business_id",
+                                                "is_following"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "supplierFollow.store",
+                "description": "\u0627\u0644\u0639\u0645\u0644\u064a\u0629 idempotent\u061b \u062a\u0643\u0631\u0627\u0631 \u0627\u0644\u0637\u0644\u0628 \u0644\u0627 \u064a\u0646\u0634\u0626 \u0639\u0644\u0627\u0642\u0629 \u062b\u0627\u0646\u064a\u0629.",
+                "summary": "\u0645\u062a\u0627\u0628\u0639\u0629 \u0627\u0644\u0645\u0648\u0631\u062f",
+                "tags": [
+                    "SupplierFollow"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "business_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_following": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "business_id",
+                                                "is_following"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "description": "The business is not an active followable supplier.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "business_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "business_id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "supplierFollow.destroy",
+                "description": "\u0627\u0644\u0639\u0645\u0644\u064a\u0629 idempotent\u061b \u0625\u0644\u063a\u0627\u0621 \u0645\u062a\u0627\u0628\u0639\u0629 \u063a\u064a\u0631 \u0645\u0648\u062c\u0648\u062f\u0629 \u0644\u0627 \u064a\u0639\u062a\u0628\u0631 \u062e\u0637\u0623.",
+                "summary": "\u0625\u0644\u063a\u0627\u0621 \u0645\u062a\u0627\u0628\u0639\u0629 \u0627\u0644\u0645\u0648\u0631\u062f",
+                "tags": [
+                    "SupplierFollow"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "business_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_following": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "business_id",
+                                                "is_following"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/businesses/{business}/received-orders": {
+            "get": {
+                "operationId": "supplierOrder.index",
+                "summary": "List orders received by one supplier Business",
+                "tags": [
+                    "SupplierOrder"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `OrderRecipientResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OrderRecipientResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/businesses/{business}/received-orders/{recipient}/fulfillment": {
+            "patch": {
+                "operationId": "supplierOrderFulfillment.update",
+                "summary": "Advance one supplier Recipient through its fulfillment lifecycle",
+                "tags": [
+                    "SupplierOrderFulfillment"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "recipient",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSupplierFulfillmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderRecipientResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderRecipientResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "409": {
+                        "description": "The fulfillment version is stale, the supplier is not selected, or the transition is invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/businesses/{business}/received-orders/{recipient}/response": {
+            "post": {
+                "operationId": "supplierOrderResponse.store",
+                "summary": "Submit the final response for one supplier order recipient",
+                "tags": [
+                    "SupplierOrderResponse"
+                ],
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "description": "The business ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "recipient",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "description": "Stable UUID reused for retries of the same logical supplier response.",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SubmitSupplierOrderResponseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`OrderRecipientResponseResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderRecipientResponseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "409": {
+                        "description": "The recipient already has a final response or the Idempotency-Key was reused with a different payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1561,6 +2205,15 @@
             }
         },
         "schemas": {
+            "AvailabilityStatus": {
+                "type": "string",
+                "enum": [
+                    "full",
+                    "partial",
+                    "unavailable"
+                ],
+                "title": "AvailabilityStatus"
+            },
             "BusinessContactResource": {
                 "type": "object",
                 "properties": {
@@ -2123,6 +2776,15 @@
                         ],
                         "maxLength": 2000
                     },
+                    "supplier_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10
+                    },
                     "items": {
                         "type": "array",
                         "items": {
@@ -2130,52 +2792,52 @@
                             "properties": {
                                 "product_id": {
                                     "type": "string",
-                                    "maxLength": 255
-                                },
-                                "product_name": {
-                                    "type": "string",
-                                    "maxLength": 255
-                                },
-                                "unit_price": {
-                                    "type": "number",
-                                    "minimum": 0
+                                    "format": "uuid",
+                                    "description": "Product existence is commercial state and must be validated\nafter idempotency replay lookup inside OrderService."
                                 },
                                 "quantity": {
                                     "type": "integer",
                                     "minimum": 1
                                 },
-                                "supplier_id": {
-                                    "type": "string",
-                                    "format": "uuid"
+                                "expected_unit_price": {
+                                    "type": "number",
+                                    "description": "This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price.",
+                                    "minimum": 0,
+                                    "exclusiveMaximum": 10000000000
                                 },
-                                "supplier_name": {
+                                "expected_supplier_id": {
                                     "type": "string",
-                                    "maxLength": 200
-                                },
-                                "image_url": {
-                                    "type": [
-                                        "string",
-                                        "null"
-                                    ],
-                                    "maxLength": 2048
+                                    "format": "uuid",
+                                    "description": "This is a concurrency expectation, not the authoritative\nsupplier. Laravel resolves the real supplier from Product."
                                 }
                             },
                             "required": [
                                 "product_id",
-                                "product_name",
-                                "unit_price",
                                 "quantity",
-                                "supplier_id",
-                                "supplier_name"
+                                "expected_unit_price",
+                                "expected_supplier_id"
                             ]
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 50
                     }
                 },
                 "required": [
+                    "supplier_ids",
                     "items"
                 ],
                 "title": "CreateOrderRequest"
+            },
+            "FulfillmentStatus": {
+                "type": "string",
+                "enum": [
+                    "confirmed",
+                    "preparing",
+                    "ready_for_delivery",
+                    "out_for_delivery",
+                    "delivered"
+                ],
+                "title": "FulfillmentStatus"
             },
             "LoginRequest": {
                 "type": "object",
@@ -2185,7 +2847,8 @@
                         "maxLength": 320
                     },
                     "password": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     },
                     "device_name": {
                         "type": "string",
@@ -2198,6 +2861,20 @@
                     "device_name"
                 ],
                 "title": "LoginRequest"
+            },
+            "OrderAggregateStatus": {
+                "type": "string",
+                "enum": [
+                    "pending_responses",
+                    "responses_received",
+                    "suppliers_selected",
+                    "in_fulfillment",
+                    "partially_completed",
+                    "completed",
+                    "cancelled",
+                    "expired"
+                ],
+                "title": "OrderAggregateStatus"
             },
             "OrderItemResource": {
                 "type": "object",
@@ -2245,6 +2922,229 @@
                 ],
                 "title": "OrderItemResource"
             },
+            "OrderRecipientItemResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    },
+                    "product_name": {
+                        "type": "string"
+                    },
+                    "unit_price": {
+                        "type": "string"
+                    },
+                    "requested_quantity": {
+                        "type": "integer"
+                    },
+                    "selected_quantity": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "product_id",
+                    "product_name",
+                    "unit_price",
+                    "requested_quantity",
+                    "selected_quantity",
+                    "image_url"
+                ],
+                "title": "OrderRecipientItemResource"
+            },
+            "OrderRecipientItemResponseResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "order_recipient_item_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "requested_quantity": {
+                        "type": "integer"
+                    },
+                    "available_quantity": {
+                        "type": "integer"
+                    },
+                    "availability_status": {
+                        "$ref": "#/components/schemas/AvailabilityStatus"
+                    },
+                    "offered_unit_price": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "response_notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "order_recipient_item_id",
+                    "requested_quantity",
+                    "available_quantity",
+                    "availability_status",
+                    "offered_unit_price",
+                    "response_notes",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderRecipientItemResponseResource"
+            },
+            "OrderRecipientResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "order_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "supplier_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "supplier_name": {
+                        "type": "string"
+                    },
+                    "fulfillment_status": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FulfillmentStatus"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "fulfillment_version": {
+                        "type": "integer"
+                    },
+                    "order_status": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderRecipientItemResource"
+                        }
+                    },
+                    "response": {
+                        "$ref": "#/components/schemas/OrderRecipientResponseResource"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "order_id",
+                    "supplier_id",
+                    "supplier_name",
+                    "fulfillment_status",
+                    "fulfillment_version",
+                    "order_status",
+                    "notes",
+                    "items",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderRecipientResource"
+            },
+            "OrderRecipientResponseResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "order_recipient_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderRecipientItemResponseResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "order_recipient_id",
+                    "items",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderRecipientResponseResource"
+            },
             "OrderResource": {
                 "type": "object",
                 "properties": {
@@ -2254,6 +3154,9 @@
                     },
                     "status": {
                         "type": "string"
+                    },
+                    "aggregate_status": {
+                        "$ref": "#/components/schemas/OrderAggregateStatus"
                     },
                     "notes": {
                         "type": [
@@ -2286,12 +3189,163 @@
                 "required": [
                     "id",
                     "status",
+                    "aggregate_status",
                     "notes",
                     "items",
                     "created_at",
                     "updated_at"
                 ],
                 "title": "OrderResource"
+            },
+            "OrderResponseComparisonItemResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    },
+                    "product_name": {
+                        "type": "string"
+                    },
+                    "requested_quantity": {
+                        "type": "integer"
+                    },
+                    "order_unit_price": {
+                        "type": "string"
+                    },
+                    "supplier": {
+                        "type": "object",
+                        "properties": {
+                            "recipient_id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "supplier_id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "supplier_name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "recipient_id",
+                            "supplier_id",
+                            "supplier_name"
+                        ]
+                    },
+                    "response": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/OrderRecipientItemResponseResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "selection": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/OrderResponseComparisonSelectionResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "product_id",
+                    "product_name",
+                    "requested_quantity",
+                    "order_unit_price",
+                    "supplier",
+                    "response",
+                    "selection"
+                ],
+                "title": "OrderResponseComparisonItemResource"
+            },
+            "OrderResponseComparisonResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "aggregate_status": {
+                        "$ref": "#/components/schemas/OrderAggregateStatus"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderResponseComparisonItemResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "version",
+                    "status",
+                    "aggregate_status",
+                    "notes",
+                    "items",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "OrderResponseComparisonResource"
+            },
+            "OrderResponseComparisonSelectionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "order_recipient_item_response_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "selected_quantity": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "order_recipient_item_response_id",
+                    "selected_quantity"
+                ],
+                "title": "OrderResponseComparisonSelectionResource"
             },
             "ProductResource": {
                 "type": "object",
@@ -2397,7 +3451,8 @@
                         "maxLength": 160
                     },
                     "password": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     },
                     "contact_type": {
                         "type": "string",
@@ -2425,7 +3480,8 @@
                         "maxLength": 100
                     },
                     "password_confirmation": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 72
                     }
                 },
                 "required": [
@@ -2438,6 +3494,109 @@
                     "password_confirmation"
                 ],
                 "title": "RegisterRequest"
+            },
+            "SelectOrderSupplierResponsesRequest": {
+                "type": "object",
+                "properties": {
+                    "expected_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "selections": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "order_recipient_item_response_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "selected_quantity": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "required": [
+                                "order_recipient_item_response_id",
+                                "selected_quantity"
+                            ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 50
+                    }
+                },
+                "required": [
+                    "expected_version",
+                    "selections"
+                ],
+                "title": "SelectOrderSupplierResponsesRequest"
+            },
+            "SubmitSupplierOrderResponseRequest": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "order_recipient_item_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "availability_status": {
+                                    "$ref": "#/components/schemas/AvailabilityStatus"
+                                },
+                                "available_quantity": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "offered_unit_price": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "minimum": 0,
+                                    "exclusiveMaximum": 10000000000000000
+                                },
+                                "response_notes": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "maxLength": 2000
+                                }
+                            },
+                            "required": [
+                                "order_recipient_item_id",
+                                "availability_status",
+                                "available_quantity"
+                            ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 50
+                    }
+                },
+                "required": [
+                    "items"
+                ],
+                "title": "SubmitSupplierOrderResponseRequest"
+            },
+            "SupplierSummaryResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "title": "SupplierSummaryResource"
             },
             "UpdateBusinessContactRequest": {
                 "type": "object",
@@ -2571,6 +3730,29 @@
                 },
                 "title": "UpdateBusinessRequest"
             },
+            "UpdateSupplierFulfillmentRequest": {
+                "type": "object",
+                "properties": {
+                    "expected_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "preparing",
+                            "ready_for_delivery",
+                            "out_for_delivery",
+                            "delivered"
+                        ]
+                    }
+                },
+                "required": [
+                    "expected_version",
+                    "status"
+                ],
+                "title": "UpdateSupplierFulfillmentRequest"
+            },
             "UserResource": {
                 "type": "object",
                 "properties": {
@@ -2688,6 +3870,25 @@
             },
             "AuthorizationException": {
                 "description": "Authorization error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
                 "content": {
                     "application/json": {
                         "schema": {
