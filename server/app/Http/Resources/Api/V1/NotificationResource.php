@@ -37,6 +37,7 @@ final class NotificationResource extends JsonResource
 
             'body' => (string) ($payload['body'] ?? ''),
 
+            /** @var array<string, mixed> */
             'data' => $metadata,
 
             'is_read' => $this->read_at !== null,

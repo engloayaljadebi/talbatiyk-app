@@ -144,7 +144,8 @@ jobs:
             -i ./server/openapi.json \
             -g dart-dio \
             -o ./packages/talbatiyk_api \
-            --additional-properties=pubName=talbatiyk_api,pubVersion=0.1.0,pubHomepage=homepage
+            --additional-properties=pubName=talbatiyk_api,pubVersion=0.1.0,pubHomepage=homepage \
+            --inline-schema-name-mappings=notification_index_200_response_links=product_index_200_response_links,notification_index_200_response_meta=product_index_200_response_meta,notification_index_200_response_meta_links_inner=product_index_200_response_meta_links_inner
 
       - name: Resolve generated SDK dependencies
         working-directory: packages/talbatiyk_api

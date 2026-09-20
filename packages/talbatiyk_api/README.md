@@ -115,6 +115,10 @@ Class | Method | HTTP request | Description
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationShow**](doc/BusinessLocationApi.md#businesslocationshow) | **GET** /businesses/{business}/locations/{location} | عرض موقع واحد تابع للنشاط
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationStore**](doc/BusinessLocationApi.md#businesslocationstore) | **POST** /businesses/{business}/locations | إنشاء موقع جديد
 [*BusinessLocationApi*](doc/BusinessLocationApi.md) | [**businessLocationUpdate**](doc/BusinessLocationApi.md#businesslocationupdate) | **PATCH** /businesses/{business}/locations/{location} | تعديل موقع موجود
+[*NotificationApi*](doc/NotificationApi.md) | [**notificationIndex**](doc/NotificationApi.md#notificationindex) | **GET** /notifications | 
+[*NotificationApi*](doc/NotificationApi.md) | [**notificationMarkAllRead**](doc/NotificationApi.md#notificationmarkallread) | **POST** /notifications/read-all | 
+[*NotificationApi*](doc/NotificationApi.md) | [**notificationMarkRead**](doc/NotificationApi.md#notificationmarkread) | **PATCH** /notifications/{notification}/read | Mark one notification owned by the authenticated user as read
+[*NotificationApi*](doc/NotificationApi.md) | [**notificationUnreadCount**](doc/NotificationApi.md#notificationunreadcount) | **GET** /notifications/unread-count | 
 [*OrderApi*](doc/OrderApi.md) | [**orderIndex**](doc/OrderApi.md#orderindex) | **GET** /orders | Return orders owned by the authenticated customer
 [*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonShow**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonshow) | **GET** /orders/{order}/supplier-responses | Compare all final supplier responses for one owned Order
@@ -159,6 +163,13 @@ Class | Method | HTTP request | Description
  - [InlineObject](doc/InlineObject.md)
  - [InlineObject1](doc/InlineObject1.md)
  - [LoginRequest](doc/LoginRequest.md)
+ - [NotificationIndex200Response](doc/NotificationIndex200Response.md)
+ - [NotificationMarkAllRead200Response](doc/NotificationMarkAllRead200Response.md)
+ - [NotificationMarkAllRead200ResponseData](doc/NotificationMarkAllRead200ResponseData.md)
+ - [NotificationMarkRead200Response](doc/NotificationMarkRead200Response.md)
+ - [NotificationResource](doc/NotificationResource.md)
+ - [NotificationUnreadCount200Response](doc/NotificationUnreadCount200Response.md)
+ - [NotificationUnreadCount200ResponseData](doc/NotificationUnreadCount200ResponseData.md)
  - [OrderAggregateStatus](doc/OrderAggregateStatus.md)
  - [OrderIndex200Response](doc/OrderIndex200Response.md)
  - [OrderItemResource](doc/OrderItemResource.md)

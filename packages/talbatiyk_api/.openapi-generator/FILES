@@ -33,6 +33,14 @@ doc/FulfillmentStatus.md
 doc/InlineObject.md
 doc/InlineObject1.md
 doc/LoginRequest.md
+doc/NotificationApi.md
+doc/NotificationIndex200Response.md
+doc/NotificationMarkAllRead200Response.md
+doc/NotificationMarkAllRead200ResponseData.md
+doc/NotificationMarkRead200Response.md
+doc/NotificationResource.md
+doc/NotificationUnreadCount200Response.md
+doc/NotificationUnreadCount200ResponseData.md
 doc/OrderAggregateStatus.md
 doc/OrderApi.md
 doc/OrderIndex200Response.md
@@ -86,6 +94,7 @@ lib/src/api/auth_api.dart
 lib/src/api/business_api.dart
 lib/src/api/business_contact_api.dart
 lib/src/api/business_location_api.dart
+lib/src/api/notification_api.dart
 lib/src/api/order_api.dart
 lib/src/api/order_response_comparison_api.dart
 lib/src/api/product_api.dart
@@ -130,6 +139,13 @@ lib/src/model/fulfillment_status.dart
 lib/src/model/inline_object.dart
 lib/src/model/inline_object1.dart
 lib/src/model/login_request.dart
+lib/src/model/notification_index200_response.dart
+lib/src/model/notification_mark_all_read200_response.dart
+lib/src/model/notification_mark_all_read200_response_data.dart
+lib/src/model/notification_mark_read200_response.dart
+lib/src/model/notification_resource.dart
+lib/src/model/notification_unread_count200_response.dart
+lib/src/model/notification_unread_count200_response_data.dart
 lib/src/model/order_aggregate_status.dart
 lib/src/model/order_index200_response.dart
 lib/src/model/order_item_resource.dart

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Notification\ListNotificationsRequest;
 use App\Http\Resources\Api\V1\NotificationResource;
 use App\Services\Notification\NotificationService;
+use Dedoc\Scramble\Attributes\PathParameter;
+use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -38,6 +40,21 @@ final class NotificationController extends Controller
         ]);
     }
 
+    /**
+     * Mark one notification owned by the authenticated user as read.
+     */
+    #[PathParameter(
+        'notification',
+        description: 'Notification UUID.',
+        required: true,
+        type: 'string',
+        format: 'uuid',
+    )]
+    #[Response(
+        200,
+        'Notification marked as read.',
+        type: 'array{data: NotificationResource}',
+    )]
     public function markRead(
         Request $request,
         string $notification,
@@ -49,24 +66,6 @@ final class NotificationController extends Controller
             ),
         );
 
-        /*
-         * NotificationResource intentionally exposes an application-level
-         * field named "data" for notification metadata.
-         *
-         * JsonResource normally also uses "data" as its outer wrapper.
-         * For a single resource Laravel avoids double wrapping when the
-         * resolved payload already contains a "data" key.
-         *
-         * Wrap explicitly here so the single-resource endpoint keeps the
-         * same stable API envelope used by the rest of the API:
-         *
-         * {
-         *   "data": {
-         *     "id": "...",
-         *     "data": {...}
-         *   }
-         * }
-         */
         return response()->json([
             'data' => $resource->resolve($request),
         ]);
