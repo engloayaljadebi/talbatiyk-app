@@ -3,6 +3,7 @@
 namespace App\Actions\Order;
 
 use App\Enums\Order\FulfillmentStatus;
+use App\Events\Order\SupplierOrderFulfillmentUpdated;
 use App\Models\Business;
 use App\Models\OrderItemSelection;
 use App\Models\OrderRecipient;
@@ -33,6 +34,7 @@ class UpdateSupplierFulfillmentAction
             $recipient = OrderRecipient::query()
                 ->whereKey($recipientId)
                 ->where('supplier_id', $business->id)
+                ->with('order:id,user_id')
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -90,6 +92,18 @@ class UpdateSupplierFulfillmentAction
                 'from_status' => $currentStatus->value,
                 'to_status' => $targetStatus->value,
             ]);
+
+            event(
+                new SupplierOrderFulfillmentUpdated(
+                    customerUserId: (string) $recipient->order->user_id,
+                    orderId: (string) $recipient->order_id,
+                    orderRecipientId: (string) $recipient->id,
+                    supplierId: (string) $business->id,
+                    supplierName: (string) $business->name,
+                    fulfillmentStatus: $targetStatus->value,
+                    fulfillmentVersion: (int) $recipient->fulfillment_version,
+                ),
+            );
 
             return $recipient->load([
                 'order:id,status,notes,created_at,updated_at',
