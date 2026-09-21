@@ -4269,6 +4269,603 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
   }
 }
 
+class $NotificationRecordsTable extends NotificationRecords
+    with TableInfo<$NotificationRecordsTable, NotificationRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dataJsonMeta = const VerificationMeta(
+    'dataJson',
+  );
+  @override
+  late final GeneratedColumn<String> dataJson = GeneratedColumn<String>(
+    'data_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+    'is_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
+  @override
+  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
+    'read_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    id,
+    type,
+    title,
+    body,
+    dataJson,
+    isRead,
+    readAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notification_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NotificationRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('data_json')) {
+      context.handle(
+        _dataJsonMeta,
+        dataJson.isAcceptableOrUnknown(data['data_json']!, _dataJsonMeta),
+      );
+    }
+    if (data.containsKey('is_read')) {
+      context.handle(
+        _isReadMeta,
+        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
+      );
+    }
+    if (data.containsKey('read_at')) {
+      context.handle(
+        _readAtMeta,
+        readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, id};
+  @override
+  NotificationRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationRecord(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      dataJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data_json'],
+      )!,
+      isRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_read'],
+      )!,
+      readAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}read_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $NotificationRecordsTable createAlias(String alias) {
+    return $NotificationRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationRecord extends DataClass
+    implements Insertable<NotificationRecord> {
+  final String userId;
+  final String id;
+  final String type;
+  final String title;
+  final String body;
+  final String dataJson;
+  final bool isRead;
+  final DateTime? readAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const NotificationRecord({
+    required this.userId,
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.body,
+    required this.dataJson,
+    required this.isRead,
+    this.readAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    map['data_json'] = Variable<String>(dataJson);
+    map['is_read'] = Variable<bool>(isRead);
+    if (!nullToAbsent || readAt != null) {
+      map['read_at'] = Variable<DateTime>(readAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  NotificationRecordsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationRecordsCompanion(
+      userId: Value(userId),
+      id: Value(id),
+      type: Value(type),
+      title: Value(title),
+      body: Value(body),
+      dataJson: Value(dataJson),
+      isRead: Value(isRead),
+      readAt: readAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory NotificationRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationRecord(
+      userId: serializer.fromJson<String>(json['userId']),
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      dataJson: serializer.fromJson<String>(json['dataJson']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
+      readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'dataJson': serializer.toJson<String>(dataJson),
+      'isRead': serializer.toJson<bool>(isRead),
+      'readAt': serializer.toJson<DateTime?>(readAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  NotificationRecord copyWith({
+    String? userId,
+    String? id,
+    String? type,
+    String? title,
+    String? body,
+    String? dataJson,
+    bool? isRead,
+    Value<DateTime?> readAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => NotificationRecord(
+    userId: userId ?? this.userId,
+    id: id ?? this.id,
+    type: type ?? this.type,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    dataJson: dataJson ?? this.dataJson,
+    isRead: isRead ?? this.isRead,
+    readAt: readAt.present ? readAt.value : this.readAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  NotificationRecord copyWithCompanion(NotificationRecordsCompanion data) {
+    return NotificationRecord(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      dataJson: data.dataJson.present ? data.dataJson.value : this.dataJson,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRecord(')
+          ..write('userId: $userId, ')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('isRead: $isRead, ')
+          ..write('readAt: $readAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    userId,
+    id,
+    type,
+    title,
+    body,
+    dataJson,
+    isRead,
+    readAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationRecord &&
+          other.userId == this.userId &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.dataJson == this.dataJson &&
+          other.isRead == this.isRead &&
+          other.readAt == this.readAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
+  final Value<String> userId;
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String> dataJson;
+  final Value<bool> isRead;
+  final Value<DateTime?> readAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const NotificationRecordsCompanion({
+    this.userId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.dataJson = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationRecordsCompanion.insert({
+    required String userId,
+    required String id,
+    required String type,
+    required String title,
+    required String body,
+    this.dataJson = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.readAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       id = Value(id),
+       type = Value(type),
+       title = Value(title),
+       body = Value(body),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<NotificationRecord> custom({
+    Expression<String>? userId,
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? dataJson,
+    Expression<bool>? isRead,
+    Expression<DateTime>? readAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (dataJson != null) 'data_json': dataJson,
+      if (isRead != null) 'is_read': isRead,
+      if (readAt != null) 'read_at': readAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationRecordsCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String>? dataJson,
+    Value<bool>? isRead,
+    Value<DateTime?>? readAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return NotificationRecordsCompanion(
+      userId: userId ?? this.userId,
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      dataJson: dataJson ?? this.dataJson,
+      isRead: isRead ?? this.isRead,
+      readAt: readAt ?? this.readAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (dataJson.present) {
+      map['data_json'] = Variable<String>(dataJson.value);
+    }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
+    if (readAt.present) {
+      map['read_at'] = Variable<DateTime>(readAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRecordsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('isRead: $isRead, ')
+          ..write('readAt: $readAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncOperationsTable extends SyncOperations
     with TableInfo<$SyncOperationsTable, SyncOperation> {
   @override
@@ -4906,6 +5503,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CartItemRecordsTable cartItemRecords = $CartItemRecordsTable(
     this,
   );
+  late final $NotificationRecordsTable notificationRecords =
+      $NotificationRecordsTable(this);
   late final $SyncOperationsTable syncOperations = $SyncOperationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -4917,6 +5516,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     orderRecords,
     orderItemRecords,
     cartItemRecords,
+    notificationRecords,
     syncOperations,
   ];
   @override
@@ -7182,6 +7782,317 @@ typedef $$CartItemRecordsTableProcessedTableManager =
       CartItemRecord,
       PrefetchHooks Function()
     >;
+typedef $$NotificationRecordsTableCreateCompanionBuilder =
+    NotificationRecordsCompanion Function({
+      required String userId,
+      required String id,
+      required String type,
+      required String title,
+      required String body,
+      Value<String> dataJson,
+      Value<bool> isRead,
+      Value<DateTime?> readAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$NotificationRecordsTableUpdateCompanionBuilder =
+    NotificationRecordsCompanion Function({
+      Value<String> userId,
+      Value<String> id,
+      Value<String> type,
+      Value<String> title,
+      Value<String> body,
+      Value<String> dataJson,
+      Value<bool> isRead,
+      Value<DateTime?> readAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$NotificationRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get readAt => $composableBuilder(
+    column: $table.readAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NotificationRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get readAt => $composableBuilder(
+    column: $table.readAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NotificationRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get dataJson =>
+      $composableBuilder(column: $table.dataJson, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get readAt =>
+      $composableBuilder(column: $table.readAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$NotificationRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NotificationRecordsTable,
+          NotificationRecord,
+          $$NotificationRecordsTableFilterComposer,
+          $$NotificationRecordsTableOrderingComposer,
+          $$NotificationRecordsTableAnnotationComposer,
+          $$NotificationRecordsTableCreateCompanionBuilder,
+          $$NotificationRecordsTableUpdateCompanionBuilder,
+          (
+            NotificationRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $NotificationRecordsTable,
+              NotificationRecord
+            >,
+          ),
+          NotificationRecord,
+          PrefetchHooks Function()
+        > {
+  $$NotificationRecordsTableTableManager(
+    _$AppDatabase db,
+    $NotificationRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$NotificationRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> dataJson = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
+                Value<DateTime?> readAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NotificationRecordsCompanion(
+                userId: userId,
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                dataJson: dataJson,
+                isRead: isRead,
+                readAt: readAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String id,
+                required String type,
+                required String title,
+                required String body,
+                Value<String> dataJson = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
+                Value<DateTime?> readAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => NotificationRecordsCompanion.insert(
+                userId: userId,
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                dataJson: dataJson,
+                isRead: isRead,
+                readAt: readAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NotificationRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NotificationRecordsTable,
+      NotificationRecord,
+      $$NotificationRecordsTableFilterComposer,
+      $$NotificationRecordsTableOrderingComposer,
+      $$NotificationRecordsTableAnnotationComposer,
+      $$NotificationRecordsTableCreateCompanionBuilder,
+      $$NotificationRecordsTableUpdateCompanionBuilder,
+      (
+        NotificationRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $NotificationRecordsTable,
+          NotificationRecord
+        >,
+      ),
+      NotificationRecord,
+      PrefetchHooks Function()
+    >;
 typedef $$SyncOperationsTableCreateCompanionBuilder =
     SyncOperationsCompanion Function({
       required String id,
@@ -7502,6 +8413,8 @@ class $AppDatabaseManager {
       $$OrderItemRecordsTableTableManager(_db, _db.orderItemRecords);
   $$CartItemRecordsTableTableManager get cartItemRecords =>
       $$CartItemRecordsTableTableManager(_db, _db.cartItemRecords);
+  $$NotificationRecordsTableTableManager get notificationRecords =>
+      $$NotificationRecordsTableTableManager(_db, _db.notificationRecords);
   $$SyncOperationsTableTableManager get syncOperations =>
       $$SyncOperationsTableTableManager(_db, _db.syncOperations);
 }

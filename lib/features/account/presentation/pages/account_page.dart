@@ -48,6 +48,7 @@ class AccountPage extends ConsumerWidget {
     this.accountType = AccountType.shopOwner,
     this.onEditProfile,
     this.onOpenSettings,
+    this.onOpenNotifications,
     this.onLogout,
   });
 
@@ -68,6 +69,8 @@ class AccountPage extends ConsumerWidget {
 
   /// يعمل عند فتح الإعدادات.
   final VoidCallback? onOpenSettings;
+
+  final VoidCallback? onOpenNotifications;
 
   /// يعمل عند تسجيل الخروج.
   final VoidCallback? onLogout;
@@ -207,7 +210,8 @@ class AccountPage extends ConsumerWidget {
                 icon: Icons.notifications_none_rounded,
                 title: 'الإشعارات',
                 subtitle: 'إدارة تنبيهات المنتجات والطلبات',
-                onTap: () => _showComingSoon(context, 'إعدادات الإشعارات'),
+                onTap: () =>
+                    _executeOrNotify(context, onOpenNotifications, 'الإشعارات'),
               ),
               _AccountOptionTile(
                 icon: Icons.settings_outlined,
