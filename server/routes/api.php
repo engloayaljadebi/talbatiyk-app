@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Business\BusinessController;
 use App\Http\Controllers\Api\V1\Business\BusinessLocationController;
 use App\Http\Controllers\Api\V1\Business\SupplierDiscoveryController;
 use App\Http\Controllers\Api\V1\Follow\SupplierFollowController;
+use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
@@ -93,6 +94,31 @@ Route::prefix('v1')->group(function (): void {
         'throttle:120,1',
         'active.user',
     ])->group(function (): void {
+        /*
+        |--------------------------------------------------------------------------
+        | Notifications
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/notifications/unread-count',
+            [NotificationController::class, 'unreadCount'],
+        );
+
+        Route::post(
+            '/notifications/read-all',
+            [NotificationController::class, 'markAllRead'],
+        );
+
+        Route::patch(
+            '/notifications/{notification}/read',
+            [NotificationController::class, 'markRead'],
+        )->whereUuid('notification');
+
+        Route::get(
+            '/notifications',
+            [NotificationController::class, 'index'],
+        );
         /*
         |--------------------------------------------------------------------------
         | Orders

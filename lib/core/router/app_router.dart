@@ -34,6 +34,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/states/auth_state.dart';
 import '../../features/navigation/presentation/pages/main_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 import 'route_names.dart';
 
 /// Factory لصفحة المسار الرئيسي.
@@ -49,6 +50,14 @@ final mainRoutePageFactoryProvider = Provider<MainRoutePageFactory>(
 );
 
 /// يوفر Router واحدًا مرتبطًا بحالة المصادقة.
+typedef NotificationsRoutePageFactory = Widget Function(String userId);
+
+final notificationsRoutePageFactoryProvider =
+    Provider<NotificationsRoutePageFactory>(
+      (ref) =>
+          (userId) => NotificationsPage(userId: userId),
+    );
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authController = ref.read(authProvider);
 
@@ -137,6 +146,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.login,
         builder: (context, state) {
           return const LoginPage();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        builder: (context, state) {
+          final userId = authController.state.user?.id;
+
+          if (userId == null || userId.isEmpty) {
+            return const AuthSessionPage();
+          }
+
+          return ref.read(notificationsRoutePageFactoryProvider)(userId);
         },
       ),
       GoRoute(

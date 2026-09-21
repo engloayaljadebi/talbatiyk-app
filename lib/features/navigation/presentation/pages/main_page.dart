@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../account/presentation/pages/account_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
@@ -100,6 +102,9 @@ class _MainPageState extends ConsumerState<MainPage>
     const CartPage(),
     const OrdersPage(),
     AccountPage(
+      onOpenNotifications: () async {
+        await GoRouter.of(context).push<void>(RouteNames.notifications);
+      },
       onLogout: () async {
         await ref.read(authProvider).logout();
       },

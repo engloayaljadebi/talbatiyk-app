@@ -42,6 +42,13 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(InlineObject.serializer)
       ..add(InlineObject1.serializer)
       ..add(LoginRequest.serializer)
+      ..add(NotificationIndex200Response.serializer)
+      ..add(NotificationMarkAllRead200Response.serializer)
+      ..add(NotificationMarkAllRead200ResponseData.serializer)
+      ..add(NotificationMarkRead200Response.serializer)
+      ..add(NotificationResource.serializer)
+      ..add(NotificationUnreadCount200Response.serializer)
+      ..add(NotificationUnreadCount200ResponseData.serializer)
       ..add(OrderAggregateStatus.serializer)
       ..add(OrderIndex200Response.serializer)
       ..add(OrderItemResource.serializer)
@@ -97,6 +104,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(BusinessResource)]),
           () => ListBuilder<BusinessResource>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(NotificationResource)]),
+          () => ListBuilder<NotificationResource>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(OrderItemResource)]),
           () => ListBuilder<OrderItemResource>())
@@ -174,7 +185,13 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(String),
             const FullType(BuiltList, const [const FullType(String)])
           ]),
-          () => MapBuilder<String, BuiltList<String>>()))
+          () => MapBuilder<String, BuiltList<String>>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>()))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint
