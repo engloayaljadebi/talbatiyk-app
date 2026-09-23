@@ -6,7 +6,22 @@ class NotificationsUseCase {
 
   NotificationsUseCase(this.repository);
 
-  Future<List<NotificationsEntity>> call() {
-    return repository.getNotifications();
+  Future<List<NotificationsEntity>> call({required String userId}) {
+    return repository.getNotifications(userId: userId);
+  }
+
+  Future<NotificationsEntity> markRead({
+    required String userId,
+    required String notificationId,
+  }) {
+    return repository.markRead(userId: userId, notificationId: notificationId);
+  }
+
+  Future<int> markAllRead({required String userId}) {
+    return repository.markAllRead(userId: userId);
+  }
+
+  Future<int> getUnreadCount({required String userId}) {
+    return repository.getUnreadCount(userId: userId);
   }
 }

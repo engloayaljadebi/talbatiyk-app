@@ -221,6 +221,32 @@ class SyncOperations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Server-owned notification snapshot isolated by authenticated user.
+class NotificationRecords extends Table {
+  TextColumn get userId => text()();
+
+  TextColumn get id => text()();
+
+  TextColumn get type => text()();
+
+  TextColumn get title => text()();
+
+  TextColumn get body => text()();
+
+  TextColumn get dataJson => text().withDefault(const Constant('{}'))();
+
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+
+  DateTimeColumn get readAt => dateTime().nullable()();
+
+  DateTimeColumn get createdAt => dateTime()();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, id};
+}
+
 @DriftDatabase(
   tables: [
     ProductRecords,
@@ -228,6 +254,7 @@ class SyncOperations extends Table {
     OrderRecords,
     OrderItemRecords,
     CartItemRecords,
+    NotificationRecords,
     SyncOperations,
   ],
 )
@@ -238,7 +265,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -266,6 +293,22 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 6) {
           await m.addColumn(orderRecords, orderRecords.aggregateStatus);
+        }
+        if (from < 7) {
+          await m.createTable(notificationRecords);
+        } else if (from < 8) {
+          // Repair historical v7 databases that already report schema
+          // version 7 but are missing NotificationRecords.
+          final existingNotificationTables = await customSelect(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type = 'table' "
+            "AND name = 'notification_records' "
+            "LIMIT 1;",
+          ).get();
+
+          if (existingNotificationTables.isEmpty) {
+            await m.createTable(notificationRecords);
+          }
         }
       },
     );

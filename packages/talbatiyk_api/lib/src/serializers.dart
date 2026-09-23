@@ -42,6 +42,13 @@ import 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
 import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
+import 'package:talbatiyk_api/src/model/notification_index200_response.dart';
+import 'package:talbatiyk_api/src/model/notification_mark_all_read200_response.dart';
+import 'package:talbatiyk_api/src/model/notification_mark_all_read200_response_data.dart';
+import 'package:talbatiyk_api/src/model/notification_mark_read200_response.dart';
+import 'package:talbatiyk_api/src/model/notification_resource.dart';
+import 'package:talbatiyk_api/src/model/notification_unread_count200_response.dart';
+import 'package:talbatiyk_api/src/model/notification_unread_count200_response_data.dart';
 import 'package:talbatiyk_api/src/model/order_aggregate_status.dart';
 import 'package:talbatiyk_api/src/model/order_index200_response.dart';
 import 'package:talbatiyk_api/src/model/order_item_resource.dart';
@@ -114,6 +121,13 @@ part 'serializers.g.dart';
   InlineObject,
   InlineObject1,
   LoginRequest,
+  NotificationIndex200Response,
+  NotificationMarkAllRead200Response,
+  NotificationMarkAllRead200ResponseData,
+  NotificationMarkRead200Response,
+  NotificationResource,
+  NotificationUnreadCount200Response,
+  NotificationUnreadCount200ResponseData,
   OrderAggregateStatus,
   OrderIndex200Response,
   OrderItemResource,

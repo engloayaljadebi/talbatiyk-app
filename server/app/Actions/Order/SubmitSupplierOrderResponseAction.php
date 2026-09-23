@@ -3,6 +3,7 @@
 namespace App\Actions\Order;
 
 use App\Enums\Order\AvailabilityStatus;
+use App\Events\Order\SupplierOrderResponseSubmitted;
 use App\Models\Business;
 use App\Models\OrderRecipient;
 use App\Models\OrderRecipientResponse;
@@ -44,7 +45,10 @@ class SubmitSupplierOrderResponseAction
             $recipient = OrderRecipient::query()
                 ->whereKey($recipientId)
                 ->where('supplier_id', $business->id)
-                ->with('items.orderItem:id,quantity')
+                ->with([
+                    'items.orderItem:id,quantity',
+                    'order:id,user_id',
+                ])
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -106,6 +110,17 @@ class SubmitSupplierOrderResponseAction
                     'response_notes' => $item['response_notes'] ?? null,
                 ]);
             }
+
+            event(
+                new SupplierOrderResponseSubmitted(
+                    customerUserId: (string) $recipient->order->user_id,
+                    orderId: (string) $recipient->order_id,
+                    orderRecipientId: (string) $recipient->id,
+                    responseId: (string) $response->id,
+                    supplierId: (string) $business->id,
+                    supplierName: (string) $business->name,
+                ),
+            );
 
             return $response->load('items');
         });

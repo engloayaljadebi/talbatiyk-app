@@ -49,6 +49,9 @@ final class GeneratedApiClient {
   /// Product discovery endpoints.
   ProductApi get products => client.getProductApi();
 
+  /// Notification endpoints.
+  NotificationApi get notifications => client.getNotificationApi();
+
   /// Order endpoints.
   OrderApi get orders => client.getOrderApi();
 
