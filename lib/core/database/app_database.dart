@@ -265,7 +265,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -296,6 +296,19 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           await m.createTable(notificationRecords);
+        } else if (from < 8) {
+          // Repair historical v7 databases that already report schema
+          // version 7 but are missing NotificationRecords.
+          final existingNotificationTables = await customSelect(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type = 'table' "
+            "AND name = 'notification_records' "
+            "LIMIT 1;",
+          ).get();
+
+          if (existingNotificationTables.isEmpty) {
+            await m.createTable(notificationRecords);
+          }
         }
       },
     );
