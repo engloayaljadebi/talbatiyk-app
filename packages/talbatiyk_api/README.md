@@ -93,6 +93,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**authLogout**](doc/AuthApi.md#authlogout) | **POST** /auth/logout | تسجيل خروج الجهاز الحالي فقط
 [*AuthApi*](doc/AuthApi.md) | [**authMe**](doc/AuthApi.md#authme) | **GET** /auth/me | بيانات المستخدم الحالي
 [*AuthApi*](doc/AuthApi.md) | [**authRegister**](doc/AuthApi.md#authregister) | **POST** /auth/register | إنشاء حساب جديد
+[*AuthApi*](doc/AuthApi.md) | [**authUpdateProfile**](doc/AuthApi.md#authupdateprofile) | **PATCH** /auth/me | Update the authenticated user&#39;s basic profile identity
 [*BusinessApi*](doc/BusinessApi.md) | [**businessIndex**](doc/BusinessApi.md#businessindex) | **GET** /businesses | إرجاع جميع الأنشطة التي لدى المستخدم الحالي عضوية نشطة فيها
 [*BusinessApi*](doc/BusinessApi.md) | [**businessShow**](doc/BusinessApi.md#businessshow) | **GET** /businesses/{business} | قراءة نشاط واحد بشرط أن تكون للمستخدم الحالي عضوية نشطة فيه
 [*BusinessApi*](doc/BusinessApi.md) | [**businessStore**](doc/BusinessApi.md#businessstore) | **POST** /businesses | إنشاء نشاط تجاري جديد للمستخدم الحالي
@@ -207,6 +208,7 @@ Class | Method | HTTP request | Description
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)
+ - [UpdateProfileRequest](doc/UpdateProfileRequest.md)
  - [UpdateSupplierFulfillmentRequest](doc/UpdateSupplierFulfillmentRequest.md)
  - [UserResource](doc/UserResource.md)
  - [UserResourceContactsInner](doc/UserResourceContactsInner.md)

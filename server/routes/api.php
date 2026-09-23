@@ -67,6 +67,13 @@ Route::prefix('v1')->group(function (): void {
                     'throttle:120,1',
                     'active.user',
                 ]);
+            Route::patch(
+                '/me',
+                [AuthController::class, 'updateProfile'],
+            )->middleware([
+                'throttle:60,1',
+                'active.user',
+            ]);
 
             /*
              * تسجيل خروج الجهاز الحالي فقط.

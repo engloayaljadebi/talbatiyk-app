@@ -86,6 +86,7 @@ doc/SupplierSummaryResource.md
 doc/UpdateBusinessContactRequest.md
 doc/UpdateBusinessLocationRequest.md
 doc/UpdateBusinessRequest.md
+doc/UpdateProfileRequest.md
 doc/UpdateSupplierFulfillmentRequest.md
 doc/UserResource.md
 doc/UserResourceContactsInner.md
@@ -183,9 +184,11 @@ lib/src/model/supplier_summary_resource.dart
 lib/src/model/update_business_contact_request.dart
 lib/src/model/update_business_location_request.dart
 lib/src/model/update_business_request.dart
+lib/src/model/update_profile_request.dart
 lib/src/model/update_supplier_fulfillment_request.dart
 lib/src/model/user_resource.dart
 lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
+test/update_profile_request_test.dart

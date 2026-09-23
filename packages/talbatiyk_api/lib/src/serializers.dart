@@ -86,6 +86,7 @@ import 'package:talbatiyk_api/src/model/supplier_summary_resource.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_location_request.dart';
 import 'package:talbatiyk_api/src/model/update_business_request.dart';
+import 'package:talbatiyk_api/src/model/update_profile_request.dart';
 import 'package:talbatiyk_api/src/model/update_supplier_fulfillment_request.dart';
 import 'package:talbatiyk_api/src/model/user_resource.dart';
 import 'package:talbatiyk_api/src/model/user_resource_contacts_inner.dart';
@@ -165,6 +166,7 @@ part 'serializers.g.dart';
   UpdateBusinessContactRequest,
   UpdateBusinessLocationRequest,
   UpdateBusinessRequest,
+  UpdateProfileRequest,
   UpdateSupplierFulfillmentRequest,
   UserResource,
   UserResourceContactsInner,
