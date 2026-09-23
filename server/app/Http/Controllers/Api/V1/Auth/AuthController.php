@@ -18,8 +18,10 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\RegisterRequest;
+use App\Http\Requests\Api\V1\Auth\UpdateProfileRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Services\Auth\AuthService;
+use App\Services\User\UserProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +29,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $authService,
+        private readonly UserProfileService $userProfileService,
     ) {}
 
     /**
@@ -72,6 +75,20 @@ class AuthController extends Controller
     {
         return new UserResource(
             $request->user()->load('contacts'),
+        );
+    }
+
+    /**
+     * Update the authenticated user's basic profile identity.
+     */
+    public function updateProfile(
+        UpdateProfileRequest $request,
+    ): UserResource {
+        return new UserResource(
+            $this->userProfileService->update(
+                $request->user(),
+                $request->validated(),
+            ),
         );
     }
 
