@@ -169,6 +169,51 @@
                         "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
+            },
+            "patch": {
+                "operationId": "auth.updateProfile",
+                "summary": "Update the authenticated user's basic profile identity",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateProfileRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`UserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
             }
         },
         "/auth/logout": {
@@ -4217,6 +4262,23 @@
                     }
                 },
                 "title": "UpdateBusinessRequest"
+            },
+            "UpdateProfileRequest": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "pattern": "^[\\pL\\pN._-]+$",
+                        "minLength": 3,
+                        "maxLength": 50
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 160
+                    }
+                },
+                "title": "UpdateProfileRequest"
             },
             "UpdateSupplierFulfillmentRequest": {
                 "type": "object",

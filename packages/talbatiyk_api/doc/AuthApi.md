@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**authLogout**](AuthApi.md#authlogout) | **POST** /auth/logout | تسجيل خروج الجهاز الحالي فقط
 [**authMe**](AuthApi.md#authme) | **GET** /auth/me | بيانات المستخدم الحالي
 [**authRegister**](AuthApi.md#authregister) | **POST** /auth/register | إنشاء حساب جديد
+[**authUpdateProfile**](AuthApi.md#authupdateprofile) | **PATCH** /auth/me | Update the authenticated user&#39;s basic profile identity
 
 
 # **authLogin**
@@ -163,6 +164,47 @@ Name | Type | Description  | Notes
 ### Authorization
 
 No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authUpdateProfile**
+> AuthMe200Response authUpdateProfile(updateProfileRequest)
+
+Update the authenticated user's basic profile identity
+
+### Example
+```dart
+import 'package:talbatiyk_api/api.dart';
+
+final api = TalbatiykApi().getAuthApi();
+final UpdateProfileRequest updateProfileRequest = ; // UpdateProfileRequest | 
+
+try {
+    final response = api.authUpdateProfile(updateProfileRequest);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authUpdateProfile: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **updateProfileRequest** | [**UpdateProfileRequest**](UpdateProfileRequest.md)|  | [optional] 
+
+### Return type
+
+[**AuthMe200Response**](AuthMe200Response.md)
+
+### Authorization
+
+[http](../README.md#http)
 
 ### HTTP request headers
 
