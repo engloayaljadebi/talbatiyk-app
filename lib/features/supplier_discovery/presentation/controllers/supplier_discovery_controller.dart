@@ -23,7 +23,10 @@ final class SupplierDiscoveryController extends ChangeNotifier {
     try {
       final suppliers = await _useCase.getSuppliers();
 
-      _state = SupplierDiscoveryState(suppliers: suppliers);
+      _state = SupplierDiscoveryState(
+        suppliers: suppliers,
+        isFromCache: suppliers.isNotEmpty && suppliers.first.isFromCache,
+      );
       notifyListeners();
 
       return true;

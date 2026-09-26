@@ -12,7 +12,7 @@ class ProductsUseCase {
     return repository.getProducts();
   }
 
-  /// يتحقق من المنتج ثم يحفظه محليًا ويجهزه للمزامنة.
+  /// يتحقق من المنتج ثم يمرره إلى مصدر الإنشاء الذي يحدده المستودع.
   Future<ProductEntity> createProduct(ProductEntity product) {
     _validateProduct(product);
     return repository.createProduct(product);

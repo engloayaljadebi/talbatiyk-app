@@ -30,6 +30,7 @@ final class ProductsDiscoveryLocalDataSource
           id: record.id,
           supplierId: record.supplierId,
           supplierName: record.supplierName,
+          supplierGovernorate: record.supplierGovernorate,
           name: record.name,
           price: record.price,
           imageUrl: record.remoteImageUrl ?? '',
@@ -75,6 +76,11 @@ final class ProductsDiscoveryLocalDataSource
                 id: product.id,
                 supplierId: product.supplierId,
                 supplierName: product.supplierName,
+                supplierGovernorate: Value(
+                  product.supplierGovernorate?.trim().isEmpty == false
+                      ? product.supplierGovernorate!.trim()
+                      : null,
+                ),
                 name: product.name,
                 price: product.price,
                 category: Value(product.category),

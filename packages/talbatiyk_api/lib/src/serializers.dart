@@ -68,6 +68,7 @@ import 'package:talbatiyk_api/src/model/product_index200_response_links.dart';
 import 'package:talbatiyk_api/src/model/product_index200_response_meta.dart';
 import 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inner.dart';
 import 'package:talbatiyk_api/src/model/product_resource.dart';
+import 'package:talbatiyk_api/src/model/product_store201_response.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
 import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.dart';
@@ -147,6 +148,7 @@ part 'serializers.g.dart';
   ProductIndex200ResponseMeta,
   ProductIndex200ResponseMetaLinksInner,
   ProductResource,
+  ProductStore201Response,
   RegisterRequest,
   RegisterRequestContactValue,
   SelectOrderSupplierResponsesRequest,

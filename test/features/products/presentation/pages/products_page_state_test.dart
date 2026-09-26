@@ -66,6 +66,20 @@ void main() {
 
       expect(controller.state.products, hasLength(2));
 
+      // قد يأتي البحث من Home بينما ProductsPage محفوظة داخل IndexedStack.
+      // يجب أن يعكس TextField نفس حالة Product Discovery الخارجية.
+      controller.search('شاحن');
+      await tester.pump();
+
+      final externallyUpdatedSearchField = tester.widget<TextField>(
+        find.byType(TextField),
+      );
+
+      expect(externallyUpdatedSearchField.controller?.text, 'شاحن');
+
+      controller.clearAll();
+      await tester.pump();
+
       // نطبق البحث من TextField الفعلي حتى نختبر UI وController معًا.
       final searchField = find.byType(TextField);
 

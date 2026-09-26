@@ -86,7 +86,7 @@ class ProductsController extends ChangeNotifier {
 
   /// يحفظ منتجًا جديدًا محليًا ثم يعيد تحميل قائمة المنتجات.
   ///
-  /// عند الحفظ يكون المنتج بحالة pendingCreate حتى تتم مزامنته مع السحابة.
+  /// ينشئ المنتج عبر مصدر الإنشاء المحدد في المستودع.
   Future<ProductEntity> createProduct(ProductEntity product) async {
     final createdProduct = await _useCase.createProduct(product);
 

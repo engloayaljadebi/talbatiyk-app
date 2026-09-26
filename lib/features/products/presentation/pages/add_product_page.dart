@@ -13,18 +13,19 @@ class AddProductPage extends ConsumerStatefulWidget {
   const AddProductPage({
     super.key,
     this.product,
-
-    // قيم مؤقتة حتى نربط تسجيل الدخول وحساب المورد.
-    this.supplierId = 'local-supplier',
-    this.supplierName = 'المورد الحالي',
+    this.supplierId,
+    this.supplierName,
   });
 
   /// إذا كانت القيمة null فالصفحة في وضع الإضافة.
   /// وإذا احتوت على منتج فالصفحة في وضع التعديل.
   final ProductEntity? product;
 
-  final String supplierId;
-  final String supplierName;
+  /// مطلوبة عند إنشاء منتج جديد، وتأتي من BusinessWorkspacePage.
+  ///
+  /// في وضع التعديل تُستخدم هوية المنتج الموجودة أصلًا.
+  final String? supplierId;
+  final String? supplierName;
 
   /// يحدد هل الصفحة تعدّل منتجًا موجودًا.
   bool get isEditing => product != null;
@@ -54,11 +55,17 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   bool _isAvailable = true;
   bool _isSaving = false;
 
+  /// Stable identity of this logical create attempt for this form lifetime.
+  ///
+  /// A retry after timeout must not manufacture another client identity.
+  late final String _createProductId;
   @override
   void initState() {
     super.initState();
 
     final product = widget.product;
+
+    _createProductId = product?.id ?? const Uuid().v4();
 
     // في وضع الإضافة تبقى الحقول فارغة بالقيم الافتراضية.
     if (product == null) {
@@ -160,13 +167,29 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     final now = DateTime.now();
     final existingProduct = widget.product;
 
+    final supplierId = (existingProduct?.supplierId ?? widget.supplierId ?? '')
+        .trim();
+
+    final supplierName =
+        (existingProduct?.supplierName ?? widget.supplierName ?? '').trim();
+
+    if (supplierId.isEmpty || supplierName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تعذر نشر المنتج: بيانات نشاط المورد غير مكتملة.'),
+        ),
+      );
+
+      return;
+    }
+
     final product = ProductEntity(
       // عند التعديل نحافظ على المعرف، وعند الإضافة ننشئ UUID جديدًا.
-      id: existingProduct?.id ?? const Uuid().v4(),
+      id: existingProduct?.id ?? _createProductId,
 
       // نحافظ على صاحب المنتج الأصلي عند التعديل.
-      supplierId: existingProduct?.supplierId ?? widget.supplierId,
-      supplierName: existingProduct?.supplierName ?? widget.supplierName,
+      supplierId: supplierId,
+      supplierName: supplierName,
       name: _nameController.text.trim(),
       price: price,
 
@@ -184,9 +207,8 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       discount: existingProduct?.discount ?? 0,
       rating: existingProduct?.rating ?? 0,
 
-      // المصدر المحلي يحدد pendingCreate أو pendingUpdate تلقائيًا.
-      syncStatus:
-          existingProduct?.syncStatus ?? ProductSyncStatus.pendingCreate,
+      // المنتج الجديد لا يُعتبر محفوظًا إلا بعد نجاح Laravel.
+      syncStatus: existingProduct?.syncStatus ?? ProductSyncStatus.synced,
       syncError: null,
       createdAt: existingProduct?.createdAt ?? now,
       updatedAt: now,
@@ -196,13 +218,59 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       _isSaving = true;
     });
 
-    try {
-      final controller = ref.read(productsProvider);
+    String? postPublishWarning;
 
-      // نستخدم الإنشاء للمنتج الجديد والتعديل للمنتج الموجود.
+    try {
+      final controller = widget.isEditing
+          ? ref.read(productsProvider)
+          : ref.read(productPublishingProvider);
+
+      // التعديل يبقى على المسار الحالي.
+      // الإنشاء الجديد يذهب مباشرة إلى Laravel عبر الإنترنت.
       final savedProduct = widget.isEditing
           ? await controller.updateProduct(product)
           : await controller.createProduct(product);
+
+      if (!widget.isEditing) {
+        /*
+         * المنتج أصبح موجودًا فعليًا على Laravel.
+         *
+         * نحاول تحديث قائمة المورد وProduct Discovery، لكن فشل أي Refresh
+         * لا يلغي نجاح عملية النشر التي أكدها الخادم.
+         */
+        final supplierProductsController = ref.read(productsProvider);
+        final discoveryController = ref.read(productDiscoveryProvider);
+
+        try {
+          await Future.wait<void>([
+            supplierProductsController.loadProducts(),
+            discoveryController.loadProducts(),
+          ]);
+
+          final isVisibleInSupplierProducts = supplierProductsController
+              .state
+              .products
+              .any((item) => item.id == savedProduct.id);
+
+          if (!isVisibleInSupplierProducts) {
+            postPublishWarning =
+                'تم نشر المنتج بنجاح، لكن تعذر تحديث قائمة منتجاتك محليًا. '
+                'حاول تحديث الصفحة.';
+          } else if (discoveryController.state.errorMessage != null) {
+            postPublishWarning =
+                'تم نشر المنتج بنجاح، لكن تعذر تحديث قائمة المنتجات الآن.';
+          }
+        } catch (error, stackTrace) {
+          debugPrint(
+            'Post-publish product refresh failed: '
+            '$error\n$stackTrace',
+          );
+
+          postPublishWarning =
+              'تم نشر المنتج بنجاح، لكن تعذر تحديث القوائم الآن. '
+              'حاول تحديث الصفحة.';
+        }
+      }
 
       if (!mounted) return;
 
@@ -210,9 +278,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         _isSaving = false;
       });
 
-      final message = widget.isEditing
-          ? 'تم حفظ تعديلات المنتج وستُزامن عند توفر الإنترنت.'
-          : 'تم حفظ المنتج وسيُرفع عند توفر الإنترنت.';
+      final message =
+          postPublishWarning ??
+          (widget.isEditing
+              ? 'تم حفظ تعديلات المنتج وستُزامن عند توفر الإنترنت.'
+              : 'تم نشر المنتج بنجاح.');
 
       ScaffoldMessenger.of(
         context,
@@ -220,18 +290,26 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
 
       // نعيد النسخة المحفوظة إلى الصفحة السابقة.
       Navigator.of(context).pop(savedProduct);
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) return;
 
       setState(() {
         _isSaving = false;
       });
 
-      final action = widget.isEditing ? 'تعديل' : 'حفظ';
+      final action = widget.isEditing ? 'تعديل' : 'نشر';
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('تعذر $action المنتج: $error')));
+      /*
+       * التفاصيل التقنية تبقى في سجل التطوير، بينما المستخدم يحصل على
+       * رسالة مفهومة ولا نكشف له Exception داخلي أو Stack Trace.
+       */
+      debugPrint('Product $action failed: $error\n$stackTrace');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تعذر $action المنتج. تحقق من الاتصال وحاول مرة أخرى.'),
+        ),
+      );
     }
   }
 
@@ -313,9 +391,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
               return _buildImagePlaceholder();
             },
           ),
-        Positioned(
+        PositionedDirectional(
           top: 8,
-          left: 8,
+          end: 8,
           child: IconButton.filled(
             tooltip: 'حذف الصورة',
             onPressed: () {
@@ -369,7 +447,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                 ),
                 title: const Text('صاحب المنتج'),
                 subtitle: Text(
-                  widget.product?.supplierName ?? widget.supplierName,
+                  widget.product?.supplierName ??
+                      widget.supplierName ??
+                      'غير متوفر',
                 ),
               ),
             ),
@@ -484,14 +564,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                 : Icon(
                     widget.isEditing
                         ? Icons.edit_outlined
-                        : Icons.save_outlined,
+                        : Icons.cloud_upload_outlined,
                   ),
             label: Text(
               _isSaving
-                  ? 'جارٍ الحفظ...'
+                  ? widget.isEditing
+                        ? 'جارٍ الحفظ...'
+                        : 'جارٍ النشر...'
                   : widget.isEditing
                   ? 'حفظ التعديلات'
-                  : 'حفظ المنتج',
+                  : 'نشر المنتج',
             ),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),

@@ -7,111 +7,106 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test(
-      'migrates persisted data from v6 through v8 without loss',
-      () async {
-        final tempDirectory = await Directory.systemTemp.createTemp(
-          'talbatiyk-drift-v6-v7-',
-        );
+    test('migrates persisted data from v6 through v11 without loss', () async {
+      final tempDirectory = await Directory.systemTemp.createTemp(
+        'talbatiyk-drift-v6-v7-',
+      );
 
-        addTearDown(() async {
-          if (await tempDirectory.exists()) {
-            await tempDirectory.delete(recursive: true);
-          }
-        });
-
-        final databaseFile = File(
-          '${tempDirectory.path}${Platform.pathSeparator}migration.sqlite',
-        );
-
-        await _createExactV6Fixture(databaseFile);
-
-        final database = AppDatabase.forTesting(NativeDatabase(databaseFile));
-
-        try {
-          // First real query must trigger the direct v6 -> v7 migration.
-          final notifications = await database
-              .select(database.notificationRecords)
-              .get();
-
-          final orders = await database.select(database.orderRecords).get();
-
-          final operations = await database
-              .select(database.syncOperations)
-              .get();
-
-          // Existing tables must still be queryable after the migration.
-          await database.select(database.productRecords).get();
-          await database.select(database.productDiscoveryRecords).get();
-          await database.select(database.orderItemRecords).get();
-          await database.select(database.cartItemRecords).get();
-
-          expect(database.schemaVersion, 8);
-
-          // v7 table was created by MigrationStrategy and starts empty.
-          expect(notifications, isEmpty);
-
-          // Existing v6 business data survives unchanged.
-          expect(orders, hasLength(1));
-          expect(orders.single.id, 'legacy-v6-order');
-          expect(orders.single.status, 'delivered');
-          expect(orders.single.notes, 'preserve-me');
-
-          expect(operations, hasLength(1));
-          expect(operations.single.id, 'order:create:legacy-v6-order');
-          expect(operations.single.entityId, 'legacy-v6-order');
-          expect(operations.single.status, SyncOperationStatuses.retrying);
-          expect(operations.single.attempts, 3);
-          expect(operations.single.lastError, 'temporary v6 failure');
-
-          // Composite {userId, id} primary key must allow the same
-          // server notification UUID to be cached for separate users.
-          final now = DateTime.utc(2026, 9, 20, 15);
-
-          await database
-              .into(database.notificationRecords)
-              .insert(
-                NotificationRecordsCompanion.insert(
-                  userId: 'user-a',
-                  id: 'shared-notification-id',
-                  type: 'migration_probe',
-                  title: 'User A',
-                  body: 'Migration probe',
-                  createdAt: now,
-                  updatedAt: now,
-                ),
-              );
-
-          await database
-              .into(database.notificationRecords)
-              .insert(
-                NotificationRecordsCompanion.insert(
-                  userId: 'user-b',
-                  id: 'shared-notification-id',
-                  type: 'migration_probe',
-                  title: 'User B',
-                  body: 'Migration probe',
-                  createdAt: now,
-                  updatedAt: now,
-                ),
-              );
-
-          final migratedNotifications = await database
-              .select(database.notificationRecords)
-              .get();
-
-          expect(migratedNotifications, hasLength(2));
-          expect(
-            migratedNotifications.map((row) => row.userId).toSet(),
-            <String>{'user-a', 'user-b'},
-          );
-        } finally {
-          await database.close();
+      addTearDown(() async {
+        if (await tempDirectory.exists()) {
+          await tempDirectory.delete(recursive: true);
         }
+      });
 
-        expect(_readUserVersion(databaseFile), 8);
-      },
-    );
+      final databaseFile = File(
+        '${tempDirectory.path}${Platform.pathSeparator}migration.sqlite',
+      );
+
+      await _createExactV6Fixture(databaseFile);
+
+      final database = AppDatabase.forTesting(NativeDatabase(databaseFile));
+
+      try {
+        // First real query must trigger the direct v6 -> v7 migration.
+        final notifications = await database
+            .select(database.notificationRecords)
+            .get();
+
+        final orders = await database.select(database.orderRecords).get();
+
+        final operations = await database.select(database.syncOperations).get();
+
+        // Existing tables must still be queryable after the migration.
+        await database.select(database.productRecords).get();
+        await database.select(database.productDiscoveryRecords).get();
+        await database.select(database.orderItemRecords).get();
+        await database.select(database.cartItemRecords).get();
+
+        expect(database.schemaVersion, 11);
+
+        // v7 table was created by MigrationStrategy and starts empty.
+        expect(notifications, isEmpty);
+
+        // Existing v6 business data survives unchanged.
+        expect(orders, hasLength(1));
+        expect(orders.single.id, 'legacy-v6-order');
+        expect(orders.single.status, 'delivered');
+        expect(orders.single.notes, 'preserve-me');
+
+        expect(operations, hasLength(1));
+        expect(operations.single.id, 'order:create:legacy-v6-order');
+        expect(operations.single.entityId, 'legacy-v6-order');
+        expect(operations.single.status, SyncOperationStatuses.retrying);
+        expect(operations.single.attempts, 3);
+        expect(operations.single.lastError, 'temporary v6 failure');
+
+        // Composite {userId, id} primary key must allow the same
+        // server notification UUID to be cached for separate users.
+        final now = DateTime.utc(2026, 9, 20, 15);
+
+        await database
+            .into(database.notificationRecords)
+            .insert(
+              NotificationRecordsCompanion.insert(
+                userId: 'user-a',
+                id: 'shared-notification-id',
+                type: 'migration_probe',
+                title: 'User A',
+                body: 'Migration probe',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+
+        await database
+            .into(database.notificationRecords)
+            .insert(
+              NotificationRecordsCompanion.insert(
+                userId: 'user-b',
+                id: 'shared-notification-id',
+                type: 'migration_probe',
+                title: 'User B',
+                body: 'Migration probe',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+
+        final migratedNotifications = await database
+            .select(database.notificationRecords)
+            .get();
+
+        expect(migratedNotifications, hasLength(2));
+        expect(migratedNotifications.map((row) => row.userId).toSet(), <String>{
+          'user-a',
+          'user-b',
+        });
+      } finally {
+        await database.close();
+      }
+
+      expect(_readUserVersion(databaseFile), 11);
+    });
   });
 }
 
@@ -136,9 +131,9 @@ Future<void> _createExactV6Fixture(File file) async {
   try {
     final currentVersion = _userVersion(rawDatabase);
 
-    if (currentVersion != 8) {
+    if (currentVersion != 11) {
       throw StateError(
-        'Fixture precondition failed: expected current schema v8, '
+        'Fixture precondition failed: expected current schema v11, '
         'found v$currentVersion.',
       );
     }

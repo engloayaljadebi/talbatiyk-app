@@ -63,6 +63,7 @@ doc/ProductIndex200ResponseLinks.md
 doc/ProductIndex200ResponseMeta.md
 doc/ProductIndex200ResponseMetaLinksInner.md
 doc/ProductResource.md
+doc/ProductStore201Response.md
 doc/RegisterRequest.md
 doc/RegisterRequestContactValue.md
 doc/SelectOrderSupplierResponsesRequest.md
@@ -165,6 +166,7 @@ lib/src/model/product_index200_response_links.dart
 lib/src/model/product_index200_response_meta.dart
 lib/src/model/product_index200_response_meta_links_inner.dart
 lib/src/model/product_resource.dart
+lib/src/model/product_store201_response.dart
 lib/src/model/register_request.dart
 lib/src/model/register_request_contact_value.dart
 lib/src/model/select_order_supplier_responses_request.dart

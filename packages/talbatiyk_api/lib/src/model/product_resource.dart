@@ -15,6 +15,7 @@ part 'product_resource.g.dart';
 /// * [id] 
 /// * [supplierId] 
 /// * [supplierName] 
+/// * [supplierGovernorate] 
 /// * [name] 
 /// * [description] 
 /// * [category] 
@@ -38,6 +39,9 @@ abstract class ProductResource implements Built<ProductResource, ProductResource
 
   @BuiltValueField(wireName: r'supplier_name')
   String get supplierName;
+
+  @BuiltValueField(wireName: r'supplier_governorate')
+  String? get supplierGovernorate;
 
   @BuiltValueField(wireName: r'name')
   String get name;
@@ -115,6 +119,11 @@ class _$ProductResourceSerializer implements PrimitiveSerializer<ProductResource
     yield serializers.serialize(
       object.supplierName,
       specifiedType: const FullType(String),
+    );
+    yield r'supplier_governorate';
+    yield object.supplierGovernorate == null ? null : serializers.serialize(
+      object.supplierGovernorate,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'name';
     yield serializers.serialize(
@@ -224,6 +233,14 @@ class _$ProductResourceSerializer implements PrimitiveSerializer<ProductResource
             specifiedType: const FullType(String),
           ) as String;
           result.supplierName = valueDes;
+          break;
+        case r'supplier_governorate':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.supplierGovernorate = valueDes;
           break;
         case r'name':
           final valueDes = serializers.deserialize(

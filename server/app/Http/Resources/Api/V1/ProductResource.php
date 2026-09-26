@@ -12,6 +12,20 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /*
+         * ProductResource must not trigger hidden lazy queries.
+         *
+         * Product Discovery and Product Publishing are responsible for
+         * eager-loading supplier.locations.
+         */
+        $primarySupplierLocation =
+            $this->supplier->relationLoaded('locations')
+                ? $this->supplier->locations->firstWhere(
+                    'is_primary',
+                    true,
+                )
+                : null;
+
         return [
             /** @format uuid */
             'id' => $this->id,
@@ -20,6 +34,9 @@ class ProductResource extends JsonResource
             'supplier_id' => $this->supplier_id,
 
             'supplier_name' => $this->supplier->name,
+
+            /** @var string|null */
+            'supplier_governorate' => $primarySupplierLocation?->administrative_area,
 
             'name' => $this->name,
 

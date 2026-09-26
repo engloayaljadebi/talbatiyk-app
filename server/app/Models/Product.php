@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'supplier_id',
+    'idempotency_key',
+    'idempotency_payload_hash',
     'name',
     'description',
     'category',

@@ -62,6 +62,9 @@ class ProductDiscoveryRecords extends Table {
 
   TextColumn get supplierName => text()();
 
+  /// Primary supplier location governorate returned by Laravel.
+  TextColumn get supplierGovernorate => text().nullable()();
+
   TextColumn get name => text()();
 
   TextColumn get category => text().withDefault(const Constant(''))();
@@ -186,6 +189,64 @@ class CartItemRecords extends Table {
 /// الحالات الأساسية لدورة حياة عملية الـOutbox.
 ///
 /// هذه القيم تخص المزامنة فقط ولا تمثل الحالة التجارية للـOrder.
+
+/// Durable identity for one logical online Product publication.
+///
+/// This is intentionally separate from SyncOperations:
+/// Product Publishing is online-first and must never create a parallel
+/// product:create Outbox mutation.
+abstract final class ProductPublishAttemptStatuses {
+  static const String pending = 'pending';
+  static const String retrying = 'retrying';
+  static const String permanentFailure = 'permanent_failure';
+}
+
+class ProductPublishAttemptRecords extends Table {
+  TextColumn get idempotencyKey => text()();
+
+  /// Temporary client-side identity of the logical publication.
+  TextColumn get clientProductId => text()();
+
+  TextColumn get supplierId => text()();
+  TextColumn get supplierName => text()();
+
+  TextColumn get name => text()();
+  TextColumn get category => text()();
+  TextColumn get brand => text().withDefault(const Constant(''))();
+  TextColumn get description => text().withDefault(const Constant(''))();
+
+  RealColumn get price => real()();
+  IntColumn get quantity => integer()();
+  BoolColumn get isAvailable => boolean()();
+
+  /// Persisted local image path is needed so a retry after process restart
+  /// sends the same image content again.
+  TextColumn get localImagePath => text().nullable()();
+
+  TextColumn get status => text().withDefault(
+    const Constant(ProductPublishAttemptStatuses.pending),
+  )();
+
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+
+  TextColumn get lastError => text().nullable()();
+
+  DateTimeColumn get nextAttemptAt => dateTime().nullable()();
+
+  TextColumn get serverProductId => text().nullable()();
+
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {idempotencyKey};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {clientProductId},
+  ];
+}
+
 abstract final class SyncOperationStatuses {
   static const String pending = 'pending';
   static const String retrying = 'retrying';
@@ -250,6 +311,7 @@ class NotificationRecords extends Table {
 @DriftDatabase(
   tables: [
     ProductRecords,
+    ProductPublishAttemptRecords,
     ProductDiscoveryRecords,
     OrderRecords,
     OrderItemRecords,
@@ -265,13 +327,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        await _createSupplierDiscoveryCache();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
@@ -310,7 +373,97 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(notificationRecords);
           }
         }
+        if (from < 9) {
+          await _createSupplierDiscoveryCache();
+        }
+
+        /*
+         * Historical v10:
+         * persist the supplier governorate in the customer Product Discovery
+         * snapshot without rebuilding or replacing that snapshot.
+         */
+        if (from < 10) {
+          await _ensureProductDiscoveryGovernorateColumn(m);
+        }
+
+        /*
+         * Historical v11:
+         * durable online Product publication attempts.
+         *
+         * Governorate repair is deliberately repeated here so a development
+         * database that temporarily reported v10 with the publish-attempt
+         * table but without supplier_governorate is repaired forward-only.
+         */
+        if (from < 11) {
+          await _ensureProductDiscoveryGovernorateColumn(m);
+          await _ensureProductPublishAttemptTable(m);
+        }
       },
     );
   }
+
+  Future<void> _ensureProductDiscoveryGovernorateColumn(Migrator m) async {
+    /*
+     * Historical databases and test fixtures may legitimately lack the
+     * Product Discovery table.
+     *
+     * In that case create the current table forward-only instead of issuing
+     * ALTER TABLE against a non-existent table.
+     */
+    final existingTables = await customSelect(
+      "SELECT 1 FROM sqlite_master "
+      "WHERE type = 'table' "
+      "AND name = 'product_discovery_records' "
+      "LIMIT 1;",
+    ).get();
+
+    if (existingTables.isEmpty) {
+      await m.createTable(productDiscoveryRecords);
+
+      return;
+    }
+
+    /*
+     * Existing Product Discovery data must be preserved.
+     * Only add the v10 governorate column when it is missing.
+     */
+    final columns = await customSelect(
+      "PRAGMA table_info('product_discovery_records')",
+    ).get();
+
+    final hasGovernorate = columns.any(
+      (row) => row.data['name'] == 'supplier_governorate',
+    );
+
+    if (!hasGovernorate) {
+      await m.addColumn(
+        productDiscoveryRecords,
+        productDiscoveryRecords.supplierGovernorate,
+      );
+    }
+  }
+
+  Future<void> _ensureProductPublishAttemptTable(Migrator m) async {
+    final existingTables = await customSelect(
+      "SELECT 1 FROM sqlite_master "
+      "WHERE type = 'table' "
+      "AND name = 'product_publish_attempt_records' "
+      "LIMIT 1;",
+    ).get();
+
+    if (existingTables.isEmpty) {
+      await m.createTable(productPublishAttemptRecords);
+    }
+  }
+
+  /// A server snapshot scoped to the user; the generated Drift schema stays
+  /// unchanged because this table is accessed through parameterized SQL.
+  Future<void> _createSupplierDiscoveryCache() => customStatement('''
+    CREATE TABLE IF NOT EXISTS supplier_discovery_cache (
+      user_id TEXT NOT NULL,
+      supplier_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      PRIMARY KEY (user_id, supplier_id)
+    )
+  ''');
 }

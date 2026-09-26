@@ -22,67 +22,72 @@ Future<void> addProductWithFollowGate({
 }) async {
   final businessId = product.supplierId.trim();
 
-  // دعم البيانات القديمة والمحلية التي لا تحتوي هوية مورد.
   if (businessId.isEmpty) {
     await _addProduct(context, ref, product);
     return;
   }
 
   final followController = ref.read(supplierFollowProvider(businessId));
-
-  // لا ننفذ عملية متزامنة فوق تحميل أو تحديث Follow قائم.
-  if (followController.isLoading || followController.isUpdating) {
-    return;
-  }
-
-  // المورد متابَع بالفعل، لذلك لا نحتاج Confirmation أو Network call.
-  if (followController.isFollowing == true) {
-    await _addProduct(context, ref, product);
-    return;
-  }
-
-  // نحافظ على سلوك Gate 2.4:
-  // لا نخمن الحالة ولا نطلق Follow عندما لم تُحمّل الحالة بعد.
-  if (followController.isFollowing == null) {
-    return;
-  }
-
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: const Text('متابعة المورد وإضافة المنتج'),
-        content: const Text('يجب متابعة المورد قبل إضافة المنتج إلى السلة.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop(false);
-            },
-            child: const Text('إلغاء'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop(true);
-            },
-            child: const Text('متابعة وإضافة'),
-          ),
-        ],
-      );
-    },
-  );
-
-  if (confirmed != true || !context.mounted) {
-    return;
-  }
-
-  // نبدأ Processing بعد Confirmation فقط.
-  // الـDialog نفسه يمنع Double Tap أثناء انتظار قرار المستخدم.
   onProcessingChanged?.call(true);
 
   try {
-    final isFollowing = await followController.toggle();
+    // The first tap can start status loading; await that same request.
+    if (followController.isFollowing == null) {
+      await followController.loadStatus();
+    }
 
-    if (!context.mounted || !isFollowing) {
+    if (!context.mounted) return;
+
+    if (followController.isUpdating) {
+      _showFollowError(context, 'انتظر اكتمال تحديث متابعة المورد.');
+      return;
+    }
+
+    if (followController.isFollowing == true) {
+      await _addProduct(context, ref, product);
+      return;
+    }
+
+    if (followController.isFollowing == null) {
+      _showFollowError(
+        context,
+        followController.errorMessage ?? 'تعذر تحميل حالة متابعة المورد.',
+      );
+      return;
+    }
+
+    onProcessingChanged?.call(false);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('متابعة المورد وإضافة المنتج'),
+          content: const Text('يجب متابعة المورد قبل إضافة المنتج إلى السلة.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('إلغاء'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('متابعة وإضافة'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    onProcessingChanged?.call(true);
+    final isFollowing = await followController.toggle();
+    if (!context.mounted) return;
+
+    if (!isFollowing) {
+      _showFollowError(
+        context,
+        followController.errorMessage ?? 'تعذر متابعة المورد.',
+      );
       return;
     }
 
@@ -92,6 +97,12 @@ Future<void> addProductWithFollowGate({
       onProcessingChanged?.call(false);
     }
   }
+}
+
+void _showFollowError(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 /// ينفذ Cart mutation ويعرض Feedback مع الكمية الجديدة.

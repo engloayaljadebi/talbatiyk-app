@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/database/database_provider.dart';
 import '../../../../core/network/network_providers.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/datasources/local/supplier_discovery_local_datasource.dart';
 import '../../data/datasources/remote/supplier_discovery_remote_datasource.dart';
 import '../../data/repositories/supplier_discovery_repository_impl.dart';
 import '../../domain/repositories/supplier_discovery_repository.dart';
@@ -18,6 +21,10 @@ final supplierDiscoveryRepositoryProvider =
     Provider<SupplierDiscoveryRepository>((ref) {
       return SupplierDiscoveryRepositoryImpl(
         ref.watch(supplierDiscoveryRemoteDataSourceProvider),
+        localDataSource: SupplierDiscoveryLocalDataSource(
+          ref.watch(appDatabaseProvider),
+        ),
+        currentUserId: () => ref.read(authProvider).state.user?.id,
       );
     });
 

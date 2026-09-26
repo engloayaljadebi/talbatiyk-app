@@ -14,6 +14,8 @@ class _$ProductResource extends ProductResource {
   @override
   final String supplierName;
   @override
+  final String? supplierGovernorate;
+  @override
   final String name;
   @override
   final String? description;
@@ -47,6 +49,7 @@ class _$ProductResource extends ProductResource {
       {required this.id,
       required this.supplierId,
       required this.supplierName,
+      this.supplierGovernorate,
       required this.name,
       this.description,
       required this.category,
@@ -75,6 +78,7 @@ class _$ProductResource extends ProductResource {
         id == other.id &&
         supplierId == other.supplierId &&
         supplierName == other.supplierName &&
+        supplierGovernorate == other.supplierGovernorate &&
         name == other.name &&
         description == other.description &&
         category == other.category &&
@@ -96,6 +100,7 @@ class _$ProductResource extends ProductResource {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, supplierId.hashCode);
     _$hash = $jc(_$hash, supplierName.hashCode);
+    _$hash = $jc(_$hash, supplierGovernorate.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, category.hashCode);
@@ -119,6 +124,7 @@ class _$ProductResource extends ProductResource {
           ..add('id', id)
           ..add('supplierId', supplierId)
           ..add('supplierName', supplierName)
+          ..add('supplierGovernorate', supplierGovernorate)
           ..add('name', name)
           ..add('description', description)
           ..add('category', category)
@@ -151,6 +157,11 @@ class ProductResourceBuilder
   String? _supplierName;
   String? get supplierName => _$this._supplierName;
   set supplierName(String? supplierName) => _$this._supplierName = supplierName;
+
+  String? _supplierGovernorate;
+  String? get supplierGovernorate => _$this._supplierGovernorate;
+  set supplierGovernorate(String? supplierGovernorate) =>
+      _$this._supplierGovernorate = supplierGovernorate;
 
   String? _name;
   String? get name => _$this._name;
@@ -214,6 +225,7 @@ class ProductResourceBuilder
       _id = $v.id;
       _supplierId = $v.supplierId;
       _supplierName = $v.supplierName;
+      _supplierGovernorate = $v.supplierGovernorate;
       _name = $v.name;
       _description = $v.description;
       _category = $v.category;
@@ -256,6 +268,7 @@ class ProductResourceBuilder
                 supplierId, r'ProductResource', 'supplierId'),
             supplierName: BuiltValueNullFieldError.checkNotNull(
                 supplierName, r'ProductResource', 'supplierName'),
+            supplierGovernorate: supplierGovernorate,
             name: BuiltValueNullFieldError.checkNotNull(
                 name, r'ProductResource', 'name'),
             description: description,

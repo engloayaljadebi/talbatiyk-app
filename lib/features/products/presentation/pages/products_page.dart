@@ -30,6 +30,17 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     final controller = ref.watch(productDiscoveryProvider);
     final state = controller.state;
 
+    // Synchronize external Product Discovery search.
+    //
+    // Home وProductsPage يشتركان في نفس productDiscoveryProvider.
+    // إذا بدأ البحث من Home يجب أن يظهر النص نفسه داخل TextField
+    // حتى تتطابق حالة الواجهة مع نتائج Product Discovery.
+    if (_searchController.text != state.search) {
+      _searchController.value = TextEditingValue(
+        text: state.search,
+        selection: TextSelection.collapsed(offset: state.search.length),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(

@@ -89,22 +89,29 @@ class _MainPageState extends ConsumerState<MainPage>
     super.dispose();
   }
 
-  /// صفحات التطبيق.
+  /// يفتح Route الإشعارات للمستخدم المصادق عليه.
   ///
+  /// MainPage يملك قرار التنقل حتى تبقى Home مستقلة عن GoRouter.
+  void _openNotifications() {
+    unawaited(GoRouter.of(context).push<void>(RouteNames.notifications));
+  }
+
+  /// صفحات التطبيق.  ///
   /// يجب أن يتطابق ترتيب الصفحات مع ترتيب عناصر
   /// شريط التنقل السفلي.
   late final List<Widget> _pages = [
     HomePage(
-      // ينقل المستخدم إلى قسم المنتجات.
+      // Home لا تعرف أرقام Tabs أو GoRouter؛ الـShell يمرر الإجراءات فقط.
       onViewProducts: () => _changePage(1),
+      onOpenCart: () => _changePage(2),
+      onOpenAccount: () => _changePage(4),
+      onOpenNotifications: _openNotifications,
     ),
     ProductsPage(),
     const CartPage(),
     const OrdersPage(),
     AccountPage(
-      onOpenNotifications: () async {
-        await GoRouter.of(context).push<void>(RouteNames.notifications);
-      },
+      onOpenNotifications: _openNotifications,
       onLogout: () async {
         await ref.read(authProvider).logout();
       },

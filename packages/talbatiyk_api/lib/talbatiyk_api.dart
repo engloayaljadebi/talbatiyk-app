@@ -78,6 +78,7 @@ export 'package:talbatiyk_api/src/model/product_index200_response_links.dart';
 export 'package:talbatiyk_api/src/model/product_index200_response_meta.dart';
 export 'package:talbatiyk_api/src/model/product_index200_response_meta_links_inner.dart';
 export 'package:talbatiyk_api/src/model/product_resource.dart';
+export 'package:talbatiyk_api/src/model/product_store201_response.dart';
 export 'package:talbatiyk_api/src/model/register_request.dart';
 export 'package:talbatiyk_api/src/model/register_request_contact_value.dart';
 export 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.dart';

@@ -12,6 +12,7 @@ class ProductModel {
     required this.isAvailable,
     this.supplierId = '',
     this.supplierName = '',
+    this.supplierGovernorate,
     this.description = '',
     this.colors = const [],
     this.quantity = 0,
@@ -30,6 +31,9 @@ class ProductModel {
   /// بيانات المورد ضرورية لمعرفة مصدر المنتج داخل الطلبية.
   final String supplierId;
   final String supplierName;
+
+  /// Primary supplier governorate returned by the server.
+  final String? supplierGovernorate;
 
   final String name;
   final double price;

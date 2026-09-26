@@ -23,10 +23,7 @@ class ProductDto {
       imageUrl: _optionalString(json, const ['imageUrl', 'image_url']),
       category: _optionalString(json, const ['category']),
       brand: _optionalString(json, const ['brand']),
-      isAvailable: _requiredBool(
-        json,
-        const ['isAvailable', 'is_available'],
-      ),
+      isAvailable: _requiredBool(json, const ['isAvailable', 'is_available']),
       description: _optionalString(json, const ['description']),
       colors: _optionalStringList(json, const ['colors']),
       quantity: _optionalInt(json, const ['quantity', 'stock_quantity']),
@@ -56,10 +53,7 @@ class ProductDto {
     return null;
   }
 
-  static String _requiredString(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
+  static String _requiredString(Map<String, dynamic> json, List<String> keys) {
     final value = _valueFor(json, keys);
 
     if (value == null || value.toString().trim().isEmpty) {
@@ -69,17 +63,11 @@ class ProductDto {
     return value.toString();
   }
 
-  static String _optionalString(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
+  static String _optionalString(Map<String, dynamic> json, List<String> keys) {
     return _valueFor(json, keys)?.toString() ?? '';
   }
 
-  static double _requiredDouble(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
+  static double _requiredDouble(Map<String, dynamic> json, List<String> keys) {
     final value = _valueFor(json, keys);
     final parsed = _toDouble(value);
 
@@ -90,10 +78,7 @@ class ProductDto {
     return parsed;
   }
 
-  static double _optionalDouble(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
+  static double _optionalDouble(Map<String, dynamic> json, List<String> keys) {
     return _toDouble(_valueFor(json, keys)) ?? 0;
   }
 
@@ -104,10 +89,7 @@ class ProductDto {
     return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
-  static bool _requiredBool(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
+  static bool _requiredBool(Map<String, dynamic> json, List<String> keys) {
     final value = _valueFor(json, keys);
 
     if (value is bool) return value;

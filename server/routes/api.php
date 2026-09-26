@@ -160,6 +160,11 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('/products', [ProductController::class, 'index']);
 
+        Route::post(
+            '/businesses/{business}/products',
+            [ProductController::class, 'store'],
+        );
+
         /*
         |--------------------------------------------------------------------------
         | Supplier Follow

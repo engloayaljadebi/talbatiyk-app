@@ -124,6 +124,7 @@ Class | Method | HTTP request | Description
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonShow**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonshow) | **GET** /orders/{order}/supplier-responses | Compare all final supplier responses for one owned Order
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonUpdate**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonupdate) | **PUT** /orders/{order}/supplier-selection | Replace the customer&#39;s supplier-response selection atomically
 [*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
+[*ProductApi*](doc/ProductApi.md) | [**productStore**](doc/ProductApi.md#productstore) | **POST** /businesses/{business}/products | ينشر منتجًا مباشرة على الخادم لنشاط مورد حقيقي
 [*SupplierDiscoveryApi*](doc/SupplierDiscoveryApi.md) | [**supplierDiscoveryIndex**](doc/SupplierDiscoveryApi.md#supplierdiscoveryindex) | **GET** /suppliers | 
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
@@ -189,6 +190,7 @@ Class | Method | HTTP request | Description
  - [ProductIndex200ResponseMeta](doc/ProductIndex200ResponseMeta.md)
  - [ProductIndex200ResponseMetaLinksInner](doc/ProductIndex200ResponseMetaLinksInner.md)
  - [ProductResource](doc/ProductResource.md)
+ - [ProductStore201Response](doc/ProductStore201Response.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [RegisterRequestContactValue](doc/RegisterRequestContactValue.md)
  - [SelectOrderSupplierResponsesRequest](doc/SelectOrderSupplierResponsesRequest.md)
