@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/orders_entity.dart';
+import '../../domain/services/order_id_transition_registry.dart';
 import '../../domain/usecases/orders_usecase.dart';
 import '../state/orders_state.dart';
 
@@ -13,20 +14,27 @@ import '../state/orders_state.dart';
 /// - تحديث حالة الطلبية عبر طبقات المشروع.
 /// - معالجة حالات التحميل والأخطاء.
 class OrdersController extends ChangeNotifier {
-  OrdersController(this._useCase, {bool autoLoad = true}) {
+  OrdersController(
+    this._useCase, {
+    this.transitionRegistry,
+    bool autoLoad = true,
+  }) {
     if (autoLoad) {
       loadOrders();
     }
   }
 
   final OrdersUseCase _useCase;
+  final OrderIdTransitionRegistry? transitionRegistry;
 
   OrdersState state = const OrdersState();
 
-  /// البحث عن طلبية بواسطة المعرّف.
+  /// البحث عن طلبية بواسطة المعرّف مع مراعاة انتقال المعرف المؤقت إلى المعرف النهائي.
   OrderEntity? findOrderById(String orderId) {
+    final String effectiveId = transitionRegistry?.resolve(orderId) ?? orderId;
+
     for (final OrderEntity order in state.orders) {
-      if (order.id == orderId) {
+      if (order.id == effectiveId || order.id == orderId) {
         return order;
       }
     }
