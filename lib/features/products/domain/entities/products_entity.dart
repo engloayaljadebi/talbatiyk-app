@@ -28,6 +28,7 @@ class ProductEntity {
     required this.isAvailable,
     this.supplierId = '',
     this.supplierName = '',
+    this.supplierGovernorate,
     this.description = '',
     this.colors = const [],
     this.quantity = 0,
@@ -48,6 +49,9 @@ class ProductEntity {
 
   /// اسم التاجر، ونحتفظ به محليًا للعمل دون إنترنت.
   final String supplierName;
+
+  /// محافظة الموقع الرئيسي للمورد إذا أعادها الخادم.
+  final String? supplierGovernorate;
 
   final String name;
   final double price;

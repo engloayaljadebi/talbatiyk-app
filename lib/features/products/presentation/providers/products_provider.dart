@@ -36,10 +36,20 @@ final productDiscoveryLocalDataSourceProvider =
     });
 
 /// Raw generated-API source for customer Product Discovery.
-final productDiscoveryRemoteDataSourceProvider = Provider<ProductsDataSource>((
+/// Concrete Laravel product source.
+///
+/// Publishing يحتاج الإمكانات الإضافية الخاصة بالإنشاء، بينما Discovery
+/// يعتمد فقط على ProductsDataSource حتى يبقى قابلاً للاستبدال في الاختبارات.
+final productsRemoteDataSourceProvider = Provider<ProductsRemoteDataSource>((
   ref,
 ) {
   return ProductsRemoteDataSource(ref.watch(generatedApiClientProvider));
+});
+
+final productDiscoveryRemoteDataSourceProvider = Provider<ProductsDataSource>((
+  ref,
+) {
+  return ref.watch(productsRemoteDataSourceProvider);
 });
 
 /// Offline-capable Product Discovery source.
@@ -68,6 +78,41 @@ final productDiscoveryProvider = ChangeNotifierProvider<ProductsController>((
   ref,
 ) {
   return ProductsController(ref.watch(productDiscoveryUseCaseProvider));
+});
+
+/// Online-only repository used when a supplier publishes a NEW product.
+///
+/// It deliberately does not use ProductsLocalDataSource for create, therefore
+/// a successful create means Laravel persisted the product.
+final productPublishingRepositoryProvider = Provider<ProductsRepository>((ref) {
+  final local = ref.watch(productsLocalDataSourceProvider);
+  final remote = ref.watch(productsRemoteDataSourceProvider);
+
+  /*
+   * القراءة المحلية تحفظ تجربة إدارة المورد Local-First.
+   * الإنشاء الجديد يذهب إلى Laravel أولًا.
+   * ProductsRepositoryImpl يحفظ النسخة الرسمية الراجعة من الخادم محليًا
+   * بحالة synced وبدون Outbox إضافي.
+   */
+  return ProductsRepositoryImpl(local, createDataSource: remote);
+});
+
+final productPublishingUseCaseProvider = Provider<ProductsUseCase>((ref) {
+  return ProductsUseCase(ref.watch(productPublishingRepositoryProvider));
+});
+
+/// Dedicated controller for NEW online product publishing.
+///
+/// autoLoad is disabled because the publishing screen only needs create.
+final productPublishingProvider = Provider<ProductsController>((ref) {
+  final controller = ProductsController(
+    ref.watch(productPublishingUseCaseProvider),
+    autoLoad: false,
+  );
+
+  ref.onDispose(controller.dispose);
+
+  return controller;
 });
 
 final productsRepositoryProvider = Provider<ProductsRepository>((ref) {

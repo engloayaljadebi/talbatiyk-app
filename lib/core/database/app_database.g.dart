@@ -1158,6 +1158,1111 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   }
 }
 
+class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
+    with
+        TableInfo<
+          $ProductPublishAttemptRecordsTable,
+          ProductPublishAttemptRecord
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProductPublishAttemptRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientProductIdMeta = const VerificationMeta(
+    'clientProductId',
+  );
+  @override
+  late final GeneratedColumn<String> clientProductId = GeneratedColumn<String>(
+    'client_product_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
+    'supplierId',
+  );
+  @override
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
+    'supplier_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierNameMeta = const VerificationMeta(
+    'supplierName',
+  );
+  @override
+  late final GeneratedColumn<String> supplierName = GeneratedColumn<String>(
+    'supplier_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+    'price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isAvailableMeta = const VerificationMeta(
+    'isAvailable',
+  );
+  @override
+  late final GeneratedColumn<bool> isAvailable = GeneratedColumn<bool>(
+    'is_available',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_available" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _localImagePathMeta = const VerificationMeta(
+    'localImagePath',
+  );
+  @override
+  late final GeneratedColumn<String> localImagePath = GeneratedColumn<String>(
+    'local_image_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(ProductPublishAttemptStatuses.pending),
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nextAttemptAtMeta = const VerificationMeta(
+    'nextAttemptAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextAttemptAt =
+      GeneratedColumn<DateTime>(
+        'next_attempt_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverProductIdMeta = const VerificationMeta(
+    'serverProductId',
+  );
+  @override
+  late final GeneratedColumn<String> serverProductId = GeneratedColumn<String>(
+    'server_product_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    idempotencyKey,
+    clientProductId,
+    supplierId,
+    supplierName,
+    name,
+    category,
+    brand,
+    description,
+    price,
+    quantity,
+    isAvailable,
+    localImagePath,
+    status,
+    attempts,
+    lastError,
+    nextAttemptAt,
+    serverProductId,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'product_publish_attempt_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProductPublishAttemptRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('client_product_id')) {
+      context.handle(
+        _clientProductIdMeta,
+        clientProductId.isAcceptableOrUnknown(
+          data['client_product_id']!,
+          _clientProductIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientProductIdMeta);
+    }
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+        _supplierIdMeta,
+        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierIdMeta);
+    }
+    if (data.containsKey('supplier_name')) {
+      context.handle(
+        _supplierNameMeta,
+        supplierName.isAcceptableOrUnknown(
+          data['supplier_name']!,
+          _supplierNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierNameMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+        _priceMeta,
+        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('is_available')) {
+      context.handle(
+        _isAvailableMeta,
+        isAvailable.isAcceptableOrUnknown(
+          data['is_available']!,
+          _isAvailableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_isAvailableMeta);
+    }
+    if (data.containsKey('local_image_path')) {
+      context.handle(
+        _localImagePathMeta,
+        localImagePath.isAcceptableOrUnknown(
+          data['local_image_path']!,
+          _localImagePathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('next_attempt_at')) {
+      context.handle(
+        _nextAttemptAtMeta,
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_product_id')) {
+      context.handle(
+        _serverProductIdMeta,
+        serverProductId.isAcceptableOrUnknown(
+          data['server_product_id']!,
+          _serverProductIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {idempotencyKey};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {clientProductId},
+  ];
+  @override
+  ProductPublishAttemptRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProductPublishAttemptRecord(
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      clientProductId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_product_id'],
+      )!,
+      supplierId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_id'],
+      )!,
+      supplierName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_name'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      price: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}price'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      isAvailable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_available'],
+      )!,
+      localImagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_image_path'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      nextAttemptAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_attempt_at'],
+      ),
+      serverProductId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_product_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ProductPublishAttemptRecordsTable createAlias(String alias) {
+    return $ProductPublishAttemptRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ProductPublishAttemptRecord extends DataClass
+    implements Insertable<ProductPublishAttemptRecord> {
+  final String idempotencyKey;
+
+  /// Temporary client-side identity of the logical publication.
+  final String clientProductId;
+  final String supplierId;
+  final String supplierName;
+  final String name;
+  final String category;
+  final String brand;
+  final String description;
+  final double price;
+  final int quantity;
+  final bool isAvailable;
+
+  /// Persisted local image path is needed so a retry after process restart
+  /// sends the same image content again.
+  final String? localImagePath;
+  final String status;
+  final int attempts;
+  final String? lastError;
+  final DateTime? nextAttemptAt;
+  final String? serverProductId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ProductPublishAttemptRecord({
+    required this.idempotencyKey,
+    required this.clientProductId,
+    required this.supplierId,
+    required this.supplierName,
+    required this.name,
+    required this.category,
+    required this.brand,
+    required this.description,
+    required this.price,
+    required this.quantity,
+    required this.isAvailable,
+    this.localImagePath,
+    required this.status,
+    required this.attempts,
+    this.lastError,
+    this.nextAttemptAt,
+    this.serverProductId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['client_product_id'] = Variable<String>(clientProductId);
+    map['supplier_id'] = Variable<String>(supplierId);
+    map['supplier_name'] = Variable<String>(supplierName);
+    map['name'] = Variable<String>(name);
+    map['category'] = Variable<String>(category);
+    map['brand'] = Variable<String>(brand);
+    map['description'] = Variable<String>(description);
+    map['price'] = Variable<double>(price);
+    map['quantity'] = Variable<int>(quantity);
+    map['is_available'] = Variable<bool>(isAvailable);
+    if (!nullToAbsent || localImagePath != null) {
+      map['local_image_path'] = Variable<String>(localImagePath);
+    }
+    map['status'] = Variable<String>(status);
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    if (!nullToAbsent || nextAttemptAt != null) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt);
+    }
+    if (!nullToAbsent || serverProductId != null) {
+      map['server_product_id'] = Variable<String>(serverProductId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ProductPublishAttemptRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ProductPublishAttemptRecordsCompanion(
+      idempotencyKey: Value(idempotencyKey),
+      clientProductId: Value(clientProductId),
+      supplierId: Value(supplierId),
+      supplierName: Value(supplierName),
+      name: Value(name),
+      category: Value(category),
+      brand: Value(brand),
+      description: Value(description),
+      price: Value(price),
+      quantity: Value(quantity),
+      isAvailable: Value(isAvailable),
+      localImagePath: localImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localImagePath),
+      status: Value(status),
+      attempts: Value(attempts),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      nextAttemptAt: nextAttemptAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextAttemptAt),
+      serverProductId: serverProductId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverProductId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ProductPublishAttemptRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProductPublishAttemptRecord(
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      clientProductId: serializer.fromJson<String>(json['clientProductId']),
+      supplierId: serializer.fromJson<String>(json['supplierId']),
+      supplierName: serializer.fromJson<String>(json['supplierName']),
+      name: serializer.fromJson<String>(json['name']),
+      category: serializer.fromJson<String>(json['category']),
+      brand: serializer.fromJson<String>(json['brand']),
+      description: serializer.fromJson<String>(json['description']),
+      price: serializer.fromJson<double>(json['price']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      isAvailable: serializer.fromJson<bool>(json['isAvailable']),
+      localImagePath: serializer.fromJson<String?>(json['localImagePath']),
+      status: serializer.fromJson<String>(json['status']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      nextAttemptAt: serializer.fromJson<DateTime?>(json['nextAttemptAt']),
+      serverProductId: serializer.fromJson<String?>(json['serverProductId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'clientProductId': serializer.toJson<String>(clientProductId),
+      'supplierId': serializer.toJson<String>(supplierId),
+      'supplierName': serializer.toJson<String>(supplierName),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String>(category),
+      'brand': serializer.toJson<String>(brand),
+      'description': serializer.toJson<String>(description),
+      'price': serializer.toJson<double>(price),
+      'quantity': serializer.toJson<int>(quantity),
+      'isAvailable': serializer.toJson<bool>(isAvailable),
+      'localImagePath': serializer.toJson<String?>(localImagePath),
+      'status': serializer.toJson<String>(status),
+      'attempts': serializer.toJson<int>(attempts),
+      'lastError': serializer.toJson<String?>(lastError),
+      'nextAttemptAt': serializer.toJson<DateTime?>(nextAttemptAt),
+      'serverProductId': serializer.toJson<String?>(serverProductId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ProductPublishAttemptRecord copyWith({
+    String? idempotencyKey,
+    String? clientProductId,
+    String? supplierId,
+    String? supplierName,
+    String? name,
+    String? category,
+    String? brand,
+    String? description,
+    double? price,
+    int? quantity,
+    bool? isAvailable,
+    Value<String?> localImagePath = const Value.absent(),
+    String? status,
+    int? attempts,
+    Value<String?> lastError = const Value.absent(),
+    Value<DateTime?> nextAttemptAt = const Value.absent(),
+    Value<String?> serverProductId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => ProductPublishAttemptRecord(
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    clientProductId: clientProductId ?? this.clientProductId,
+    supplierId: supplierId ?? this.supplierId,
+    supplierName: supplierName ?? this.supplierName,
+    name: name ?? this.name,
+    category: category ?? this.category,
+    brand: brand ?? this.brand,
+    description: description ?? this.description,
+    price: price ?? this.price,
+    quantity: quantity ?? this.quantity,
+    isAvailable: isAvailable ?? this.isAvailable,
+    localImagePath: localImagePath.present
+        ? localImagePath.value
+        : this.localImagePath,
+    status: status ?? this.status,
+    attempts: attempts ?? this.attempts,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    nextAttemptAt: nextAttemptAt.present
+        ? nextAttemptAt.value
+        : this.nextAttemptAt,
+    serverProductId: serverProductId.present
+        ? serverProductId.value
+        : this.serverProductId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ProductPublishAttemptRecord copyWithCompanion(
+    ProductPublishAttemptRecordsCompanion data,
+  ) {
+    return ProductPublishAttemptRecord(
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      clientProductId: data.clientProductId.present
+          ? data.clientProductId.value
+          : this.clientProductId,
+      supplierId: data.supplierId.present
+          ? data.supplierId.value
+          : this.supplierId,
+      supplierName: data.supplierName.present
+          ? data.supplierName.value
+          : this.supplierName,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      price: data.price.present ? data.price.value : this.price,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      isAvailable: data.isAvailable.present
+          ? data.isAvailable.value
+          : this.isAvailable,
+      localImagePath: data.localImagePath.present
+          ? data.localImagePath.value
+          : this.localImagePath,
+      status: data.status.present ? data.status.value : this.status,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      nextAttemptAt: data.nextAttemptAt.present
+          ? data.nextAttemptAt.value
+          : this.nextAttemptAt,
+      serverProductId: data.serverProductId.present
+          ? data.serverProductId.value
+          : this.serverProductId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductPublishAttemptRecord(')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('clientProductId: $clientProductId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('brand: $brand, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('quantity: $quantity, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('localImagePath: $localImagePath, ')
+          ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('serverProductId: $serverProductId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    idempotencyKey,
+    clientProductId,
+    supplierId,
+    supplierName,
+    name,
+    category,
+    brand,
+    description,
+    price,
+    quantity,
+    isAvailable,
+    localImagePath,
+    status,
+    attempts,
+    lastError,
+    nextAttemptAt,
+    serverProductId,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProductPublishAttemptRecord &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.clientProductId == this.clientProductId &&
+          other.supplierId == this.supplierId &&
+          other.supplierName == this.supplierName &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.brand == this.brand &&
+          other.description == this.description &&
+          other.price == this.price &&
+          other.quantity == this.quantity &&
+          other.isAvailable == this.isAvailable &&
+          other.localImagePath == this.localImagePath &&
+          other.status == this.status &&
+          other.attempts == this.attempts &&
+          other.lastError == this.lastError &&
+          other.nextAttemptAt == this.nextAttemptAt &&
+          other.serverProductId == this.serverProductId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ProductPublishAttemptRecordsCompanion
+    extends UpdateCompanion<ProductPublishAttemptRecord> {
+  final Value<String> idempotencyKey;
+  final Value<String> clientProductId;
+  final Value<String> supplierId;
+  final Value<String> supplierName;
+  final Value<String> name;
+  final Value<String> category;
+  final Value<String> brand;
+  final Value<String> description;
+  final Value<double> price;
+  final Value<int> quantity;
+  final Value<bool> isAvailable;
+  final Value<String?> localImagePath;
+  final Value<String> status;
+  final Value<int> attempts;
+  final Value<String?> lastError;
+  final Value<DateTime?> nextAttemptAt;
+  final Value<String?> serverProductId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ProductPublishAttemptRecordsCompanion({
+    this.idempotencyKey = const Value.absent(),
+    this.clientProductId = const Value.absent(),
+    this.supplierId = const Value.absent(),
+    this.supplierName = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.description = const Value.absent(),
+    this.price = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.localImagePath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.serverProductId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProductPublishAttemptRecordsCompanion.insert({
+    required String idempotencyKey,
+    required String clientProductId,
+    required String supplierId,
+    required String supplierName,
+    required String name,
+    required String category,
+    this.brand = const Value.absent(),
+    this.description = const Value.absent(),
+    required double price,
+    required int quantity,
+    required bool isAvailable,
+    this.localImagePath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.serverProductId = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : idempotencyKey = Value(idempotencyKey),
+       clientProductId = Value(clientProductId),
+       supplierId = Value(supplierId),
+       supplierName = Value(supplierName),
+       name = Value(name),
+       category = Value(category),
+       price = Value(price),
+       quantity = Value(quantity),
+       isAvailable = Value(isAvailable),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<ProductPublishAttemptRecord> custom({
+    Expression<String>? idempotencyKey,
+    Expression<String>? clientProductId,
+    Expression<String>? supplierId,
+    Expression<String>? supplierName,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? brand,
+    Expression<String>? description,
+    Expression<double>? price,
+    Expression<int>? quantity,
+    Expression<bool>? isAvailable,
+    Expression<String>? localImagePath,
+    Expression<String>? status,
+    Expression<int>? attempts,
+    Expression<String>? lastError,
+    Expression<DateTime>? nextAttemptAt,
+    Expression<String>? serverProductId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (clientProductId != null) 'client_product_id': clientProductId,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (supplierName != null) 'supplier_name': supplierName,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (brand != null) 'brand': brand,
+      if (description != null) 'description': description,
+      if (price != null) 'price': price,
+      if (quantity != null) 'quantity': quantity,
+      if (isAvailable != null) 'is_available': isAvailable,
+      if (localImagePath != null) 'local_image_path': localImagePath,
+      if (status != null) 'status': status,
+      if (attempts != null) 'attempts': attempts,
+      if (lastError != null) 'last_error': lastError,
+      if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
+      if (serverProductId != null) 'server_product_id': serverProductId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProductPublishAttemptRecordsCompanion copyWith({
+    Value<String>? idempotencyKey,
+    Value<String>? clientProductId,
+    Value<String>? supplierId,
+    Value<String>? supplierName,
+    Value<String>? name,
+    Value<String>? category,
+    Value<String>? brand,
+    Value<String>? description,
+    Value<double>? price,
+    Value<int>? quantity,
+    Value<bool>? isAvailable,
+    Value<String?>? localImagePath,
+    Value<String>? status,
+    Value<int>? attempts,
+    Value<String?>? lastError,
+    Value<DateTime?>? nextAttemptAt,
+    Value<String?>? serverProductId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ProductPublishAttemptRecordsCompanion(
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      clientProductId: clientProductId ?? this.clientProductId,
+      supplierId: supplierId ?? this.supplierId,
+      supplierName: supplierName ?? this.supplierName,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      brand: brand ?? this.brand,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      quantity: quantity ?? this.quantity,
+      isAvailable: isAvailable ?? this.isAvailable,
+      localImagePath: localImagePath ?? this.localImagePath,
+      status: status ?? this.status,
+      attempts: attempts ?? this.attempts,
+      lastError: lastError ?? this.lastError,
+      nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+      serverProductId: serverProductId ?? this.serverProductId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (clientProductId.present) {
+      map['client_product_id'] = Variable<String>(clientProductId.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
+    }
+    if (supplierName.present) {
+      map['supplier_name'] = Variable<String>(supplierName.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (isAvailable.present) {
+      map['is_available'] = Variable<bool>(isAvailable.value);
+    }
+    if (localImagePath.present) {
+      map['local_image_path'] = Variable<String>(localImagePath.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (nextAttemptAt.present) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt.value);
+    }
+    if (serverProductId.present) {
+      map['server_product_id'] = Variable<String>(serverProductId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductPublishAttemptRecordsCompanion(')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('clientProductId: $clientProductId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('supplierName: $supplierName, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('brand: $brand, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('quantity: $quantity, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('localImagePath: $localImagePath, ')
+          ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('serverProductId: $serverProductId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
     with TableInfo<$ProductDiscoveryRecordsTable, ProductDiscoveryRecord> {
   @override
@@ -1195,6 +2300,17 @@ class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _supplierGovernorateMeta =
+      const VerificationMeta('supplierGovernorate');
+  @override
+  late final GeneratedColumn<String> supplierGovernorate =
+      GeneratedColumn<String>(
+        'supplier_governorate',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -1346,6 +2462,7 @@ class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
     id,
     supplierId,
     supplierName,
+    supplierGovernorate,
     name,
     category,
     brand,
@@ -1395,6 +2512,15 @@ class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
       );
     } else if (isInserting) {
       context.missing(_supplierNameMeta);
+    }
+    if (data.containsKey('supplier_governorate')) {
+      context.handle(
+        _supplierGovernorateMeta,
+        supplierGovernorate.isAcceptableOrUnknown(
+          data['supplier_governorate']!,
+          _supplierGovernorateMeta,
+        ),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -1512,6 +2638,10 @@ class $ProductDiscoveryRecordsTable extends ProductDiscoveryRecords
         DriftSqlType.string,
         data['${effectivePrefix}supplier_name'],
       )!,
+      supplierGovernorate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_governorate'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -1578,6 +2708,9 @@ class ProductDiscoveryRecord extends DataClass
   final String id;
   final String supplierId;
   final String supplierName;
+
+  /// Primary supplier location governorate returned by Laravel.
+  final String? supplierGovernorate;
   final String name;
   final String category;
   final String brand;
@@ -1595,6 +2728,7 @@ class ProductDiscoveryRecord extends DataClass
     required this.id,
     required this.supplierId,
     required this.supplierName,
+    this.supplierGovernorate,
     required this.name,
     required this.category,
     required this.brand,
@@ -1615,6 +2749,9 @@ class ProductDiscoveryRecord extends DataClass
     map['id'] = Variable<String>(id);
     map['supplier_id'] = Variable<String>(supplierId);
     map['supplier_name'] = Variable<String>(supplierName);
+    if (!nullToAbsent || supplierGovernorate != null) {
+      map['supplier_governorate'] = Variable<String>(supplierGovernorate);
+    }
     map['name'] = Variable<String>(name);
     map['category'] = Variable<String>(category);
     map['brand'] = Variable<String>(brand);
@@ -1638,6 +2775,9 @@ class ProductDiscoveryRecord extends DataClass
       id: Value(id),
       supplierId: Value(supplierId),
       supplierName: Value(supplierName),
+      supplierGovernorate: supplierGovernorate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierGovernorate),
       name: Value(name),
       category: Value(category),
       brand: Value(brand),
@@ -1665,6 +2805,9 @@ class ProductDiscoveryRecord extends DataClass
       id: serializer.fromJson<String>(json['id']),
       supplierId: serializer.fromJson<String>(json['supplierId']),
       supplierName: serializer.fromJson<String>(json['supplierName']),
+      supplierGovernorate: serializer.fromJson<String?>(
+        json['supplierGovernorate'],
+      ),
       name: serializer.fromJson<String>(json['name']),
       category: serializer.fromJson<String>(json['category']),
       brand: serializer.fromJson<String>(json['brand']),
@@ -1687,6 +2830,7 @@ class ProductDiscoveryRecord extends DataClass
       'id': serializer.toJson<String>(id),
       'supplierId': serializer.toJson<String>(supplierId),
       'supplierName': serializer.toJson<String>(supplierName),
+      'supplierGovernorate': serializer.toJson<String?>(supplierGovernorate),
       'name': serializer.toJson<String>(name),
       'category': serializer.toJson<String>(category),
       'brand': serializer.toJson<String>(brand),
@@ -1707,6 +2851,7 @@ class ProductDiscoveryRecord extends DataClass
     String? id,
     String? supplierId,
     String? supplierName,
+    Value<String?> supplierGovernorate = const Value.absent(),
     String? name,
     String? category,
     String? brand,
@@ -1724,6 +2869,9 @@ class ProductDiscoveryRecord extends DataClass
     id: id ?? this.id,
     supplierId: supplierId ?? this.supplierId,
     supplierName: supplierName ?? this.supplierName,
+    supplierGovernorate: supplierGovernorate.present
+        ? supplierGovernorate.value
+        : this.supplierGovernorate,
     name: name ?? this.name,
     category: category ?? this.category,
     brand: brand ?? this.brand,
@@ -1751,6 +2899,9 @@ class ProductDiscoveryRecord extends DataClass
       supplierName: data.supplierName.present
           ? data.supplierName.value
           : this.supplierName,
+      supplierGovernorate: data.supplierGovernorate.present
+          ? data.supplierGovernorate.value
+          : this.supplierGovernorate,
       name: data.name.present ? data.name.value : this.name,
       category: data.category.present ? data.category.value : this.category,
       brand: data.brand.present ? data.brand.value : this.brand,
@@ -1781,6 +2932,7 @@ class ProductDiscoveryRecord extends DataClass
           ..write('id: $id, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
+          ..write('supplierGovernorate: $supplierGovernorate, ')
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('brand: $brand, ')
@@ -1803,6 +2955,7 @@ class ProductDiscoveryRecord extends DataClass
     id,
     supplierId,
     supplierName,
+    supplierGovernorate,
     name,
     category,
     brand,
@@ -1824,6 +2977,7 @@ class ProductDiscoveryRecord extends DataClass
           other.id == this.id &&
           other.supplierId == this.supplierId &&
           other.supplierName == this.supplierName &&
+          other.supplierGovernorate == this.supplierGovernorate &&
           other.name == this.name &&
           other.category == this.category &&
           other.brand == this.brand &&
@@ -1844,6 +2998,7 @@ class ProductDiscoveryRecordsCompanion
   final Value<String> id;
   final Value<String> supplierId;
   final Value<String> supplierName;
+  final Value<String?> supplierGovernorate;
   final Value<String> name;
   final Value<String> category;
   final Value<String> brand;
@@ -1862,6 +3017,7 @@ class ProductDiscoveryRecordsCompanion
     this.id = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
+    this.supplierGovernorate = const Value.absent(),
     this.name = const Value.absent(),
     this.category = const Value.absent(),
     this.brand = const Value.absent(),
@@ -1881,6 +3037,7 @@ class ProductDiscoveryRecordsCompanion
     required String id,
     required String supplierId,
     required String supplierName,
+    this.supplierGovernorate = const Value.absent(),
     required String name,
     this.category = const Value.absent(),
     this.brand = const Value.absent(),
@@ -1906,6 +3063,7 @@ class ProductDiscoveryRecordsCompanion
     Expression<String>? id,
     Expression<String>? supplierId,
     Expression<String>? supplierName,
+    Expression<String>? supplierGovernorate,
     Expression<String>? name,
     Expression<String>? category,
     Expression<String>? brand,
@@ -1925,6 +3083,8 @@ class ProductDiscoveryRecordsCompanion
       if (id != null) 'id': id,
       if (supplierId != null) 'supplier_id': supplierId,
       if (supplierName != null) 'supplier_name': supplierName,
+      if (supplierGovernorate != null)
+        'supplier_governorate': supplierGovernorate,
       if (name != null) 'name': name,
       if (category != null) 'category': category,
       if (brand != null) 'brand': brand,
@@ -1946,6 +3106,7 @@ class ProductDiscoveryRecordsCompanion
     Value<String>? id,
     Value<String>? supplierId,
     Value<String>? supplierName,
+    Value<String?>? supplierGovernorate,
     Value<String>? name,
     Value<String>? category,
     Value<String>? brand,
@@ -1965,6 +3126,7 @@ class ProductDiscoveryRecordsCompanion
       id: id ?? this.id,
       supplierId: supplierId ?? this.supplierId,
       supplierName: supplierName ?? this.supplierName,
+      supplierGovernorate: supplierGovernorate ?? this.supplierGovernorate,
       name: name ?? this.name,
       category: category ?? this.category,
       brand: brand ?? this.brand,
@@ -1993,6 +3155,9 @@ class ProductDiscoveryRecordsCompanion
     }
     if (supplierName.present) {
       map['supplier_name'] = Variable<String>(supplierName.value);
+    }
+    if (supplierGovernorate.present) {
+      map['supplier_governorate'] = Variable<String>(supplierGovernorate.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -2045,6 +3210,7 @@ class ProductDiscoveryRecordsCompanion
           ..write('id: $id, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
+          ..write('supplierGovernorate: $supplierGovernorate, ')
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('brand: $brand, ')
@@ -5494,6 +6660,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ProductRecordsTable productRecords = $ProductRecordsTable(this);
+  late final $ProductPublishAttemptRecordsTable productPublishAttemptRecords =
+      $ProductPublishAttemptRecordsTable(this);
   late final $ProductDiscoveryRecordsTable productDiscoveryRecords =
       $ProductDiscoveryRecordsTable(this);
   late final $OrderRecordsTable orderRecords = $OrderRecordsTable(this);
@@ -5512,6 +6680,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     productRecords,
+    productPublishAttemptRecords,
     productDiscoveryRecords,
     orderRecords,
     orderItemRecords,
@@ -6055,11 +7224,515 @@ typedef $$ProductRecordsTableProcessedTableManager =
       ProductRecord,
       PrefetchHooks Function()
     >;
+typedef $$ProductPublishAttemptRecordsTableCreateCompanionBuilder =
+    ProductPublishAttemptRecordsCompanion Function({
+      required String idempotencyKey,
+      required String clientProductId,
+      required String supplierId,
+      required String supplierName,
+      required String name,
+      required String category,
+      Value<String> brand,
+      Value<String> description,
+      required double price,
+      required int quantity,
+      required bool isAvailable,
+      Value<String?> localImagePath,
+      Value<String> status,
+      Value<int> attempts,
+      Value<String?> lastError,
+      Value<DateTime?> nextAttemptAt,
+      Value<String?> serverProductId,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ProductPublishAttemptRecordsTableUpdateCompanionBuilder =
+    ProductPublishAttemptRecordsCompanion Function({
+      Value<String> idempotencyKey,
+      Value<String> clientProductId,
+      Value<String> supplierId,
+      Value<String> supplierName,
+      Value<String> name,
+      Value<String> category,
+      Value<String> brand,
+      Value<String> description,
+      Value<double> price,
+      Value<int> quantity,
+      Value<bool> isAvailable,
+      Value<String?> localImagePath,
+      Value<String> status,
+      Value<int> attempts,
+      Value<String?> lastError,
+      Value<DateTime?> nextAttemptAt,
+      Value<String?> serverProductId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ProductPublishAttemptRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ProductPublishAttemptRecordsTable> {
+  $$ProductPublishAttemptRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientProductId => $composableBuilder(
+    column: $table.clientProductId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverProductId => $composableBuilder(
+    column: $table.serverProductId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ProductPublishAttemptRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProductPublishAttemptRecordsTable> {
+  $$ProductPublishAttemptRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientProductId => $composableBuilder(
+    column: $table.clientProductId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverProductId => $composableBuilder(
+    column: $table.serverProductId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProductPublishAttemptRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProductPublishAttemptRecordsTable> {
+  $$ProductPublishAttemptRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clientProductId => $composableBuilder(
+    column: $table.clientProductId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get supplierName => $composableBuilder(
+    column: $table.supplierName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get serverProductId => $composableBuilder(
+    column: $table.serverProductId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ProductPublishAttemptRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ProductPublishAttemptRecordsTable,
+          ProductPublishAttemptRecord,
+          $$ProductPublishAttemptRecordsTableFilterComposer,
+          $$ProductPublishAttemptRecordsTableOrderingComposer,
+          $$ProductPublishAttemptRecordsTableAnnotationComposer,
+          $$ProductPublishAttemptRecordsTableCreateCompanionBuilder,
+          $$ProductPublishAttemptRecordsTableUpdateCompanionBuilder,
+          (
+            ProductPublishAttemptRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $ProductPublishAttemptRecordsTable,
+              ProductPublishAttemptRecord
+            >,
+          ),
+          ProductPublishAttemptRecord,
+          PrefetchHooks Function()
+        > {
+  $$ProductPublishAttemptRecordsTableTableManager(
+    _$AppDatabase db,
+    $ProductPublishAttemptRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProductPublishAttemptRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ProductPublishAttemptRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ProductPublishAttemptRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> idempotencyKey = const Value.absent(),
+                Value<String> clientProductId = const Value.absent(),
+                Value<String> supplierId = const Value.absent(),
+                Value<String> supplierName = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> brand = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<double> price = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
+                Value<String?> localImagePath = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime?> nextAttemptAt = const Value.absent(),
+                Value<String?> serverProductId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProductPublishAttemptRecordsCompanion(
+                idempotencyKey: idempotencyKey,
+                clientProductId: clientProductId,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                name: name,
+                category: category,
+                brand: brand,
+                description: description,
+                price: price,
+                quantity: quantity,
+                isAvailable: isAvailable,
+                localImagePath: localImagePath,
+                status: status,
+                attempts: attempts,
+                lastError: lastError,
+                nextAttemptAt: nextAttemptAt,
+                serverProductId: serverProductId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String idempotencyKey,
+                required String clientProductId,
+                required String supplierId,
+                required String supplierName,
+                required String name,
+                required String category,
+                Value<String> brand = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                required double price,
+                required int quantity,
+                required bool isAvailable,
+                Value<String?> localImagePath = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime?> nextAttemptAt = const Value.absent(),
+                Value<String?> serverProductId = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ProductPublishAttemptRecordsCompanion.insert(
+                idempotencyKey: idempotencyKey,
+                clientProductId: clientProductId,
+                supplierId: supplierId,
+                supplierName: supplierName,
+                name: name,
+                category: category,
+                brand: brand,
+                description: description,
+                price: price,
+                quantity: quantity,
+                isAvailable: isAvailable,
+                localImagePath: localImagePath,
+                status: status,
+                attempts: attempts,
+                lastError: lastError,
+                nextAttemptAt: nextAttemptAt,
+                serverProductId: serverProductId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ProductPublishAttemptRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ProductPublishAttemptRecordsTable,
+      ProductPublishAttemptRecord,
+      $$ProductPublishAttemptRecordsTableFilterComposer,
+      $$ProductPublishAttemptRecordsTableOrderingComposer,
+      $$ProductPublishAttemptRecordsTableAnnotationComposer,
+      $$ProductPublishAttemptRecordsTableCreateCompanionBuilder,
+      $$ProductPublishAttemptRecordsTableUpdateCompanionBuilder,
+      (
+        ProductPublishAttemptRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $ProductPublishAttemptRecordsTable,
+          ProductPublishAttemptRecord
+        >,
+      ),
+      ProductPublishAttemptRecord,
+      PrefetchHooks Function()
+    >;
 typedef $$ProductDiscoveryRecordsTableCreateCompanionBuilder =
     ProductDiscoveryRecordsCompanion Function({
       required String id,
       required String supplierId,
       required String supplierName,
+      Value<String?> supplierGovernorate,
       required String name,
       Value<String> category,
       Value<String> brand,
@@ -6080,6 +7753,7 @@ typedef $$ProductDiscoveryRecordsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> supplierId,
       Value<String> supplierName,
+      Value<String?> supplierGovernorate,
       Value<String> name,
       Value<String> category,
       Value<String> brand,
@@ -6117,6 +7791,11 @@ class $$ProductDiscoveryRecordsTableFilterComposer
 
   ColumnFilters<String> get supplierName => $composableBuilder(
     column: $table.supplierName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierGovernorate => $composableBuilder(
+    column: $table.supplierGovernorate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6210,6 +7889,11 @@ class $$ProductDiscoveryRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get supplierGovernorate => $composableBuilder(
+    column: $table.supplierGovernorate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -6295,6 +7979,11 @@ class $$ProductDiscoveryRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get supplierName => $composableBuilder(
     column: $table.supplierName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get supplierGovernorate => $composableBuilder(
+    column: $table.supplierGovernorate,
     builder: (column) => column,
   );
 
@@ -6395,6 +8084,7 @@ class $$ProductDiscoveryRecordsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
+                Value<String?> supplierGovernorate = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> category = const Value.absent(),
                 Value<String> brand = const Value.absent(),
@@ -6413,6 +8103,7 @@ class $$ProductDiscoveryRecordsTableTableManager
                 id: id,
                 supplierId: supplierId,
                 supplierName: supplierName,
+                supplierGovernorate: supplierGovernorate,
                 name: name,
                 category: category,
                 brand: brand,
@@ -6433,6 +8124,7 @@ class $$ProductDiscoveryRecordsTableTableManager
                 required String id,
                 required String supplierId,
                 required String supplierName,
+                Value<String?> supplierGovernorate = const Value.absent(),
                 required String name,
                 Value<String> category = const Value.absent(),
                 Value<String> brand = const Value.absent(),
@@ -6451,6 +8143,7 @@ class $$ProductDiscoveryRecordsTableTableManager
                 id: id,
                 supplierId: supplierId,
                 supplierName: supplierName,
+                supplierGovernorate: supplierGovernorate,
                 name: name,
                 category: category,
                 brand: brand,
@@ -8402,6 +10095,12 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$ProductRecordsTableTableManager get productRecords =>
       $$ProductRecordsTableTableManager(_db, _db.productRecords);
+  $$ProductPublishAttemptRecordsTableTableManager
+  get productPublishAttemptRecords =>
+      $$ProductPublishAttemptRecordsTableTableManager(
+        _db,
+        _db.productPublishAttemptRecords,
+      );
   $$ProductDiscoveryRecordsTableTableManager get productDiscoveryRecords =>
       $$ProductDiscoveryRecordsTableTableManager(
         _db,

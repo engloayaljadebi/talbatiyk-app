@@ -18,6 +18,7 @@ final class SupplierFollowController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isUpdating = false;
+  Future<void>? _statusLoad;
   bool? _isFollowing;
   String? _errorMessage;
 
@@ -31,9 +32,21 @@ final class SupplierFollowController extends ChangeNotifier {
 
   bool get canToggle => !_isLoading && !_isUpdating && _isFollowing != null;
 
-  Future<void> loadStatus() async {
-    if (_isLoading || _isUpdating) return;
+  Future<void> loadStatus() {
+    // Share the in-flight request with cart actions instead of dropping a tap.
+    final pending = _statusLoad;
+    if (pending != null) return pending;
+    if (_isUpdating) return Future<void>.value();
 
+    final request = _fetchStatus();
+    _statusLoad = request;
+    request.whenComplete(() {
+      if (identical(_statusLoad, request)) _statusLoad = null;
+    });
+    return request;
+  }
+
+  Future<void> _fetchStatus() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();

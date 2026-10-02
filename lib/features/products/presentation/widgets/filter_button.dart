@@ -21,9 +21,9 @@ class FilterButton extends StatelessWidget {
           icon: const Icon(Icons.filter_list_rounded),
         ),
         if (isActive)
-          const Positioned(
+          const PositionedDirectional(
             top: 9,
-            right: 9,
+            start: 9,
             child: CircleAvatar(radius: 4, backgroundColor: Color(0xFFE53935)),
           ),
       ],

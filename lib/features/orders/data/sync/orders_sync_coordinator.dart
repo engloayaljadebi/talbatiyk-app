@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../domain/services/order_id_transition_registry.dart';
 import '../datasources/local/orders_local_datasource.dart';
 import '../datasources/orders_datasource.dart';
 import '../models/orders_model.dart';
@@ -13,11 +14,13 @@ final class OrdersSyncCoordinator {
     required this._database,
     required this._localDataSource,
     required this._remoteDataSource,
+    this._transitionRegistry,
   });
 
   final AppDatabase _database;
   final OrdersLocalDataSource _localDataSource;
   final OrdersDataSource _remoteDataSource;
+  final OrderIdTransitionRegistry? _transitionRegistry;
 
   bool _isSyncing = false;
 
@@ -85,6 +88,11 @@ final class OrdersSyncCoordinator {
         localOrderId: operation.entityId,
         operationId: operation.id,
         remoteOrder: remoteOrder,
+      );
+
+      _transitionRegistry?.registerTransition(
+        localOrderId: operation.entityId,
+        serverOrderId: remoteOrder.id,
       );
     } catch (error) {
       if (_isPermanentRemoteFailure(error)) {

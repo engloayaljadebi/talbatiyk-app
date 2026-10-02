@@ -281,6 +281,7 @@ class CartPage extends ConsumerWidget {
     }
 
     final suppliers = supplierDiscoveryController.state.suppliers;
+    final usingCachedSuppliers = supplierDiscoveryController.state.isFromCache;
 
     if (suppliers.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -352,7 +353,11 @@ class CartPage extends ConsumerWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('تم إرسال الطلبية #${createdOrder.id} بنجاح'),
+          content: Text(
+            usingCachedSuppliers
+                ? 'تم حفظ الطلبية #${createdOrder.id} محليًا، وستُرسل عند عودة الاتصال.'
+                : 'تم حفظ الطلبية #${createdOrder.id}، ويمكنك متابعتها من الطلبات.',
+          ),
           backgroundColor: Colors.green.shade700,
         ),
       );
@@ -375,24 +380,28 @@ class CartPage extends ConsumerWidget {
                 width: double.maxFinite,
                 child: ListView(
                   shrinkWrap: true,
-                  children: suppliers
-                      .map((supplier) {
-                        return CheckboxListTile(
-                          value: selected.contains(supplier.id),
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(supplier.name),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value == true) {
-                                selected.add(supplier.id);
-                              } else {
-                                selected.remove(supplier.id);
-                              }
-                            });
-                          },
-                        );
-                      })
-                      .toList(growable: false),
+                  children: [
+                    if (suppliers.first.isFromCache)
+                      const Text(
+                        'هذه قائمة محفوظة. ستُرسل الطلبية عند عودة الاتصال، وقد تتغير أهلية الموردين.',
+                      ),
+                    ...suppliers.map((supplier) {
+                      return CheckboxListTile(
+                        value: selected.contains(supplier.id),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(supplier.name),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selected.add(supplier.id);
+                            } else {
+                              selected.remove(supplier.id);
+                            }
+                          });
+                        },
+                      );
+                    }),
+                  ],
                 ),
               ),
               actions: [

@@ -47,6 +47,7 @@ class OrderDetailsPage extends ConsumerWidget {
     // قراءة النسخة الأحدث من الطلبية الموجودة داخل الحالة.
     final OrderEntity currentOrder =
         controller.findOrderById(order.id) ?? order;
+    final bool isUnsyncedOrder = _isLocalUnsyncedOrderId(currentOrder.id);
 
     return Scaffold(
       backgroundColor: colors.surfaceContainerLowest,
@@ -84,21 +85,28 @@ class OrderDetailsPage extends ConsumerWidget {
                       const SizedBox(height: 14),
 
                       _SupplierResponsesCard(
-                        onOpen: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => OrderResponseComparisonPage(
-                                orderId: currentOrder.id,
-                              ),
-                            ),
-                          );
+                        isSyncPending: isUnsyncedOrder,
+                        onOpen: isUnsyncedOrder
+                            ? null
+                            : () async {
+                                if (_isLocalUnsyncedOrderId(currentOrder.id)) {
+                                  return;
+                                }
 
-                          if (!context.mounted) {
-                            return;
-                          }
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => OrderResponseComparisonPage(
+                                      orderId: currentOrder.id,
+                                    ),
+                                  ),
+                                );
 
-                          await controller.loadOrders();
-                        },
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                await controller.loadOrders();
+                              },
                       ),
                       const SizedBox(height: 14),
 
@@ -536,10 +544,27 @@ class _ProgressStep extends StatelessWidget {
 ///
 /// تعرض الاسم والمعرّف المحفوظين وقت إنشاء الطلبية.
 /// البيانات قد تكون غير موجودة في الطلبيات القديمة.
-class _SupplierResponsesCard extends StatelessWidget {
-  const _SupplierResponsesCard({required this.onOpen});
+/// يتحقق مما إذا كان معرّف الطلبية محلياً ولم تتم مزامنته بعد مع الخادم.
+bool _isLocalUnsyncedOrderId(String id) {
+  final trimmed = id.trim();
+  if (trimmed.isEmpty) {
+    return true;
+  }
+  return trimmed.startsWith('local-');
+}
 
-  final VoidCallback onOpen;
+/// بطاقة الوصول إلى ردود الموردين ومقارنة العروض المقدمة.
+///
+/// في حال كانت الطلبية محلية قيد المزامنة، يتم تعطيل الإجراء
+/// وإعلام المستخدم بأن الردود ستكون متاحة بعد اكتمال المزامنة مع الخادم.
+class _SupplierResponsesCard extends StatelessWidget {
+  const _SupplierResponsesCard({
+    required this.onOpen,
+    this.isSyncPending = false,
+  });
+
+  final VoidCallback? onOpen;
+  final bool isSyncPending;
 
   @override
   Widget build(BuildContext context) {
@@ -552,31 +577,70 @@ class _SupplierResponsesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'راجع الكميات المتاحة والأسعار التي أرسلها الموردون، ثم اختر العرض المناسب لك.',
+            isSyncPending
+                ? 'الطلبية قيد المزامنة حالياً مع الخادم. ستكون ردود الموردين متاحة فور اكتمال المزامنة.'
+                : 'راجع الكميات المتاحة والأسعار التي أرسلها الموردون، ثم اختر العرض المناسب لك.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colors.onSurfaceVariant,
               height: 1.55,
             ),
           ),
+          if (isSyncPending) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colors.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.sync_rounded, size: 18, color: colors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'جاري إرسال الطلبية إلى الخادم والموردين...',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             height: 50,
             child: FilledButton(
               key: const Key('open-supplier-responses'),
-              onPressed: onOpen,
+              onPressed: isSyncPending ? null : onOpen,
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 textStyle: const TextStyle(fontWeight: FontWeight.w700),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.compare_arrows_rounded, size: 19),
-                  SizedBox(width: 8),
-                  Text('عرض ردود الموردين'),
+                  Icon(
+                    isSyncPending
+                        ? Icons.cloud_sync_outlined
+                        : Icons.compare_arrows_rounded,
+                    size: 19,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isSyncPending
+                        ? 'بانتظار اكتمال المزامنة'
+                        : 'عرض ردود الموردين',
+                  ),
                 ],
               ),
             ),

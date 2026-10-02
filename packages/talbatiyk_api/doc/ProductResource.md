@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **supplierId** | **String** |  | 
 **supplierName** | **String** |  | 
+**supplierGovernorate** | **String** |  | 
 **name** | **String** |  | 
 **description** | **String** |  | 
 **category** | **String** |  | 

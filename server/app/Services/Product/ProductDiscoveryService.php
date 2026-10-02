@@ -15,7 +15,25 @@ class ProductDiscoveryService
         $perPage = max(1, min($perPage, 100));
 
         return Product::query()
-            ->with('supplier:id,name')
+            ->with([
+                'supplier:id,name',
+
+                'supplier.locations' => function (
+                    $query
+                ): void {
+                    $query
+                        ->select([
+                            'id',
+                            'business_id',
+                            'administrative_area',
+                            'is_primary',
+                        ])
+                        ->where(
+                            'is_primary',
+                            true,
+                        );
+                },
+            ])
             ->whereHas(
                 'supplier',
                 function (Builder $query): void {

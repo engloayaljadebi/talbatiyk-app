@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../products/presentation/pages/add_product_page.dart';
 import '../../../received_orders/presentation/pages/received_orders_page.dart';
 import '../../domain/entities/business_entity.dart';
 
@@ -20,18 +21,45 @@ final class BusinessWorkspacePage extends StatelessWidget {
           final business = businesses[index];
 
           return Card(
-            child: ListTile(
-              leading: const Icon(Icons.storefront_outlined),
-              title: Text(business.name),
-              subtitle: const Text('الطلبات المستلمة'),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ReceivedOrdersPage(businessId: business.id),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.storefront_outlined),
+                  title: Text(business.name),
+                  subtitle: const Text('الطلبات المستلمة'),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
                   ),
-                );
-              },
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            ReceivedOrdersPage(businessId: business.id),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: ValueKey('publish-product-${business.id}'),
+                  leading: const Icon(Icons.add_box_outlined),
+                  title: const Text('نشر منتج'),
+                  subtitle: const Text('إضافة منتج جديد وإتاحته للمستخدمين'),
+                  trailing: const Icon(Icons.cloud_upload_outlined),
+                  onTap: () async {
+                    await Navigator.of(context).push<Object?>(
+                      MaterialPageRoute<Object?>(
+                        builder: (_) => AddProductPage(
+                          supplierId: business.id,
+                          supplierName: business.name,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           );
         },

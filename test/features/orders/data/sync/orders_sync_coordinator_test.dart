@@ -7,6 +7,7 @@ import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_da
 import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dart';
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/sync/orders_sync_coordinator.dart';
+import 'package:talbatiyk/features/orders/domain/services/order_id_transition_registry.dart';
 
 void main() {
   group('OrdersSyncCoordinator', () {
@@ -385,6 +386,115 @@ void main() {
       expect(operations, hasLength(1));
       expect(operations.single.attempts, 0);
     });
+
+    test(
+      'registers order ID transition when create sync succeeds',
+      () async {
+        final database = AppDatabase.forTesting(NativeDatabase.memory());
+
+        addTearDown(database.close);
+
+        final local = OrdersLocalDataSource(database);
+        final transitionRegistry = OrderIdTransitionRegistry();
+
+        final localOrder = await local.createOrder(
+          CreateOrderModel(
+            supplierIds: const ['supplier-1'],
+            notes: 'Offline',
+            items: const [
+              OrderItemModel(
+                productId: 'product-1',
+                productName: 'Product 1',
+                unitPrice: 100,
+                quantity: 2,
+                supplierId: 'supplier-1',
+                supplierName: 'Supplier 1',
+              ),
+            ],
+          ),
+        );
+
+        final remote = _FakeOrdersDataSource(
+          createdOrder: OrderModel(
+            id: 'server-order-uuid-1',
+            status: 'pending',
+            notes: 'Offline',
+            createdAt: DateTime.utc(2026, 8, 26),
+            items: localOrder.items,
+          ),
+        );
+
+        final coordinator = OrdersSyncCoordinator(
+          database: database,
+          localDataSource: local,
+          remoteDataSource: remote,
+          transitionRegistry: transitionRegistry,
+        );
+
+        expect(transitionRegistry.resolve(localOrder.id), localOrder.id);
+
+        await coordinator.syncPendingOrders();
+
+        expect(
+          transitionRegistry.resolve(localOrder.id),
+          'server-order-uuid-1',
+        );
+      },
+    );
+
+    test(
+      'does not register order ID transition when completeCreateSync throws',
+      () async {
+        final database = AppDatabase.forTesting(NativeDatabase.memory());
+
+        addTearDown(database.close);
+
+        final local = _ThrowingCompleteCreateSyncLocalDataSource(database);
+        final transitionRegistry = OrderIdTransitionRegistry();
+
+        final localOrder = await local.createOrder(
+          CreateOrderModel(
+            supplierIds: const ['supplier-1'],
+            notes: 'Offline',
+            items: const [
+              OrderItemModel(
+                productId: 'product-1',
+                productName: 'Product 1',
+                unitPrice: 100,
+                quantity: 2,
+                supplierId: 'supplier-1',
+                supplierName: 'Supplier 1',
+              ),
+            ],
+          ),
+        );
+
+        final remote = _FakeOrdersDataSource(
+          createdOrder: OrderModel(
+            id: 'server-order-uuid-1',
+            status: 'pending',
+            notes: 'Offline',
+            createdAt: DateTime.utc(2026, 8, 26),
+            items: localOrder.items,
+          ),
+        );
+
+        final coordinator = OrdersSyncCoordinator(
+          database: database,
+          localDataSource: local,
+          remoteDataSource: remote,
+          transitionRegistry: transitionRegistry,
+        );
+
+        expect(transitionRegistry.resolve(localOrder.id), localOrder.id);
+
+        await coordinator.syncPendingOrders();
+
+        // completeCreateSync failed, so transition must NOT be registered
+        expect(transitionRegistry.resolve(localOrder.id), localOrder.id);
+        expect(remote.createCalls, 1);
+      },
+    );
   });
 }
 
@@ -420,3 +530,18 @@ class _FakeOrdersDataSource implements OrdersDataSource {
     throw UnsupportedError('Not used.');
   }
 }
+
+final class _ThrowingCompleteCreateSyncLocalDataSource
+    extends OrdersLocalDataSource {
+  _ThrowingCompleteCreateSyncLocalDataSource(super.database);
+
+  @override
+  Future<OrderModel> completeCreateSync({
+    required String localOrderId,
+    required String operationId,
+    required OrderModel remoteOrder,
+  }) {
+    throw StateError('Simulated disk/database failure in completeCreateSync');
+  }
+}
+
