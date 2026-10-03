@@ -596,9 +596,10 @@ class _CartItemCard extends ConsumerWidget {
           ),
           const SizedBox(width: 13),
           Expanded(
-            child: SizedBox(
-              height: 90,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 90),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -624,7 +625,7 @@ class _CartItemCard extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  const Spacer(),
+                  const SizedBox(height: 6),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),
                     transitionBuilder: (child, animation) {
@@ -830,7 +831,10 @@ class _CheckoutBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         const Text(
                           'الإجمالي',
@@ -840,7 +844,6 @@ class _CheckoutBar extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 7,

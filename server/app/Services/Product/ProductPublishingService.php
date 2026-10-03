@@ -136,7 +136,6 @@ class ProductPublishingService
         $imageDirectory = null;
         $imageFilename = null;
         $imagePath = null;
-        $imageUrl = null;
 
         if ($image instanceof UploadedFile) {
             if ($imageHash === null) {
@@ -165,12 +164,6 @@ class ProductPublishingService
 
             $imagePath =
                 "{$imageDirectory}/{$imageFilename}";
-
-            $imageUrl = Storage::disk(
-                'public',
-            )->url(
-                $imagePath,
-            );
         }
 
         /*
@@ -197,7 +190,6 @@ class ProductPublishingService
                     $imageDirectory,
                     $imageFilename,
                     $imagePath,
-                    $imageUrl,
                     &$imageWriteAttempted,
                 ): Product {
                     $product = Product::query()
@@ -225,7 +217,7 @@ class ProductPublishingService
                                     'is_available'
                                 ],
 
-                                'image_url' => $imageUrl,
+                                'image_url' => $imagePath,
 
                                 'colors' => [],
                                 'discount' => 0,

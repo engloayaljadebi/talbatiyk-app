@@ -131,13 +131,13 @@ class OrderCommercialAuthorityTest extends TestCase
         $this->assertDatabaseCount('order_items', 0);
     }
 
-    public function test_requested_quantity_cannot_exceed_current_stock(): void
+    public function test_requested_quantity_can_exceed_catalog_stock_for_rfq(): void
     {
         $user = User::factory()->create();
-        $supplier = $this->createSupplier('Stock supplier');
+        $supplier = $this->createSupplier('RFQ stock-independent supplier');
 
         $product = $this->createProduct($supplier, [
-            'quantity' => 2,
+            'quantity' => 1,
         ]);
 
         $this
@@ -147,16 +147,18 @@ class OrderCommercialAuthorityTest extends TestCase
                 '/api/v1/orders',
                 $this->orderPayload(
                     $product,
-                    ['quantity' => 3],
+                    ['quantity' => 1000000],
                 ),
             )
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors([
-                'items.0.quantity',
-            ]);
+            ->assertCreated();
 
-        $this->assertDatabaseCount('orders', 0);
-        $this->assertDatabaseCount('order_items', 0);
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertDatabaseCount('order_items', 1);
+
+        $this->assertDatabaseHas('order_items', [
+            'product_id' => $product->id,
+            'quantity' => 1000000,
+        ]);
     }
 
     public function test_changed_product_price_returns_conflict(): void
