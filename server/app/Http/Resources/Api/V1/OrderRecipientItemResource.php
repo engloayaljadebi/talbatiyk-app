@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\PublicDiskUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,7 +27,9 @@ class OrderRecipientItemResource extends JsonResource
             /** @var int|null */
             'selected_quantity' => $selectedQuantity,
 
-            'image_url' => $orderItem->image_url,
+            'image_url' => PublicDiskUrl::resolve(
+                $orderItem->image_url,
+            ),
         ];
     }
 }
