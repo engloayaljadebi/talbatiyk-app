@@ -50,6 +50,68 @@ const SupplierCandidateEntity _supplierB = SupplierCandidateEntity(
 );
 
 void main() {
+  testWidgets('cart page remains overflow-free at 360px with long product text', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+
+    final database = AppDatabase.forTesting(NativeDatabase.memory());
+
+    final remoteDataSource = _FakeOrdersRemoteDataSource();
+
+    final container = ProviderContainer(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(database),
+        ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+        supplierDiscoveryRepositoryProvider.overrideWithValue(
+          const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+            _supplierA,
+          ]),
+        ),
+      ],
+    );
+
+    addTearDown(() async {
+      container.dispose();
+      await database.close();
+    });
+
+    const product = ProductEntity(
+      id: 'cart-overflow-product',
+      name:
+          'Professional multi function diagnostic and repair device with extended product title',
+      price: 7500,
+      imageUrl: '',
+      category: 'Service tools',
+      brand: 'H.B MAX PROFESSIONAL SERVICE TOOLS',
+      isAvailable: true,
+      supplierId: 'supplier-a',
+      supplierName: 'Source Supplier A',
+      quantity: 1,
+    );
+
+    final cart = container.read(cartProvider);
+
+    cart.addProduct(product);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: CartPage()),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text(product.name), findsOneWidget);
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'requires explicit supplier selection even when one candidate exists',
     (WidgetTester tester) async {
