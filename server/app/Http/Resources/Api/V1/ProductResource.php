@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\PublicDiskUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -55,7 +56,9 @@ class ProductResource extends JsonResource
             'is_available' => (bool) $this->is_available,
 
             /** @var string|null */
-            'image_url' => $this->image_url,
+            'image_url' => PublicDiskUrl::resolve(
+                $this->image_url,
+            ),
 
             /** @var string[] */
             'colors' => $this->colors ?? [],

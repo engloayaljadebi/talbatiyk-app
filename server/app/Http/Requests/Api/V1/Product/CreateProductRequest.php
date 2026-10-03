@@ -17,6 +17,23 @@ class CreateProductRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $isAvailable = $this->input('is_available');
+
+        /*
+         * multipart/form-data serializes primitive booleans as
+         * the strings "true" / "false". Normalize only those
+         * exact wire values before Laravel's boolean validation.
+         * Unknown strings must remain invalid.
+         */
+        if ($isAvailable === 'true' || $isAvailable === 'false') {
+            $this->merge([
+                'is_available' => $isAvailable === 'true',
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [

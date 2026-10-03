@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\PublicDiskUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,7 +32,9 @@ class OrderItemResource extends JsonResource
             'supplier_id' => $this->supplier_id,
 
             'supplier_name' => $this->supplier_name,
-            'image_url' => $this->image_url,
+            'image_url' => PublicDiskUrl::resolve(
+                $this->image_url,
+            ),
         ];
     }
 }
