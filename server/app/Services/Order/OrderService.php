@@ -292,14 +292,6 @@ class OrderService
                 ]);
             }
 
-            if ($product->quantity < $item['quantity']) {
-                throw ValidationException::withMessages([
-                    "items.$index.quantity" => [
-                        'The requested quantity exceeds current stock.',
-                    ],
-                ]);
-            }
-
             /*
              * A supplier change changes the commercial meaning of the item.
              * Never silently substitute another supplier.
