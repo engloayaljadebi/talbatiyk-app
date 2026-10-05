@@ -47,6 +47,8 @@ void main() {
 
       raw.execute('DROP TABLE product_publish_attempt_records;');
 
+      raw.execute('ALTER TABLE product_records DROP COLUMN server_version;');
+
       raw.execute('PRAGMA user_version = 10;');
 
       raw.close();
@@ -55,7 +57,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 11);
+      expect(upgraded.schemaVersion, 12);
 
       final attemptTables = await upgraded
           .customSelect(
@@ -133,6 +135,8 @@ void main() {
        * Simulates the temporary development state that reported v10 while
        * already containing ProductPublishAttemptRecords.
        */
+      raw.execute('ALTER TABLE product_records DROP COLUMN server_version;');
+
       raw.execute('PRAGMA user_version = 10;');
 
       raw.close();
@@ -141,7 +145,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 11);
+      expect(upgraded.schemaVersion, 12);
 
       final repairedColumns = await upgraded
           .customSelect("PRAGMA table_info('product_discovery_records');")

@@ -175,6 +175,17 @@ class $ProductRecordsTable extends ProductRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _serverVersionMeta = const VerificationMeta(
+    'serverVersion',
+  );
+  @override
+  late final GeneratedColumn<int> serverVersion = GeneratedColumn<int>(
+    'server_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -260,6 +271,7 @@ class $ProductRecordsTable extends ProductRecords
     colorsJson,
     localImagePath,
     remoteImageUrl,
+    serverVersion,
     syncStatus,
     syncError,
     syncAttempts,
@@ -391,6 +403,15 @@ class $ProductRecordsTable extends ProductRecords
         ),
       );
     }
+    if (data.containsKey('server_version')) {
+      context.handle(
+        _serverVersionMeta,
+        serverVersion.isAcceptableOrUnknown(
+          data['server_version']!,
+          _serverVersionMeta,
+        ),
+      );
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -503,6 +524,10 @@ class $ProductRecordsTable extends ProductRecords
         DriftSqlType.string,
         data['${effectivePrefix}remote_image_url'],
       ),
+      serverVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_version'],
+      ),
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_status'],
@@ -552,6 +577,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   final String colorsJson;
   final String? localImagePath;
   final String? remoteImageUrl;
+
+  /// Last optimistic-concurrency version confirmed by Laravel.
+  final int? serverVersion;
   final String syncStatus;
   final String? syncError;
   final int syncAttempts;
@@ -574,6 +602,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     required this.colorsJson,
     this.localImagePath,
     this.remoteImageUrl,
+    this.serverVersion,
     required this.syncStatus,
     this.syncError,
     required this.syncAttempts,
@@ -602,6 +631,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     }
     if (!nullToAbsent || remoteImageUrl != null) {
       map['remote_image_url'] = Variable<String>(remoteImageUrl);
+    }
+    if (!nullToAbsent || serverVersion != null) {
+      map['server_version'] = Variable<int>(serverVersion);
     }
     map['sync_status'] = Variable<String>(syncStatus);
     if (!nullToAbsent || syncError != null) {
@@ -637,6 +669,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
       remoteImageUrl: remoteImageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(remoteImageUrl),
+      serverVersion: serverVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverVersion),
       syncStatus: Value(syncStatus),
       syncError: syncError == null && nullToAbsent
           ? const Value.absent()
@@ -671,6 +706,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
       colorsJson: serializer.fromJson<String>(json['colorsJson']),
       localImagePath: serializer.fromJson<String?>(json['localImagePath']),
       remoteImageUrl: serializer.fromJson<String?>(json['remoteImageUrl']),
+      serverVersion: serializer.fromJson<int?>(json['serverVersion']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       syncError: serializer.fromJson<String?>(json['syncError']),
       syncAttempts: serializer.fromJson<int>(json['syncAttempts']),
@@ -698,6 +734,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
       'colorsJson': serializer.toJson<String>(colorsJson),
       'localImagePath': serializer.toJson<String?>(localImagePath),
       'remoteImageUrl': serializer.toJson<String?>(remoteImageUrl),
+      'serverVersion': serializer.toJson<int?>(serverVersion),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'syncError': serializer.toJson<String?>(syncError),
       'syncAttempts': serializer.toJson<int>(syncAttempts),
@@ -723,6 +760,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     String? colorsJson,
     Value<String?> localImagePath = const Value.absent(),
     Value<String?> remoteImageUrl = const Value.absent(),
+    Value<int?> serverVersion = const Value.absent(),
     String? syncStatus,
     Value<String?> syncError = const Value.absent(),
     int? syncAttempts,
@@ -749,6 +787,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     remoteImageUrl: remoteImageUrl.present
         ? remoteImageUrl.value
         : this.remoteImageUrl,
+    serverVersion: serverVersion.present
+        ? serverVersion.value
+        : this.serverVersion,
     syncStatus: syncStatus ?? this.syncStatus,
     syncError: syncError.present ? syncError.value : this.syncError,
     syncAttempts: syncAttempts ?? this.syncAttempts,
@@ -787,6 +828,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
       remoteImageUrl: data.remoteImageUrl.present
           ? data.remoteImageUrl.value
           : this.remoteImageUrl,
+      serverVersion: data.serverVersion.present
+          ? data.serverVersion.value
+          : this.serverVersion,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
           : this.syncStatus,
@@ -818,6 +862,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
           ..write('colorsJson: $colorsJson, ')
           ..write('localImagePath: $localImagePath, ')
           ..write('remoteImageUrl: $remoteImageUrl, ')
+          ..write('serverVersion: $serverVersion, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('syncError: $syncError, ')
           ..write('syncAttempts: $syncAttempts, ')
@@ -845,6 +890,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     colorsJson,
     localImagePath,
     remoteImageUrl,
+    serverVersion,
     syncStatus,
     syncError,
     syncAttempts,
@@ -871,6 +917,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
           other.colorsJson == this.colorsJson &&
           other.localImagePath == this.localImagePath &&
           other.remoteImageUrl == this.remoteImageUrl &&
+          other.serverVersion == this.serverVersion &&
           other.syncStatus == this.syncStatus &&
           other.syncError == this.syncError &&
           other.syncAttempts == this.syncAttempts &&
@@ -895,6 +942,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   final Value<String> colorsJson;
   final Value<String?> localImagePath;
   final Value<String?> remoteImageUrl;
+  final Value<int?> serverVersion;
   final Value<String> syncStatus;
   final Value<String?> syncError;
   final Value<int> syncAttempts;
@@ -918,6 +966,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     this.colorsJson = const Value.absent(),
     this.localImagePath = const Value.absent(),
     this.remoteImageUrl = const Value.absent(),
+    this.serverVersion = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.syncError = const Value.absent(),
     this.syncAttempts = const Value.absent(),
@@ -942,6 +991,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     this.colorsJson = const Value.absent(),
     this.localImagePath = const Value.absent(),
     this.remoteImageUrl = const Value.absent(),
+    this.serverVersion = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.syncError = const Value.absent(),
     this.syncAttempts = const Value.absent(),
@@ -972,6 +1022,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     Expression<String>? colorsJson,
     Expression<String>? localImagePath,
     Expression<String>? remoteImageUrl,
+    Expression<int>? serverVersion,
     Expression<String>? syncStatus,
     Expression<String>? syncError,
     Expression<int>? syncAttempts,
@@ -996,6 +1047,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
       if (colorsJson != null) 'colors_json': colorsJson,
       if (localImagePath != null) 'local_image_path': localImagePath,
       if (remoteImageUrl != null) 'remote_image_url': remoteImageUrl,
+      if (serverVersion != null) 'server_version': serverVersion,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (syncError != null) 'sync_error': syncError,
       if (syncAttempts != null) 'sync_attempts': syncAttempts,
@@ -1022,6 +1074,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     Value<String>? colorsJson,
     Value<String?>? localImagePath,
     Value<String?>? remoteImageUrl,
+    Value<int?>? serverVersion,
     Value<String>? syncStatus,
     Value<String?>? syncError,
     Value<int>? syncAttempts,
@@ -1046,6 +1099,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
       colorsJson: colorsJson ?? this.colorsJson,
       localImagePath: localImagePath ?? this.localImagePath,
       remoteImageUrl: remoteImageUrl ?? this.remoteImageUrl,
+      serverVersion: serverVersion ?? this.serverVersion,
       syncStatus: syncStatus ?? this.syncStatus,
       syncError: syncError ?? this.syncError,
       syncAttempts: syncAttempts ?? this.syncAttempts,
@@ -1104,6 +1158,9 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     if (remoteImageUrl.present) {
       map['remote_image_url'] = Variable<String>(remoteImageUrl.value);
     }
+    if (serverVersion.present) {
+      map['server_version'] = Variable<int>(serverVersion.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -1146,6 +1203,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
           ..write('colorsJson: $colorsJson, ')
           ..write('localImagePath: $localImagePath, ')
           ..write('remoteImageUrl: $remoteImageUrl, ')
+          ..write('serverVersion: $serverVersion, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('syncError: $syncError, ')
           ..write('syncAttempts: $syncAttempts, ')
@@ -6717,6 +6775,7 @@ typedef $$ProductRecordsTableCreateCompanionBuilder =
       Value<String> colorsJson,
       Value<String?> localImagePath,
       Value<String?> remoteImageUrl,
+      Value<int?> serverVersion,
       Value<String> syncStatus,
       Value<String?> syncError,
       Value<int> syncAttempts,
@@ -6742,6 +6801,7 @@ typedef $$ProductRecordsTableUpdateCompanionBuilder =
       Value<String> colorsJson,
       Value<String?> localImagePath,
       Value<String?> remoteImageUrl,
+      Value<int?> serverVersion,
       Value<String> syncStatus,
       Value<String?> syncError,
       Value<int> syncAttempts,
@@ -6832,6 +6892,11 @@ class $$ProductRecordsTableFilterComposer
 
   ColumnFilters<String> get remoteImageUrl => $composableBuilder(
     column: $table.remoteImageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6950,6 +7015,11 @@ class $$ProductRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -7049,6 +7119,11 @@ class $$ProductRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => column,
@@ -7120,6 +7195,7 @@ class $$ProductRecordsTableTableManager
                 Value<String> colorsJson = const Value.absent(),
                 Value<String?> localImagePath = const Value.absent(),
                 Value<String?> remoteImageUrl = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<String?> syncError = const Value.absent(),
                 Value<int> syncAttempts = const Value.absent(),
@@ -7143,6 +7219,7 @@ class $$ProductRecordsTableTableManager
                 colorsJson: colorsJson,
                 localImagePath: localImagePath,
                 remoteImageUrl: remoteImageUrl,
+                serverVersion: serverVersion,
                 syncStatus: syncStatus,
                 syncError: syncError,
                 syncAttempts: syncAttempts,
@@ -7168,6 +7245,7 @@ class $$ProductRecordsTableTableManager
                 Value<String> colorsJson = const Value.absent(),
                 Value<String?> localImagePath = const Value.absent(),
                 Value<String?> remoteImageUrl = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<String?> syncError = const Value.absent(),
                 Value<int> syncAttempts = const Value.absent(),
@@ -7191,6 +7269,7 @@ class $$ProductRecordsTableTableManager
                 colorsJson: colorsJson,
                 localImagePath: localImagePath,
                 remoteImageUrl: remoteImageUrl,
+                serverVersion: serverVersion,
                 syncStatus: syncStatus,
                 syncError: syncError,
                 syncAttempts: syncAttempts,

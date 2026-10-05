@@ -35,6 +35,7 @@ class ProductEntity {
     this.discount = 0,
     this.rating = 0,
     this.localImagePath,
+    this.serverVersion,
     this.syncStatus = ProductSyncStatus.synced,
     this.syncError,
     this.createdAt,
@@ -61,6 +62,9 @@ class ProductEntity {
 
   /// مسار الصورة داخل جهاز المورد قبل رفعها إلى السحابة.
   final String? localImagePath;
+
+  /// Last optimistic-concurrency version confirmed by Laravel.
+  final int? serverVersion;
 
   final String category;
   final String brand;

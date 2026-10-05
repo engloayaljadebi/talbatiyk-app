@@ -352,6 +352,13 @@ class ProductPublishingService
             throw $exception;
         }
 
+        /*
+         * The database owns defaults such as Product version.
+         * Reload after commit so the first create response exposes the
+         * canonical server concurrency token.
+         */
+        $product->refresh();
+
         return $product->loadMissing([
             'supplier:id,name',
             'supplier.locations',

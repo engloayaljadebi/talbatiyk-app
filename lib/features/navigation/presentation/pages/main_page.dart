@@ -12,6 +12,7 @@ import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../orders/presentation/providers/orders_provider.dart';
 import '../../../products/presentation/pages/products_page.dart';
+import '../../../products/presentation/providers/products_provider.dart';
 import '../widgets/home_bottom_navigation.dart';
 
 /// الصفحة الأساسية التي تحتوي على أقسام التطبيق الخمسة.
@@ -30,6 +31,8 @@ class _MainPageState extends ConsumerState<MainPage>
   /// يمنع تشغيل أكثر من مزامنة للطلبات في الوقت نفسه.
   bool _isSyncingOrders = false;
 
+  bool _isSyncingProducts = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,7 @@ class _MainPageState extends ConsumerState<MainPage>
     // نبدأ المزامنة بعد بناء الـ authenticated shell لأول مرة.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_syncPendingOrders());
+      unawaited(_syncPendingProducts());
     });
   }
 
@@ -46,6 +50,7 @@ class _MainPageState extends ConsumerState<MainPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_syncPendingOrders());
+      unawaited(_syncPendingProducts());
     }
   }
 
@@ -79,6 +84,31 @@ class _MainPageState extends ConsumerState<MainPage>
       debugPrint('Orders background sync failed: $error\n$stackTrace');
     } finally {
       _isSyncingOrders = false;
+    }
+  }
+
+  Future<void> _syncPendingProducts() async {
+    if (_isSyncingProducts) {
+      return;
+    }
+
+    _isSyncingProducts = true;
+
+    final syncCoordinator = ref.read(productsSyncCoordinatorProvider);
+    final productsController = ref.read(productsProvider);
+
+    try {
+      await syncCoordinator.syncPendingProducts();
+
+      if (!mounted) {
+        return;
+      }
+
+      await productsController.loadProducts();
+    } catch (error, stackTrace) {
+      debugPrint('Products background sync failed: $error\n$stackTrace');
+    } finally {
+      _isSyncingProducts = false;
     }
   }
 

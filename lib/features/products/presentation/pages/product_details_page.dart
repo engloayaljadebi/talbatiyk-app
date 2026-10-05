@@ -12,9 +12,16 @@ import 'add_product_page.dart';
 enum _ProductAction { edit, delete }
 
 class ProductDetailsPage extends ConsumerStatefulWidget {
-  const ProductDetailsPage({super.key, required this.product});
+  const ProductDetailsPage({
+    super.key,
+    required this.product,
+    this.managedBusinessId,
+  });
 
   final ProductEntity product;
+
+  /// Business management context that authorized opening this Product.
+  final String? managedBusinessId;
 
   @override
   ConsumerState<ProductDetailsPage> createState() {
@@ -33,11 +40,12 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     _product = widget.product;
   }
 
-  /// مؤقتًا نسمح بإدارة منتجات المورد المحلي فقط.
-  ///
-  /// لاحقًا سيعتمد هذا الشرط على المستخدم المسجل دخوله.
   bool get _canManageProduct {
-    return _product.supplierId == 'local-supplier';
+    final managedBusinessId = widget.managedBusinessId?.trim();
+
+    return managedBusinessId != null &&
+        managedBusinessId.isNotEmpty &&
+        managedBusinessId == _product.supplierId.trim();
   }
 
   @override

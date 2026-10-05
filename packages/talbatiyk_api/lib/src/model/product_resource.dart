@@ -23,6 +23,7 @@ part 'product_resource.g.dart';
 /// * [price] 
 /// * [quantity] 
 /// * [isAvailable] 
+/// * [version] 
 /// * [imageUrl] 
 /// * [colors] 
 /// * [discount] 
@@ -63,6 +64,9 @@ abstract class ProductResource implements Built<ProductResource, ProductResource
 
   @BuiltValueField(wireName: r'is_available')
   bool get isAvailable;
+
+  @BuiltValueField(wireName: r'version')
+  int get version;
 
   @BuiltValueField(wireName: r'image_url')
   String? get imageUrl;
@@ -159,6 +163,11 @@ class _$ProductResourceSerializer implements PrimitiveSerializer<ProductResource
     yield serializers.serialize(
       object.isAvailable,
       specifiedType: const FullType(bool),
+    );
+    yield r'version';
+    yield serializers.serialize(
+      object.version,
+      specifiedType: const FullType(int),
     );
     yield r'image_url';
     yield object.imageUrl == null ? null : serializers.serialize(
@@ -291,6 +300,13 @@ class _$ProductResourceSerializer implements PrimitiveSerializer<ProductResource
             specifiedType: const FullType(bool),
           ) as bool;
           result.isAvailable = valueDes;
+          break;
+        case r'version':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.version = valueDes;
           break;
         case r'image_url':
           final valueDes = serializers.deserialize(

@@ -30,6 +30,8 @@ class _$ProductResource extends ProductResource {
   @override
   final bool isAvailable;
   @override
+  final int version;
+  @override
   final String? imageUrl;
   @override
   final BuiltList<String> colors;
@@ -57,6 +59,7 @@ class _$ProductResource extends ProductResource {
       required this.price,
       required this.quantity,
       required this.isAvailable,
+      required this.version,
       this.imageUrl,
       required this.colors,
       required this.discount,
@@ -86,6 +89,7 @@ class _$ProductResource extends ProductResource {
         price == other.price &&
         quantity == other.quantity &&
         isAvailable == other.isAvailable &&
+        version == other.version &&
         imageUrl == other.imageUrl &&
         colors == other.colors &&
         discount == other.discount &&
@@ -108,6 +112,7 @@ class _$ProductResource extends ProductResource {
     _$hash = $jc(_$hash, price.hashCode);
     _$hash = $jc(_$hash, quantity.hashCode);
     _$hash = $jc(_$hash, isAvailable.hashCode);
+    _$hash = $jc(_$hash, version.hashCode);
     _$hash = $jc(_$hash, imageUrl.hashCode);
     _$hash = $jc(_$hash, colors.hashCode);
     _$hash = $jc(_$hash, discount.hashCode);
@@ -132,6 +137,7 @@ class _$ProductResource extends ProductResource {
           ..add('price', price)
           ..add('quantity', quantity)
           ..add('isAvailable', isAvailable)
+          ..add('version', version)
           ..add('imageUrl', imageUrl)
           ..add('colors', colors)
           ..add('discount', discount)
@@ -191,6 +197,10 @@ class ProductResourceBuilder
   bool? get isAvailable => _$this._isAvailable;
   set isAvailable(bool? isAvailable) => _$this._isAvailable = isAvailable;
 
+  int? _version;
+  int? get version => _$this._version;
+  set version(int? version) => _$this._version = version;
+
   String? _imageUrl;
   String? get imageUrl => _$this._imageUrl;
   set imageUrl(String? imageUrl) => _$this._imageUrl = imageUrl;
@@ -233,6 +243,7 @@ class ProductResourceBuilder
       _price = $v.price;
       _quantity = $v.quantity;
       _isAvailable = $v.isAvailable;
+      _version = $v.version;
       _imageUrl = $v.imageUrl;
       _colors = $v.colors.toBuilder();
       _discount = $v.discount;
@@ -282,6 +293,8 @@ class ProductResourceBuilder
                 quantity, r'ProductResource', 'quantity'),
             isAvailable: BuiltValueNullFieldError.checkNotNull(
                 isAvailable, r'ProductResource', 'isAvailable'),
+            version: BuiltValueNullFieldError.checkNotNull(
+                version, r'ProductResource', 'version'),
             imageUrl: imageUrl,
             colors: colors.build(),
             discount: BuiltValueNullFieldError.checkNotNull(

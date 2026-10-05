@@ -34,6 +34,9 @@ class ProductRecords extends Table {
 
   TextColumn get remoteImageUrl => text().nullable()();
 
+  /// Last optimistic-concurrency version confirmed by Laravel.
+  IntColumn get serverVersion => integer().nullable()();
+
   TextColumn get syncStatus =>
       text().withDefault(const Constant('pendingCreate'))();
 
@@ -327,7 +330,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -398,7 +401,60 @@ class AppDatabase extends _$AppDatabase {
           await _ensureProductDiscoveryGovernorateColumn(m);
           await _ensureProductPublishAttemptTable(m);
         }
+
+        if (from < 12) {
+          await _ensureProductServerVersionColumn(m);
+        }
       },
+    );
+  }
+
+  Future<void> _ensureProductServerVersionColumn(Migrator m) async {
+    /*
+     * Historical databases and migration fixtures may legitimately predate
+     * ProductRecords entirely. Never issue ALTER TABLE against a missing table.
+     */
+    final existingTables = await customSelect(
+      "SELECT 1 FROM sqlite_master "
+      "WHERE type = 'table' "
+      "AND name = 'product_records' "
+      "LIMIT 1;",
+    ).get();
+
+    if (existingTables.isEmpty) {
+      await m.createTable(productRecords);
+
+      return;
+    }
+
+    /*
+     * Forward-only and restart-safe: transitional databases may already contain
+     * the v12 column even while reporting an older user_version.
+     */
+    final columns = await customSelect(
+      "PRAGMA table_info('product_records');",
+    ).get();
+
+    final hasServerVersion = columns.any(
+      (row) => row.data['name'] == 'server_version',
+    );
+
+    if (!hasServerVersion) {
+      await m.addColumn(productRecords, productRecords.serverVersion);
+    }
+
+    /*
+     * Laravel introduced Product.version with default 1 in this rollout.
+     * Only rows representing products that already exist on the server receive
+     * that baseline. A local pending create has no server concurrency token.
+     *
+     * If the real server has already advanced beyond 1, the first mutation is
+     * rejected with HTTP 409 rather than silently overwriting newer data.
+     */
+    await customStatement(
+      "UPDATE product_records SET server_version = 1 "
+      "WHERE server_version IS NULL "
+      "AND sync_status IN ('synced', 'pendingUpdate', 'pendingDelete');",
     );
   }
 

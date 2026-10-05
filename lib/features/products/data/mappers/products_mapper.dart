@@ -24,6 +24,7 @@ class ProductsMapper {
       quantity: resource.quantity,
       discount: resource.discount.toDouble(),
       rating: resource.rating.toDouble(),
+      serverVersion: resource.version,
       createdAt: _parseDateTime(resource.createdAt),
       updatedAt: _parseDateTime(resource.updatedAt),
     );
@@ -71,6 +72,7 @@ class ProductsMapper {
       price: entity.price,
       imageUrl: entity.imageUrl,
       localImagePath: entity.localImagePath,
+      serverVersion: entity.serverVersion,
       category: entity.category,
       brand: entity.brand,
       isAvailable: entity.isAvailable,
@@ -97,6 +99,7 @@ class ProductsMapper {
       price: model.price,
       imageUrl: model.imageUrl,
       localImagePath: model.localImagePath,
+      serverVersion: model.serverVersion,
       category: model.category,
       brand: model.brand,
       isAvailable: model.isAvailable,

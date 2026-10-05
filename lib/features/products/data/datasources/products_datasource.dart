@@ -96,6 +96,38 @@ abstract interface class ProductsWritableDataSource
   Future<void> deleteProduct(String productId);
 }
 
+/// Generated-API-backed Product mutation contract.
+///
+/// The caller owns Outbox/retry policy. These methods perform exactly one
+/// Laravel mutation and return the canonical Product snapshot on success.
+abstract interface class ProductsMutationRemoteDataSource {
+  Future<ProductModel> updateProductMutation(
+    ProductModel product, {
+    required int expectedVersion,
+    required bool removeImage,
+  });
+
+  Future<ProductModel> updateProductImageMutation({
+    required String businessId,
+    required String productId,
+    required int expectedVersion,
+    required String localImagePath,
+  });
+
+  Future<void> deleteProductMutation({
+    required String businessId,
+    required String productId,
+    required int expectedVersion,
+  });
+}
+
+/// Authenticated Business-scoped Product management read contract.
+///
+/// This is deliberately separate from public Product Discovery.
+abstract interface class ProductsSupplierManagementRemoteDataSource {
+  Future<List<ProductModel>> getBusinessProducts(String businessId);
+}
+
 /// Stores a product that has already been persisted by Laravel.
 ///
 /// This operation must not create an Outbox operation because the server
