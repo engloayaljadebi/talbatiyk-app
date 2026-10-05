@@ -74,7 +74,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 11);
+      expect(upgraded.schemaVersion, 12);
 
       final upgradedColumns = await upgraded
           .customSelect("PRAGMA table_info('product_discovery_records')")

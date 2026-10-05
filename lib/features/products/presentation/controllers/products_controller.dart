@@ -5,11 +5,17 @@ import '../../domain/usecases/products_usecase.dart';
 import '../state/products_state.dart';
 
 class ProductsController extends ChangeNotifier {
-  ProductsController(this._useCase, {bool autoLoad = true}) {
+  ProductsController(
+    this._useCase, {
+    bool autoLoad = true,
+    this.syncPendingMutations,
+  }) {
     if (autoLoad) loadProducts();
   }
 
   final ProductsUseCase _useCase;
+
+  final Future<void> Function()? syncPendingMutations;
 
   List<ProductEntity> _allProducts = [];
 
@@ -102,20 +108,33 @@ class ProductsController extends ChangeNotifier {
   Future<ProductEntity> updateProduct(ProductEntity product) async {
     final updatedProduct = await _useCase.updateProduct(product);
 
-    // إعادة التحميل تعرض أحدث بيانات محفوظة في قاعدة البيانات.
+    await _syncPendingMutationsSafely();
     await loadProducts();
 
     return updatedProduct;
   }
 
-  /// يحذف المنتج محليًا ثم يحدّث القائمة المعروضة.
-  ///
-  /// إذا كان المنتج متزامنًا، يبقى سجل الحذف في طابور المزامنة.
   Future<void> deleteProduct(String productId) async {
     await _useCase.deleteProduct(productId);
 
-    // المنتج المحذوف لن يظهر لأن المصدر المحلي يستبعد deletedAt.
+    await _syncPendingMutationsSafely();
     await loadProducts();
+  }
+
+  Future<void> _syncPendingMutationsSafely() async {
+    final sync = syncPendingMutations;
+
+    if (sync == null) {
+      return;
+    }
+
+    try {
+      await sync();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Product mutation background sync failed: $error\n$stackTrace',
+      );
+    }
   }
 
   void search(String value) {

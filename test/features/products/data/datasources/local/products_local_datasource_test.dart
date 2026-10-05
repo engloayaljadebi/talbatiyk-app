@@ -135,6 +135,7 @@ void main() {
               quantity: const Value(20),
               isAvailable: const Value(true),
               syncStatus: Value(ProductSyncStatus.synced.name),
+              serverVersion: const Value(1),
               createdAt: createdAt,
               updatedAt: createdAt,
             ),

@@ -87,6 +87,7 @@ void main() {
                   'price': 1250.5,
                   'quantity': 8,
                   'is_available': true,
+                  'version': 1,
                   'image_url':
                       '$baseUrl/storage/products/'
                       '$businessId/product.jpg',
@@ -163,6 +164,7 @@ void main() {
       expect(created.price, 1250.5);
       expect(created.quantity, 8);
       expect(created.isAvailable, isTrue);
+      expect(created.serverVersion, 1);
 
       expect(
         created.imageUrl,

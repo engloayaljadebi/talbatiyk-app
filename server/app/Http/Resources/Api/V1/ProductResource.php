@@ -55,6 +55,15 @@ class ProductResource extends JsonResource
             /** @var bool */
             'is_available' => (bool) $this->is_available,
 
+            /** @var int */
+            'version' => (int) $this->version,
+
+            /** @var int */
+            'version' => (int) $this->version,
+
+            /** @var int */
+            'version' => (int) $this->version,
+
             /** @var string|null */
             'image_url' => PublicDiskUrl::resolve(
                 $this->image_url,

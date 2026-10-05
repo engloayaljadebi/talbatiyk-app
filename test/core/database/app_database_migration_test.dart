@@ -7,7 +7,7 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test('migrates persisted data from v4 to v11 without loss', () async {
+    test('migrates persisted data from v4 to v12 without loss', () async {
       final Directory tempDirectory = await Directory.systemTemp.createTemp(
         'talbatiyk-drift-migration-',
       );
@@ -39,7 +39,7 @@ void main() {
           .select(database.orderRecords)
           .get();
 
-      expect(database.schemaVersion, 11);
+      expect(database.schemaVersion, 12);
       expect(operations, hasLength(1));
       expect(orders, hasLength(1));
 

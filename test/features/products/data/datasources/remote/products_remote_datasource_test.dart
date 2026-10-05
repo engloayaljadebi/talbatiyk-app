@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk/features/products/data/datasources/remote/products_remote_datasource.dart';
+import 'package:talbatiyk/features/products/data/models/products_model.dart';
 
 void main() {
   group('ProductsRemoteDataSource', () {
@@ -136,6 +137,327 @@ void main() {
         expect(second.colors, ['Blue']);
       },
     );
+
+    test('sends metadata update through generated PUT contract', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      const accessToken = 'mutation-access-token';
+      const businessId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+      const productId = '11111111-1111-4111-8111-111111111111';
+
+      final baseUrl = 'http://${server.address.address}:${server.port}/api/v1';
+
+      String? receivedMethod;
+      String? receivedPath;
+      String? receivedAuthorization;
+      String? receivedContentType;
+      String? receivedBody;
+
+      final subscription = server.listen((request) async {
+        receivedMethod = request.method;
+        receivedPath = request.uri.path;
+        receivedAuthorization = request.headers.value(
+          HttpHeaders.authorizationHeader,
+        );
+        receivedContentType = request.headers.value(
+          HttpHeaders.contentTypeHeader,
+        );
+
+        final bytes = <int>[];
+
+        await for (final chunk in request) {
+          bytes.addAll(chunk);
+        }
+
+        receivedBody = utf8.decode(bytes);
+
+        request.response
+          ..statusCode = HttpStatus.ok
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode(<String, dynamic>{
+              'data': _productJson(
+                id: productId,
+                supplierId: businessId,
+                supplierName: 'Mutation Supplier',
+                name: 'Updated Product',
+                price: 150.25,
+                quantity: 1000000,
+                isAvailable: false,
+                description: 'Updated description',
+                imageUrl: null,
+                colors: const <String>[],
+                discount: 0,
+                rating: 0,
+                createdAt: '2026-10-04T12:00:00+00:00',
+                version: 8,
+              ),
+            }),
+          );
+
+        await request.response.close();
+      });
+
+      addTearDown(subscription.cancel);
+
+      final apiClient = GeneratedApiClient.create(baseUrl: baseUrl);
+      apiClient.setAccessToken(accessToken);
+
+      final dataSource = ProductsRemoteDataSource(apiClient);
+
+      final product = ProductModel(
+        id: productId,
+        supplierId: businessId,
+        supplierName: 'Mutation Supplier',
+        name: 'Updated Product',
+        price: 150.25,
+        imageUrl: 'https://example.test/old-product.jpg',
+        category: 'Electronics',
+        brand: 'Test Brand',
+        isAvailable: false,
+        description: 'Updated description',
+        quantity: 1000000,
+      );
+
+      final updated = await dataSource.updateProductMutation(
+        product,
+        expectedVersion: 7,
+        removeImage: true,
+      );
+
+      expect(receivedMethod, 'PUT');
+
+      expect(
+        receivedPath,
+        '/api/v1/businesses/$businessId/products/$productId',
+      );
+
+      expect(receivedAuthorization, 'Bearer $accessToken');
+
+      expect(receivedContentType, contains('application/json'));
+
+      expect(receivedBody, isNotNull);
+
+      final decoded = jsonDecode(receivedBody!) as Map<String, dynamic>;
+
+      expect(decoded, <String, dynamic>{
+        'expected_version': 7,
+        'name': 'Updated Product',
+        'description': 'Updated description',
+        'category': 'Electronics',
+        'brand': 'Test Brand',
+        'price': 150.25,
+        'quantity': 1000000,
+        'is_available': false,
+        'remove_image': true,
+      });
+
+      expect(updated.id, productId);
+      expect(updated.serverVersion, 8);
+      expect(updated.imageUrl, '');
+      expect(updated.quantity, 1000000);
+    });
+
+    test(
+      'sends image replacement through generated multipart contract',
+      () async {
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+
+        addTearDown(() async {
+          await server.close(force: true);
+        });
+
+        final tempDirectory = await Directory.systemTemp.createTemp(
+          'talbatiyk-product-mutation-image-',
+        );
+
+        addTearDown(() async {
+          if (await tempDirectory.exists()) {
+            await tempDirectory.delete(recursive: true);
+          }
+        });
+
+        final image = File(
+          '${tempDirectory.path}${Platform.pathSeparator}replacement.jpg',
+        );
+
+        await image.writeAsBytes(
+          utf8.encode('replacement-image-content'),
+          flush: true,
+        );
+
+        const accessToken = 'mutation-image-access-token';
+        const businessId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        const productId = '22222222-2222-4222-8222-222222222222';
+
+        final baseUrl =
+            'http://${server.address.address}:${server.port}/api/v1';
+
+        String? receivedMethod;
+        String? receivedPath;
+        String? receivedAuthorization;
+        String? receivedContentType;
+        String? receivedBody;
+
+        final subscription = server.listen((request) async {
+          receivedMethod = request.method;
+          receivedPath = request.uri.path;
+          receivedAuthorization = request.headers.value(
+            HttpHeaders.authorizationHeader,
+          );
+          receivedContentType = request.headers.value(
+            HttpHeaders.contentTypeHeader,
+          );
+
+          final bytes = <int>[];
+
+          await for (final chunk in request) {
+            bytes.addAll(chunk);
+          }
+
+          receivedBody = latin1.decode(bytes);
+
+          request.response
+            ..statusCode = HttpStatus.ok
+            ..headers.contentType = ContentType.json
+            ..write(
+              jsonEncode(<String, dynamic>{
+                'data': _productJson(
+                  id: productId,
+                  supplierId: businessId,
+                  supplierName: 'Mutation Supplier',
+                  name: 'Image Product',
+                  price: 200,
+                  quantity: 4,
+                  isAvailable: true,
+                  description: 'Image mutation',
+                  imageUrl:
+                      '$baseUrl/storage/products/$businessId/replacement.jpg',
+                  colors: const <String>[],
+                  discount: 0,
+                  rating: 0,
+                  createdAt: '2026-10-04T12:00:00+00:00',
+                  version: 9,
+                ),
+              }),
+            );
+
+          await request.response.close();
+        });
+
+        addTearDown(subscription.cancel);
+
+        final apiClient = GeneratedApiClient.create(baseUrl: baseUrl);
+        apiClient.setAccessToken(accessToken);
+
+        final dataSource = ProductsRemoteDataSource(apiClient);
+
+        final updated = await dataSource.updateProductImageMutation(
+          businessId: businessId,
+          productId: productId,
+          expectedVersion: 8,
+          localImagePath: image.path,
+        );
+
+        expect(receivedMethod, 'POST');
+
+        expect(
+          receivedPath,
+          '/api/v1/businesses/$businessId/products/$productId/image',
+        );
+
+        expect(receivedAuthorization, 'Bearer $accessToken');
+
+        expect(receivedContentType, contains('multipart/form-data'));
+
+        expect(receivedBody, isNotNull);
+
+        expect(receivedBody, contains('name="expected_version"'));
+
+        expect(receivedBody, contains('name="image"'));
+
+        expect(receivedBody, contains('filename="replacement.jpg"'));
+
+        expect(receivedBody, contains('replacement-image-content'));
+
+        expect(
+          RegExp(
+            r'name="expected_version"\r\n\r\n8\r\n',
+          ).hasMatch(receivedBody!),
+          isTrue,
+        );
+
+        expect(updated.id, productId);
+        expect(updated.serverVersion, 9);
+
+        expect(
+          updated.imageUrl,
+          '$baseUrl/storage/products/$businessId/replacement.jpg',
+        );
+      },
+    );
+
+    test('sends delete through generated DELETE query contract', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      const accessToken = 'mutation-delete-access-token';
+      const businessId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+      const productId = '33333333-3333-4333-8333-333333333333';
+
+      final baseUrl = 'http://${server.address.address}:${server.port}/api/v1';
+
+      String? receivedMethod;
+      String? receivedPath;
+      String? receivedAuthorization;
+      Map<String, String>? receivedQuery;
+
+      final subscription = server.listen((request) async {
+        receivedMethod = request.method;
+        receivedPath = request.uri.path;
+        receivedAuthorization = request.headers.value(
+          HttpHeaders.authorizationHeader,
+        );
+        receivedQuery = Map<String, String>.from(request.uri.queryParameters);
+
+        await request.drain<void>();
+
+        request.response.statusCode = HttpStatus.noContent;
+
+        await request.response.close();
+      });
+
+      addTearDown(subscription.cancel);
+
+      final apiClient = GeneratedApiClient.create(baseUrl: baseUrl);
+      apiClient.setAccessToken(accessToken);
+
+      final dataSource = ProductsRemoteDataSource(apiClient);
+
+      await dataSource.deleteProductMutation(
+        businessId: businessId,
+        productId: productId,
+        expectedVersion: 11,
+      );
+
+      expect(receivedMethod, 'DELETE');
+
+      expect(
+        receivedPath,
+        '/api/v1/businesses/$businessId/products/$productId',
+      );
+
+      expect(receivedAuthorization, 'Bearer $accessToken');
+
+      expect(receivedQuery, <String, String>{'expected_version': '11'});
+    });
   });
 }
 
@@ -153,6 +475,7 @@ Map<String, dynamic> _productJson({
   required num discount,
   required num rating,
   required String? createdAt,
+  int version = 1,
 }) {
   return <String, dynamic>{
     'id': id,
@@ -170,6 +493,7 @@ Map<String, dynamic> _productJson({
     'discount': discount,
     'rating': rating,
     'created_at': createdAt,
+    'version': version,
     'updated_at': createdAt,
   };
 }

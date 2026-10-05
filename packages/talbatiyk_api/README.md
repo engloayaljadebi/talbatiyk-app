@@ -124,8 +124,12 @@ Class | Method | HTTP request | Description
 [*OrderApi*](doc/OrderApi.md) | [**orderStore**](doc/OrderApi.md#orderstore) | **POST** /orders | Create a new order for the authenticated user
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonShow**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonshow) | **GET** /orders/{order}/supplier-responses | Compare all final supplier responses for one owned Order
 [*OrderResponseComparisonApi*](doc/OrderResponseComparisonApi.md) | [**orderResponseComparisonUpdate**](doc/OrderResponseComparisonApi.md#orderresponsecomparisonupdate) | **PUT** /orders/{order}/supplier-selection | Replace the customer&#39;s supplier-response selection atomically
+[*ProductApi*](doc/ProductApi.md) | [**productBusinessIndex**](doc/ProductApi.md#productbusinessindex) | **GET** /businesses/{business}/products | 
+[*ProductApi*](doc/ProductApi.md) | [**productDestroy**](doc/ProductApi.md#productdestroy) | **DELETE** /businesses/{business}/products/{product} | 
 [*ProductApi*](doc/ProductApi.md) | [**productIndex**](doc/ProductApi.md#productindex) | **GET** /products | 
-[*ProductApi*](doc/ProductApi.md) | [**productStore**](doc/ProductApi.md#productstore) | **POST** /businesses/{business}/products | ينشر منتجًا مباشرة على الخادم لنشاط مورد حقيقي
+[*ProductApi*](doc/ProductApi.md) | [**productStore**](doc/ProductApi.md#productstore) | **POST** /businesses/{business}/products | 
+[*ProductApi*](doc/ProductApi.md) | [**productUpdate**](doc/ProductApi.md#productupdate) | **PUT** /businesses/{business}/products/{product} | 
+[*ProductApi*](doc/ProductApi.md) | [**productUpdateImage**](doc/ProductApi.md#productupdateimage) | **POST** /businesses/{business}/products/{product}/image | 
 [*SupplierDiscoveryApi*](doc/SupplierDiscoveryApi.md) | [**supplierDiscoveryIndex**](doc/SupplierDiscoveryApi.md#supplierdiscoveryindex) | **GET** /suppliers | 
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
@@ -210,6 +214,7 @@ Class | Method | HTTP request | Description
  - [UpdateBusinessContactRequest](doc/UpdateBusinessContactRequest.md)
  - [UpdateBusinessLocationRequest](doc/UpdateBusinessLocationRequest.md)
  - [UpdateBusinessRequest](doc/UpdateBusinessRequest.md)
+ - [UpdateProductRequest](doc/UpdateProductRequest.md)
  - [UpdateProfileRequest](doc/UpdateProfileRequest.md)
  - [UpdateSupplierFulfillmentRequest](doc/UpdateSupplierFulfillmentRequest.md)
  - [UserResource](doc/UserResource.md)

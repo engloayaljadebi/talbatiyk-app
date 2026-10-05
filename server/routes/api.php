@@ -166,10 +166,28 @@ Route::prefix('v1')->group(function (): void {
         */
 
         Route::get('/products', [ProductController::class, 'index']);
+        Route::get(
+            '/businesses/{business}/products',
+            [ProductController::class, 'businessIndex'],
+        );
 
         Route::post(
             '/businesses/{business}/products',
             [ProductController::class, 'store'],
+        );
+        Route::put(
+            '/businesses/{business}/products/{product}',
+            [ProductController::class, 'update'],
+        );
+
+        Route::post(
+            '/businesses/{business}/products/{product}/image',
+            [ProductController::class, 'updateImage'],
+        );
+
+        Route::delete(
+            '/businesses/{business}/products/{product}',
+            [ProductController::class, 'destroy'],
         );
 
         /*

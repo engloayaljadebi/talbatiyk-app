@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../products/presentation/pages/add_product_page.dart';
+import '../../../products/presentation/pages/my_products_page.dart';
 import '../../../received_orders/presentation/pages/received_orders_page.dart';
 import '../../domain/entities/business_entity.dart';
 
@@ -37,6 +38,27 @@ final class BusinessWorkspacePage extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (_) =>
                             ReceivedOrdersPage(businessId: business.id),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: ValueKey('manage-products-${business.id}'),
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: const Text('منتجاتي'),
+                  subtitle: const Text('عرض المنتجات وتعديلها وحذفها'),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
+                  ),
+                  onTap: () async {
+                    await Navigator.of(context).push<Object?>(
+                      MaterialPageRoute<Object?>(
+                        builder: (_) => MyProductsPage(
+                          businessId: business.id,
+                          businessName: business.name,
+                        ),
                       ),
                     );
                   },

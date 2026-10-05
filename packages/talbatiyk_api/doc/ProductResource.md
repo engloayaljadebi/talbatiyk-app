@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **price** | **num** |  | 
 **quantity** | **int** |  | 
 **isAvailable** | **bool** |  | 
+**version** | **int** |  | 
 **imageUrl** | **String** |  | 
 **colors** | **BuiltList&lt;String&gt;** |  | 
 **discount** | **num** |  | 

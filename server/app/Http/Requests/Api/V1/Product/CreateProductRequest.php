@@ -46,13 +46,13 @@ class CreateProductRequest extends FormRequest
             'category' => [
                 'required',
                 'string',
-                'max:160',
+                'max:150',
             ],
 
             'brand' => [
                 'nullable',
                 'string',
-                'max:160',
+                'max:150',
             ],
 
             'price' => [

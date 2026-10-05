@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
@@ -7,7 +8,10 @@ import '../../data/datasources/local/products_local_datasource.dart';
 import '../../data/datasources/products_datasource.dart';
 import '../../data/datasources/products_offline_first_datasource.dart';
 import '../../data/datasources/remote/products_remote_datasource.dart';
+import '../../data/mappers/products_mapper.dart';
 import '../../data/repositories/products_repository_impl.dart';
+import '../../data/sync/products_sync_coordinator.dart';
+import '../../domain/entities/products_entity.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../../domain/usecases/products_usecase.dart';
 import '../controllers/products_controller.dart';
@@ -45,7 +49,81 @@ final productsRemoteDataSourceProvider = Provider<ProductsRemoteDataSource>((
 ) {
   return ProductsRemoteDataSource(ref.watch(generatedApiClientProvider));
 });
+final supplierProductManagementRemoteDataSourceProvider =
+    Provider<ProductsSupplierManagementRemoteDataSource>((ref) {
+      return ref.watch(productsRemoteDataSourceProvider);
+    });
 
+/// Authenticated supplier-management Product list.
+///
+/// Server data is authoritative only for clean records. Local pending Product
+/// mutations remain authoritative until their existing Outbox flow completes.
+final supplierManagedProductsProvider =
+    FutureProvider.family<List<ProductEntity>, String>((ref, businessId) async {
+      final normalizedBusinessId = businessId.trim();
+
+      if (normalizedBusinessId.isEmpty) {
+        throw ArgumentError(
+          'Business ID is required to load managed Products.',
+        );
+      }
+
+      final local = ref.watch(productsLocalDataSourceProvider);
+
+      final remote = ref.watch(
+        supplierProductManagementRemoteDataSourceProvider,
+      );
+
+      Future<List<ProductEntity>> localFallback() async {
+        final localProducts = await local.getProducts();
+
+        return List<ProductEntity>.unmodifiable(
+          localProducts
+              .where(
+                (product) => product.supplierId.trim() == normalizedBusinessId,
+              )
+              .map(ProductsMapper.toEntity),
+        );
+      }
+
+      try {
+        final serverProducts = await remote.getBusinessProducts(
+          normalizedBusinessId,
+        );
+
+        final reconciled = await local.reconcileBusinessProducts(
+          businessId: normalizedBusinessId,
+          serverProducts: serverProducts,
+        );
+
+        return List<ProductEntity>.unmodifiable(
+          reconciled.map(ProductsMapper.toEntity),
+        );
+      } on DioException catch (error) {
+        final statusCode = error.response?.statusCode;
+
+        final canUseOfflineCache =
+            statusCode == null ||
+            statusCode == 408 ||
+            statusCode == 429 ||
+            statusCode >= 500;
+
+        if (!canUseOfflineCache) {
+          rethrow;
+        }
+
+        return localFallback();
+      }
+    });
+
+final productsSyncCoordinatorProvider = Provider<ProductsSyncCoordinator>((
+  ref,
+) {
+  return ProductsSyncCoordinator(
+    localDataSource: ref.watch(productsLocalDataSourceProvider),
+    remoteDataSource: ref.watch(productsRemoteDataSourceProvider),
+  );
+});
 final productDiscoveryRemoteDataSourceProvider = Provider<ProductsDataSource>((
   ref,
 ) {
@@ -125,5 +203,10 @@ final productsUseCaseProvider = Provider<ProductsUseCase>((ref) {
 
 /// Controller for local supplier product management.
 final productsProvider = ChangeNotifierProvider<ProductsController>((ref) {
-  return ProductsController(ref.watch(productsUseCaseProvider));
+  return ProductsController(
+    ref.watch(productsUseCaseProvider),
+    syncPendingMutations: ref
+        .watch(productsSyncCoordinatorProvider)
+        .syncPendingProducts,
+  );
 });

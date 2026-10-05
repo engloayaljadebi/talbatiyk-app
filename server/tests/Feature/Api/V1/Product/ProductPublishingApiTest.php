@@ -67,7 +67,8 @@ class ProductPublishingApiTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.name', 'Online Published Product')
             ->assertJsonPath('data.supplier_id', $business->id)
-            ->assertJsonPath('data.supplier_name', $business->name);
+            ->assertJsonPath('data.supplier_name', $business->name)
+            ->assertJsonPath('data.version', 1);
 
         $productId = $response->json('data.id');
 
