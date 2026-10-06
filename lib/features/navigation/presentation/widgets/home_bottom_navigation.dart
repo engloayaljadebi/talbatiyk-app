@@ -5,10 +5,12 @@ class HomeBottomNavigation extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onDestinationSelected,
+    this.ordersBadgeCount = 0,
   });
 
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
+  final int ordersBadgeCount;
 
   static const Color _selectedColor = Color(0xFFE53935);
   static const Color _unselectedColor = Color(0xFF8E8E93);
@@ -70,6 +72,7 @@ class HomeBottomNavigation extends StatelessWidget {
             child: _NavigationButton(
               item: _items[index],
               isSelected: isSelected,
+              badgeCount: index == 3 ? ordersBadgeCount : 0,
               onTap: () => onDestinationSelected(index),
             ),
           );
@@ -83,11 +86,13 @@ class _NavigationButton extends StatelessWidget {
   const _NavigationButton({
     required this.item,
     required this.isSelected,
+    required this.badgeCount,
     required this.onTap,
   });
 
   final _NavigationItem item;
   final bool isSelected;
+  final int badgeCount;
   final VoidCallback onTap;
 
   @override
@@ -117,13 +122,52 @@ class _NavigationButton extends StatelessWidget {
             children: [
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
-                child: Icon(
-                  isSelected ? item.selectedIcon : item.icon,
+                child: SizedBox(
                   key: ValueKey(isSelected),
-                  size: isSelected ? 23 : 21,
-                  color: isSelected
-                      ? HomeBottomNavigation._selectedColor
-                      : HomeBottomNavigation._unselectedColor,
+                  width: 38,
+                  height: 25,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        isSelected ? item.selectedIcon : item.icon,
+                        size: isSelected ? 23 : 21,
+                        color: isSelected
+                            ? HomeBottomNavigation._selectedColor
+                            : HomeBottomNavigation._unselectedColor,
+                      ),
+                      if (badgeCount > 0)
+                        PositionedDirectional(
+                          top: -2,
+                          end: -1,
+                          child: Container(
+                            key: const ValueKey<String>('orders-badge'),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: const BoxDecoration(
+                              color: HomeBottomNavigation._selectedColor,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(999),
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              badgeCount > 99 ? '99+' : '$badgeCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                height: 1,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 2),

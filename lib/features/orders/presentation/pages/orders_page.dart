@@ -108,19 +108,60 @@ class OrdersPage extends ConsumerWidget {
             'الطلبات',
             style: TextStyle(fontWeight: FontWeight.w800),
           ),
-          bottom: const TabBar(
-            tabs: [
-              Tab(
-                key: ValueKey<String>('orders-sent-tab'),
-                icon: Icon(Icons.outbox_outlined),
-                text: 'طلباتي',
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(62),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Container(
+                key: const ValueKey<String>('orders-tabs-segment'),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: TabBar(
+                  dividerColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorPadding: EdgeInsets.zero,
+                  indicator: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  labelColor: colors.primary,
+                  unselectedLabelColor: colors.onSurfaceVariant,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  tabs: const [
+                    Tab(
+                      key: ValueKey<String>('orders-sent-tab'),
+                      height: 46,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.outbox_outlined, size: 18),
+                          SizedBox(width: 7),
+                          Text('طلباتي'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      key: ValueKey<String>('orders-received-tab'),
+                      height: 46,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.move_to_inbox_outlined, size: 18),
+                          SizedBox(width: 7),
+                          Text('المستلمة'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Tab(
-                key: ValueKey<String>('orders-received-tab'),
-                icon: Icon(Icons.move_to_inbox_outlined),
-                text: 'المستلمة',
-              ),
-            ],
+            ),
           ),
           actions: [
             IconButton(
@@ -200,14 +241,7 @@ class _ReceivedOrdersCenterTabState
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            border: Border(
-              bottom: BorderSide(
-                color: colors.outlineVariant.withValues(alpha: 0.45),
-              ),
-            ),
-          ),
+          decoration: BoxDecoration(color: colors.surface),
           child: businesses.length > 1
               ? DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
