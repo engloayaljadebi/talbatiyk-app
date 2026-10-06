@@ -58,6 +58,8 @@ final class BusinessWorkspacePage extends StatelessWidget {
                         builder: (_) => MyProductsPage(
                           businessId: business.id,
                           businessName: business.name,
+                          businessDescription: business.description,
+                          businessLocation: business.location,
                         ),
                       ),
                     );
