@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../products/presentation/pages/add_product_page.dart';
 import '../../../products/presentation/pages/my_products_page.dart';
-import '../../../received_orders/presentation/pages/received_orders_page.dart';
 import '../../domain/entities/business_entity.dart';
 
 final class BusinessWorkspacePage extends StatelessWidget {
@@ -25,24 +24,6 @@ final class BusinessWorkspacePage extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.storefront_outlined),
-                  title: Text(business.name),
-                  subtitle: const Text('الطلبات المستلمة'),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16,
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            ReceivedOrdersPage(businessId: business.id),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
                 ListTile(
                   key: ValueKey('manage-products-${business.id}'),
                   leading: const Icon(Icons.inventory_2_outlined),

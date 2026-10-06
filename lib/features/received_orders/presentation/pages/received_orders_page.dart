@@ -12,9 +12,14 @@ const double _innerRadius = 14;
 const double _controlHeight = 50;
 
 final class ReceivedOrdersPage extends ConsumerWidget {
-  const ReceivedOrdersPage({required this.businessId, super.key});
+  const ReceivedOrdersPage({
+    required this.businessId,
+    this.embedded = false,
+    super.key,
+  });
 
   final String businessId;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,6 +27,23 @@ final class ReceivedOrdersPage extends ConsumerWidget {
     final state = controller.state;
     final colors = Theme.of(context).colorScheme;
 
+    final content = SafeArea(
+      top: false,
+      child: Column(
+        children: [
+          if (state.errorMessage != null && state.orders.isNotEmpty)
+            _InlineErrorBanner(
+              message: state.errorMessage!,
+              onRetry: controller.loadReceivedOrders,
+            ),
+          Expanded(child: _buildBody(context, controller, state)),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return ColoredBox(color: colors.surfaceContainerLowest, child: content);
+    }
     return Scaffold(
       backgroundColor: colors.surfaceContainerLowest,
       appBar: AppBar(
@@ -51,19 +73,7 @@ final class ReceivedOrdersPage extends ConsumerWidget {
           const SizedBox(width: 12),
         ],
       ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            if (state.errorMessage != null && state.orders.isNotEmpty)
-              _InlineErrorBanner(
-                message: state.errorMessage!,
-                onRetry: controller.loadReceivedOrders,
-              ),
-            Expanded(child: _buildBody(context, controller, state)),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

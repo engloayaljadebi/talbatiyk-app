@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../business/presentation/providers/business_provider.dart';
+import '../../../received_orders/presentation/pages/received_orders_page.dart';
+
 import '../../domain/entities/orders_entity.dart';
 import '../extensions/order_status_presentation.dart';
 import '../providers/orders_provider.dart';
@@ -90,24 +93,188 @@ class OrdersPage extends ConsumerWidget {
       );
     }
 
-    return Scaffold(
-      backgroundColor: colors.surfaceContainerLowest,
-      appBar: AppBar(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
         backgroundColor: colors.surfaceContainerLowest,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        toolbarHeight: 52,
-        titleSpacing: 20,
-        actions: [
-          IconButton(
-            tooltip: 'تحديث',
-            onPressed: state.isLoading ? null : controller.loadOrders,
-            icon: const Icon(Icons.refresh_rounded),
+        appBar: AppBar(
+          backgroundColor: colors.surfaceContainerLowest,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          toolbarHeight: 58,
+          titleSpacing: 20,
+          title: const Text(
+            'الطلبات',
+            style: TextStyle(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(width: 6),
-        ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(
+                key: ValueKey<String>('orders-sent-tab'),
+                icon: Icon(Icons.outbox_outlined),
+                text: 'طلباتي',
+              ),
+              Tab(
+                key: ValueKey<String>('orders-received-tab'),
+                icon: Icon(Icons.move_to_inbox_outlined),
+                text: 'المستلمة',
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              tooltip: 'تحديث طلباتي',
+              onPressed: state.isLoading ? null : controller.loadOrders,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+            const SizedBox(width: 6),
+          ],
+        ),
+        body: TabBarView(children: [body, const _ReceivedOrdersCenterTab()]),
       ),
-      body: body,
+    );
+  }
+}
+
+class _ReceivedOrdersCenterTab extends ConsumerStatefulWidget {
+  const _ReceivedOrdersCenterTab();
+
+  @override
+  ConsumerState<_ReceivedOrdersCenterTab> createState() =>
+      _ReceivedOrdersCenterTabState();
+}
+
+class _ReceivedOrdersCenterTabState
+    extends ConsumerState<_ReceivedOrdersCenterTab> {
+  String? _selectedBusinessId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      final controller = ref.read(businessControllerProvider);
+
+      if (controller.state.businesses.isEmpty) {
+        controller.loadBusinesses();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final businessController = ref.watch(businessControllerProvider);
+
+    final businessState = businessController.state;
+    final businesses = businessState.businesses;
+
+    final colors = Theme.of(context).colorScheme;
+
+    if (businesses.isEmpty) {
+      return _OrdersMessage(
+        icon: Icons.storefront_outlined,
+        title: 'لا يوجد نشاط تجاري',
+        subtitle: 'الطلبات المستلمة تظهر هنا عندما يكون لديك نشاط تجاري.',
+        buttonText: 'تحديث الأنشطة',
+        onPressed: businessController.loadBusinesses,
+      );
+    }
+
+    final selectedBusinessId =
+        _selectedBusinessId != null &&
+            businesses.any((business) => business.id == _selectedBusinessId)
+        ? _selectedBusinessId!
+        : businesses.first.id;
+
+    final selectedBusiness = businesses.firstWhere(
+      (business) => business.id == selectedBusinessId,
+    );
+
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: colors.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+          ),
+          child: businesses.length > 1
+              ? DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    key: const ValueKey<String>(
+                      'received-orders-business-selector',
+                    ),
+                    value: selectedBusinessId,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    items: businesses
+                        .map(
+                          (business) => DropdownMenuItem<String>(
+                            value: business.id,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.storefront_outlined, size: 19),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    business.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null || value == selectedBusinessId) {
+                        return;
+                      }
+
+                      setState(() {
+                        _selectedBusinessId = value;
+                      });
+                    },
+                  ),
+                )
+              : Row(
+                  children: [
+                    const Icon(Icons.storefront_outlined, size: 19),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        selectedBusiness.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+        Expanded(
+          child: ReceivedOrdersPage(
+            key: ValueKey<String>(
+              'embedded-received-orders-$selectedBusinessId',
+            ),
+            businessId: selectedBusinessId,
+            embedded: true,
+          ),
+        ),
+      ],
     );
   }
 }

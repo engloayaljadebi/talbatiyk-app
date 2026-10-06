@@ -10,8 +10,6 @@ import '../../../products/presentation/pages/add_product_page.dart';
 import '../../../products/presentation/pages/product_details_page.dart';
 import '../../../products/presentation/providers/products_provider.dart';
 import '../../../products/presentation/widgets/product_image.dart';
-import '../../../received_orders/domain/entities/received_order_entity.dart';
-import '../../../received_orders/presentation/providers/received_orders_provider.dart';
 
 enum AccountType { supplier, shopOwner }
 
@@ -86,13 +84,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         ? const AsyncValue<List<ProductEntity>>.data([])
         : ref.watch(supplierManagedProductsProvider(selectedBusiness.id));
     final productList = productsAsync.valueOrNull ?? const <ProductEntity>[];
-    final ordersState = selectedBusiness == null
-        ? null
-        : ref
-              .watch(receivedOrdersControllerProvider(selectedBusiness.id))
-              .state;
-    final orderList = ordersState?.orders ?? const <ReceivedOrderEntity>[];
-    final orderErrorMessage = ordersState?.errorMessage;
     final user = ref.watch(authProvider).state.user;
     final displayName = user?.displayName.trim().isNotEmpty == true
         ? user!.displayName.trim()
@@ -173,7 +164,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 unavailableCount:
                     productList.length -
                     productList.where((product) => product.isAvailable).length,
-                orderCount: orderList.length,
               )
             else
               _ProfileCard(
@@ -228,34 +218,17 @@ class _AccountPageState extends ConsumerState<AccountPage> {
             if (selectedBusiness != null)
               _SupplierContentTabs(
                 products: productList,
-                orders: orderList,
-                businessId: selectedBusiness.id,
-                errorMessage: orderErrorMessage,
                 onOpenProduct: (product) =>
                     _openProduct(product, selectedBusiness),
-                onOpenOrder: (_) async {},
                 onAddProduct: () => _openAddProduct(selectedBusiness),
                 onRefreshProducts: () async {
                   ref.invalidate(
                     supplierManagedProductsProvider(selectedBusiness.id),
                   );
+
                   await ref.read(
                     supplierManagedProductsProvider(selectedBusiness.id).future,
                   );
-                },
-                onRefreshOrders: () async {
-                  await ref
-                      .read(
-                        receivedOrdersControllerProvider(selectedBusiness.id),
-                      )
-                      .loadReceivedOrders();
-                },
-                onAdvanceOrder: (order) async {
-                  await ref
-                      .read(
-                        receivedOrdersControllerProvider(selectedBusiness.id),
-                      )
-                      .updateFulfillment(order: order);
                 },
               )
             else if (businessState.hasFailure)
@@ -490,14 +463,12 @@ class _SupplierProfileHeader extends StatelessWidget {
     required this.productCount,
     required this.availableCount,
     required this.unavailableCount,
-    required this.orderCount,
   });
 
   final BusinessEntity business;
   final int productCount;
   final int availableCount;
   final int unavailableCount;
-  final int orderCount;
 
   String get _initial {
     final normalized = business.name.trim();
@@ -618,10 +589,6 @@ class _SupplierProfileHeader extends StatelessWidget {
                   value: '$unavailableCount',
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ProfileStatTile(label: 'طلبات', value: '$orderCount'),
-              ),
             ],
           ),
         ],
@@ -708,38 +675,27 @@ class _SupplierProfileActions extends StatelessWidget {
 class _SupplierContentTabs extends StatelessWidget {
   const _SupplierContentTabs({
     required this.products,
-    required this.orders,
-    required this.businessId,
-    this.errorMessage,
     required this.onOpenProduct,
-    required this.onOpenOrder,
     required this.onAddProduct,
     required this.onRefreshProducts,
-    required this.onRefreshOrders,
-    required this.onAdvanceOrder,
   });
 
   final List<ProductEntity> products;
-  final List<ReceivedOrderEntity> orders;
-  final String businessId;
-  final String? errorMessage;
+
   final Future<void> Function(ProductEntity) onOpenProduct;
-  final Future<void> Function(ReceivedOrderEntity) onOpenOrder;
+
   final VoidCallback onAddProduct;
+
   final Future<void> Function() onRefreshProducts;
-  final Future<void> Function() onRefreshOrders;
-  final Future<void> Function(ReceivedOrderEntity) onAdvanceOrder;
 
   @override
   Widget build(BuildContext context) {
     final productHeight = products.isEmpty
         ? 300.0
         : ((products.length / 3).ceil() * 170.0) + 24.0;
-    final orderHeight = orders.isEmpty ? 260.0 : (orders.length * 170.0) + 24.0;
-    final tabHeight = productHeight > orderHeight ? productHeight : orderHeight;
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -748,18 +704,17 @@ class _SupplierContentTabs extends StatelessWidget {
         ),
         child: Column(
           children: [
-            TabBar(
-              tabs: const [
+            const TabBar(
+              tabs: [
                 Tab(icon: Icon(Icons.grid_view_rounded), text: 'المنتجات'),
                 Tab(icon: Icon(Icons.view_agenda_rounded), text: 'العرض'),
-                Tab(icon: Icon(Icons.receipt_long_rounded), text: 'الطلبات'),
               ],
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textSecondary,
               indicatorColor: AppColors.primary,
             ),
             SizedBox(
-              height: tabHeight,
+              height: productHeight,
               child: TabBarView(
                 children: [
                   _ManagedGrid(
@@ -774,14 +729,6 @@ class _SupplierContentTabs extends StatelessWidget {
                     onAddProduct: onAddProduct,
                     onRefresh: onRefreshProducts,
                   ),
-                  _OrdersTab(
-                    businessId: businessId,
-                    orders: orders,
-                    errorMessage: errorMessage,
-                    onOpenOrder: onOpenOrder,
-                    onAdvanceOrder: onAdvanceOrder,
-                    onRefresh: onRefreshOrders,
-                  ),
                 ],
               ),
             ),
@@ -790,266 +737,6 @@ class _SupplierContentTabs extends StatelessWidget {
       ),
     );
   }
-}
-
-class _OrdersTab extends StatelessWidget {
-  const _OrdersTab({
-    required this.businessId,
-    required this.orders,
-    this.errorMessage,
-    required this.onOpenOrder,
-    required this.onAdvanceOrder,
-    required this.onRefresh,
-  });
-
-  final String businessId;
-  final List<ReceivedOrderEntity> orders;
-  final String? errorMessage;
-  final Future<void> Function(ReceivedOrderEntity) onOpenOrder;
-  final Future<void> Function(ReceivedOrderEntity) onAdvanceOrder;
-  final Future<void> Function() onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    if (errorMessage != null && orders.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 64,
-              color: AppColors.textHint,
-            ),
-            const SizedBox(height: 16),
-            Text(errorMessage!, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () async => onRefresh(),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (orders.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: const [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: AppColors.textHint,
-            ),
-            SizedBox(height: 16),
-            Text('لا توجد طلبات مستلمة حاليًا', textAlign: TextAlign.center),
-            SizedBox(height: 8),
-            Text(
-              'سيظهر الطلب الجديد هنا فور وصوله إلى هذا النشاط.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: orders.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final order = orders[index];
-          return InkWell(
-            onTap: () async => onOpenOrder(order),
-            borderRadius: BorderRadius.circular(16),
-            child: _OrderSummaryCard(
-              order: order,
-              onAdvance: () async => onAdvanceOrder(order),
-              onOpen: () async => onOpenOrder(order),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _OrderSummaryCard extends StatelessWidget {
-  const _OrderSummaryCard({
-    required this.order,
-    required this.onAdvance,
-    required this.onOpen,
-  });
-
-  final ReceivedOrderEntity order;
-  final Future<void> Function() onAdvance;
-  final Future<void> Function() onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final statusLabel = _orderFulfillmentLabel(order);
-    final nextStatusLabel = _nextFulfillmentLabel(order);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'طلب #${_shortOrderId(order.orderId)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (order.createdAt != null)
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _formatOrderDate(order.createdAt!),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${order.items.length} عنصر${order.items.length == 1 ? '' : 'ات'}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onOpen,
-                    icon: const Icon(Icons.visibility_outlined),
-                    label: const Text('عرض الطلب'),
-                  ),
-                ),
-                if (nextStatusLabel != null) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () async => onAdvance(),
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: Text(nextStatusLabel),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-String _orderFulfillmentLabel(ReceivedOrderEntity order) {
-  if (order.fulfillmentStatus == null) {
-    return order.hasResponse ? 'بانتظار التفعيل' : 'بانتظار الرد';
-  }
-
-  return switch (order.fulfillmentStatus!) {
-    ReceivedOrderFulfillmentStatus.confirmed => 'مؤكد',
-    ReceivedOrderFulfillmentStatus.preparing => 'قيد التجهيز',
-    ReceivedOrderFulfillmentStatus.readyForDelivery => 'جاهز للتسليم',
-    ReceivedOrderFulfillmentStatus.outForDelivery => 'خارج للتوصيل',
-    ReceivedOrderFulfillmentStatus.delivered => 'مكتمل',
-  };
-}
-
-String? _nextFulfillmentLabel(ReceivedOrderEntity order) {
-  final next = order.nextFulfillmentStatus;
-  if (next == null) {
-    return null;
-  }
-
-  return switch (next) {
-    ReceivedOrderFulfillmentStatus.confirmed => 'قبول الطلب',
-    ReceivedOrderFulfillmentStatus.preparing => 'بدء التجهيز',
-    ReceivedOrderFulfillmentStatus.readyForDelivery => 'تجهيز الطلب',
-    ReceivedOrderFulfillmentStatus.outForDelivery => 'تسليم الطلب',
-    ReceivedOrderFulfillmentStatus.delivered => 'تم التسليم',
-  };
-}
-
-String _shortOrderId(String value) {
-  final trimmed = value.trim();
-  if (trimmed.length <= 8) {
-    return trimmed;
-  }
-  return trimmed.substring(0, 8);
-}
-
-String _formatOrderDate(DateTime value) {
-  final day = value.day.toString().padLeft(2, '0');
-  final month = value.month.toString().padLeft(2, '0');
-  final year = value.year;
-  final hour = value.hour.toString().padLeft(2, '0');
-  final minute = value.minute.toString().padLeft(2, '0');
-  return '$day/$month/$year - $hour:$minute';
 }
 
 class _ManagedGrid extends StatelessWidget {
