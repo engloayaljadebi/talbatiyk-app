@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../account/presentation/pages/account_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../business/presentation/providers/business_provider.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
+import '../../../received_orders/presentation/providers/received_orders_provider.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../orders/presentation/providers/orders_provider.dart';
@@ -33,6 +35,8 @@ class _MainPageState extends ConsumerState<MainPage>
 
   bool _isSyncingProducts = false;
 
+  bool _isRefreshingReceivedOrders = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +47,7 @@ class _MainPageState extends ConsumerState<MainPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_syncPendingOrders());
       unawaited(_syncPendingProducts());
+      unawaited(_refreshReceivedOrders());
     });
   }
 
@@ -51,6 +56,7 @@ class _MainPageState extends ConsumerState<MainPage>
     if (state == AppLifecycleState.resumed) {
       unawaited(_syncPendingOrders());
       unawaited(_syncPendingProducts());
+      unawaited(_refreshReceivedOrders());
     }
   }
 
@@ -112,6 +118,44 @@ class _MainPageState extends ConsumerState<MainPage>
     }
   }
 
+  Future<void> _refreshReceivedOrders() async {
+    if (_isRefreshingReceivedOrders) {
+      return;
+    }
+
+    _isRefreshingReceivedOrders = true;
+
+    try {
+      final businessController = ref.read(businessControllerProvider);
+
+      if (businessController.state.businesses.isEmpty &&
+          !businessController.state.isLoading) {
+        await businessController.loadBusinesses();
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      final businesses = businessController.state.businesses;
+
+      await Future.wait(
+        businesses.map(
+          (business) => ref
+              .read(receivedOrdersControllerProvider(business.id))
+              .loadReceivedOrders(),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Received orders background refresh failed: '
+        '$error\n$stackTrace',
+      );
+    } finally {
+      _isRefreshingReceivedOrders = false;
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -154,16 +198,42 @@ class _MainPageState extends ConsumerState<MainPage>
   /// على القسم المفتوح حاليًا.
   void _changePage(int index) {
     if (_currentIndex == index) {
+      if (index == 3) {
+        unawaited(_refreshReceivedOrders());
+      }
+
       return;
     }
 
     setState(() {
       _currentIndex = index;
     });
+
+    if (index == 3) {
+      unawaited(_refreshReceivedOrders());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final businessController = ref.watch(businessControllerProvider);
+
+    var ordersActionCount = 0;
+
+    for (final business in businessController.state.businesses) {
+      final receivedController = ref.watch(
+        receivedOrdersControllerProvider(business.id),
+      );
+
+      ordersActionCount += receivedController.state.orders
+          .where(
+            (order) =>
+                !order.hasResponse ||
+                (order.hasSelection && order.nextFulfillmentStatus != null),
+          )
+          .length;
+    }
+
     return Scaffold(
       // يحتفظ IndexedStack بحالة كل قسم
       // عند التنقل بين صفحات التطبيق.
@@ -176,6 +246,7 @@ class _MainPageState extends ConsumerState<MainPage>
         minimum: const EdgeInsets.fromLTRB(15, 0, 15, 8),
         child: HomeBottomNavigation(
           currentIndex: _currentIndex,
+          ordersBadgeCount: ordersActionCount,
           onDestinationSelected: _changePage,
         ),
       ),
