@@ -78,4 +78,39 @@ void main() {
 
     expect(find.byTooltip('إدارة المنتج'), findsNothing);
   });
+
+  testWidgets(
+    'public details stay safe even when supplierId matches a real Business ID',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [cartProvider.overrideWith((ref) => CartController())],
+      );
+
+      addTearDown(container.dispose);
+
+      const product = ProductEntity(
+        id: 'public-business-match',
+        supplierId: 'real-business-1',
+        supplierName: 'Managed Supplier',
+        name: 'Public Product',
+        price: 100,
+        imageUrl: '',
+        category: 'Tests',
+        brand: 'Talbatiyk',
+        isAvailable: true,
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProductDetailsPage(product: product)),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('إدارة المنتج'), findsNothing);
+      expect(find.text('Public Product'), findsOneWidget);
+    },
+  );
 }
