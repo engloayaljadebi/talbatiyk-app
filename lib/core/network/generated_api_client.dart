@@ -3,17 +3,22 @@
 | Generated API Client
 |--------------------------------------------------------------------------
 |
-| مسؤوليات الملف:
+| المسؤوليات:
 | - إنشاء TalbatiykApi المولد من OpenAPI.
 | - تمرير Base URL الخاص بالبيئة الحالية.
 | - تفعيل وإزالة Sanctum Bearer Token.
 | - توفير نقاط الوصول للـ APIs المولدة.
+| - دعم طلبات JSON الخام الموثقة للحالات التي لا يستطيع
+|   Generated DTO تمثيلها بدقة، مثل PATCH tri-state.
 |
-| ملاحظة:
-| لا نعدل أي ملف داخل packages/talbatiyk_api يدويًا.
+| قواعد الأمان:
+| - التوكن لا يخرج خارج هذه الطبقة.
+| - أي Raw authenticated request يفشل مغلقًا إذا لم توجد جلسة.
+| - لا يتم تعديل الملفات المولدة داخل packages/talbatiyk_api.
 |
 */
 
+import 'package:dio/dio.dart';
 import 'package:talbatiyk_api/talbatiyk_api.dart';
 
 import 'api_environment.dart';
@@ -21,69 +26,99 @@ import 'api_environment.dart';
 final class GeneratedApiClient {
   GeneratedApiClient._(this.client);
 
-  /// اسم مخطط Bearer Security كما هو معرف في OpenAPI.
   static const String _bearerSecurityName = 'http';
 
-  /// العميل المولد من عقد OpenAPI.
   final TalbatiykApi client;
 
-  /// ينشئ عميل API باستخدام عنوان البيئة الحالية.
+  String? _accessToken;
+
   factory GeneratedApiClient.create({String? baseUrl}) {
     return GeneratedApiClient._(
       TalbatiykApi(basePathOverride: baseUrl ?? ApiEnvironment.baseUrl),
     );
   }
 
-  /// Auth endpoints.
   AuthApi get auth => client.getAuthApi();
 
-  /// Business endpoints.
   BusinessApi get businesses => client.getBusinessApi();
 
-  /// Business locations endpoints.
   BusinessLocationApi get businessLocations => client.getBusinessLocationApi();
 
-  /// Business contacts endpoints.
   BusinessContactApi get businessContacts => client.getBusinessContactApi();
 
-  /// Product discovery endpoints.
   ProductApi get products => client.getProductApi();
 
-  /// Notification endpoints.
   NotificationApi get notifications => client.getNotificationApi();
 
-  /// Order endpoints.
   OrderApi get orders => client.getOrderApi();
 
-  /// Customer-facing eligible supplier discovery endpoints.
   SupplierDiscoveryApi get supplierDiscovery =>
       client.getSupplierDiscoveryApi();
 
-  /// Supplier follow endpoints.
   SupplierFollowApi get supplierFollow => client.getSupplierFollowApi();
 
-  /// Supplier received-order endpoints.
   SupplierOrderApi get supplierOrders => client.getSupplierOrderApi();
 
-  /// Supplier received-order response endpoints.
   SupplierOrderResponseApi get supplierOrderResponses =>
       client.getSupplierOrderResponseApi();
 
-  /// Supplier fulfillment lifecycle endpoints.
   SupplierOrderFulfillmentApi get supplierOrderFulfillment =>
       client.getSupplierOrderFulfillmentApi();
 
-  /// Customer supplier-response comparison and selection endpoints.
   OrderResponseComparisonApi get orderResponseComparisons =>
       client.getOrderResponseComparisonApi();
 
-  /// يربط Sanctum Personal Access Token بالطلبات المحمية.
   void setAccessToken(String token) {
-    client.setBearerAuth(_bearerSecurityName, token);
+    final normalized = token.trim();
+
+    if (normalized.isEmpty) {
+      throw ArgumentError.value(
+        token,
+        'token',
+        'Access token cannot be empty.',
+      );
+    }
+
+    _accessToken = normalized;
+
+    client.setBearerAuth(_bearerSecurityName, normalized);
   }
 
-  /// يزيل التوكن من العميل، مثلًا بعد تسجيل الخروج.
   void clearAccessToken() {
+    _accessToken = null;
+
     client.removeBearerAuth(_bearerSecurityName);
+  }
+
+  /// يستخدم فقط عندما لا يستطيع DTO المولد تمثيل JSON المطلوب بدقة.
+  ///
+  /// مثال:
+  /// PATCH يحتاج التفريق بين:
+  /// - absent
+  /// - explicit null
+  /// - value
+  ///
+  /// لا نكشف access token خارج هذه الطبقة.
+  Future<Response<T>> patchJsonAuthenticated<T>({
+    required String path,
+    required Object? data,
+  }) {
+    final token = _accessToken;
+
+    if (token == null || token.isEmpty) {
+      throw StateError('Authenticated PATCH requires an active access token.');
+    }
+
+    return client.dio.patch<T>(
+      path,
+      data: data,
+      options: Options(
+        headers: <String, String>{
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        contentType: Headers.jsonContentType,
+      ),
+    );
   }
 }

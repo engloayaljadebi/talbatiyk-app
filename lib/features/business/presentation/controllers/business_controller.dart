@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/business_entity.dart';
 import '../../domain/usecases/business_usecase.dart';
 import '../state/business_state.dart';
 
@@ -36,6 +37,33 @@ final class BusinessController extends ChangeNotifier {
         ),
       );
     }
+  }
+
+  void replaceBusiness(BusinessEntity business) {
+    final businesses = state.businesses;
+
+    if (businesses.isEmpty) {
+      return;
+    }
+
+    var found = false;
+
+    final updated = businesses
+        .map((current) {
+          if (current.id != business.id) {
+            return current;
+          }
+
+          found = true;
+          return business;
+        })
+        .toList(growable: false);
+
+    if (!found) {
+      return;
+    }
+
+    _setState(BusinessState.loaded(updated));
   }
 
   void _setState(BusinessState value) {
