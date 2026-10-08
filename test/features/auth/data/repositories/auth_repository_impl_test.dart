@@ -500,6 +500,14 @@ final class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
+  Future<UserResource> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    return meResult;
+  }
+
+  @override
   Future<void> logout() async {
     logoutCalled = true;
 

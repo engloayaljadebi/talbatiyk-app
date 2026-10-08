@@ -130,6 +130,25 @@ final class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthUserEntity> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    final user = await _remoteDataSource.updateProfile(
+      username: username,
+      displayName: displayName,
+    );
+
+    final AuthUserEntity domainUser = user.toDomain();
+
+    await _verifiedSessionStorage.saveVerifiedSession(
+      AuthSessionEntity(user: domainUser),
+    );
+
+    return domainUser;
+  }
+
+  @override
   Future<void> logout() async {
     try {
       await _remoteDataSource.logout();

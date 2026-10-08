@@ -163,5 +163,13 @@ final class _FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUserEntity> updateProfile({
+    String? username,
+    String? displayName,
+  }) {
+    throw StateError('Unexpected updateProfile in router notifications test.');
+  }
+
+  @override
   Future<void> logout() async {}
 }

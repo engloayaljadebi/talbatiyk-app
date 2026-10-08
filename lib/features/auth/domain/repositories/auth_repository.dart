@@ -41,6 +41,9 @@ abstract class AuthRepository {
   /// يجلب أحدث بيانات المستخدم الحالي من الخادم.
   Future<AuthUserEntity> getCurrentUser();
 
+  /// يحدّث اسم المستخدم أو الاسم الظاهر للمستخدم الحالي.
+  Future<AuthUserEntity> updateProfile({String? username, String? displayName});
+
   /// يسجل الخروج ويلغي الجلسة المحفوظة.
   Future<void> logout();
 }

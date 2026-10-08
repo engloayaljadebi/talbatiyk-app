@@ -32,6 +32,9 @@ abstract interface class AuthRemoteDataSource {
   /// يجلب بيانات المستخدم الحالي باستخدام Bearer Token.
   Future<UserResource> me();
 
+  /// يحدّث هوية الملف الشخصي للمستخدم الحالي.
+  Future<UserResource> updateProfile({String? username, String? displayName});
+
   /// يسجل خروج الجهاز الحالي من الخادم.
   Future<void> logout();
 
@@ -86,6 +89,34 @@ final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     if (responseBody == null) {
       throw StateError('استجابة بيانات المستخدم لا تحتوي على بيانات.');
+    }
+
+    return responseBody.data;
+  }
+
+  @override
+  Future<UserResource> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    final request = UpdateProfileRequest((builder) {
+      if (username != null) {
+        builder.username = username;
+      }
+
+      if (displayName != null) {
+        builder.displayName = displayName;
+      }
+    });
+
+    final response = await _apiClient.auth.authUpdateProfile(
+      updateProfileRequest: request,
+    );
+
+    final responseBody = response.data;
+
+    if (responseBody == null) {
+      throw StateError('استجابة تحديث بيانات المستخدم لا تحتوي على بيانات.');
     }
 
     return responseBody.data;

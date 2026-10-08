@@ -275,6 +275,14 @@ final class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUserEntity> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    return currentUserResult;
+  }
+
+  @override
   Future<void> logout() async {
     final error = logoutError;
 
