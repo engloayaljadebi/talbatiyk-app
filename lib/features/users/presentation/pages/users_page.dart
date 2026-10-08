@@ -5,6 +5,6 @@ class UsersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("Users Page")));
+    return Scaffold(body: Center(child: Text('المستخدمون')));
   }
 }

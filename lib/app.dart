@@ -17,6 +17,7 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
@@ -39,6 +40,13 @@ class TalbatiykApp extends ConsumerWidget {
       title: 'طلبيتك',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: ref.watch(appRouterProvider),
 
       // يفرض اتجاه RTL على جميع واجهات التطبيق.
