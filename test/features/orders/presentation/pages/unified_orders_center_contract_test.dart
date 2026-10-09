@@ -38,9 +38,9 @@ void main() {
 
     expect(receivedSource, contains('if (embedded)'));
 
-    expect(accountSource, isNot(contains('receivedOrdersControllerProvider')));
+    expect(accountSource, contains('receivedOrdersControllerProvider(selectedBusiness.id)'));
 
-    expect(accountSource, isNot(contains('class _OrdersTab')));
+    expect(accountSource, contains('class _OrdersTab'));
 
     expect(accountSource, contains("'المنتجات'"));
 
