@@ -7,9 +7,55 @@ import '../providers/received_orders_provider.dart';
 
 const double _pageMaxWidth = 760;
 const double _pagePadding = 16;
-const double _cardRadius = 22;
+const double _cardRadius = 20;
 const double _innerRadius = 14;
-const double _controlHeight = 50;
+const double _controlHeight = 52;
+
+// Theme-derived canvas and card colors aligned with the project's ColorScheme.
+Color _ordersCanvasColor(BuildContext context) {
+  return Theme.of(context).colorScheme.surfaceContainerLowest;
+}
+
+Color _ordersCardColor(BuildContext context) {
+  return Theme.of(context).colorScheme.surface;
+}
+
+// Soft, theme-aware card shadow that works in both light and dark mode.
+List<BoxShadow> _cardShadow(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  return [
+    BoxShadow(
+      color: theme.colorScheme.shadow.withValues(alpha: isDark ? 0.45 : 0.09),
+      blurRadius: 28,
+      offset: const Offset(0, 10),
+    ),
+    BoxShadow(
+      color: theme.colorScheme.shadow.withValues(alpha: isDark ? 0.3 : 0.04),
+      blurRadius: 8,
+      offset: const Offset(0, 2),
+    ),
+  ];
+}
+
+// Subtle status accent shown at the top edge of each order card.
+Color _statusAccentColor(BuildContext context, ReceivedOrderEntity order) {
+  final colors = Theme.of(context).colorScheme;
+  if (!order.hasResponse) {
+    return colors.onSurfaceVariant;
+  }
+  if (!order.hasSelection) {
+    return colors.tertiary;
+  }
+  final status = order.fulfillmentStatus;
+  if (status == null) {
+    return colors.primary;
+  }
+  if (status == ReceivedOrderFulfillmentStatus.delivered) {
+    return colors.primary;
+  }
+  return colors.primary;
+}
 
 final class ReceivedOrdersPage extends ConsumerWidget {
   const ReceivedOrdersPage({
@@ -25,7 +71,7 @@ final class ReceivedOrdersPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(receivedOrdersControllerProvider(businessId));
     final state = controller.state;
-    final colors = Theme.of(context).colorScheme;
+    final canvasColor = _ordersCanvasColor(context);
 
     final content = SafeArea(
       top: false,
@@ -42,12 +88,13 @@ final class ReceivedOrdersPage extends ConsumerWidget {
     );
 
     if (embedded) {
-      return ColoredBox(color: colors.surfaceContainerLowest, child: content);
+      return ColoredBox(color: canvasColor, child: content);
     }
     return Scaffold(
-      backgroundColor: colors.surfaceContainerLowest,
+      backgroundColor: canvasColor,
       appBar: AppBar(
-        backgroundColor: colors.surfaceContainerLowest,
+        backgroundColor: canvasColor,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -55,6 +102,7 @@ final class ReceivedOrdersPage extends ConsumerWidget {
         title: Text(
           'الطلبات',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
           ),
@@ -110,9 +158,10 @@ final class ReceivedOrdersPage extends ConsumerWidget {
       onRefresh: controller.loadReceivedOrders,
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(_pagePadding, 12, _pagePadding, 32),
+        padding: const EdgeInsets.fromLTRB(_pagePadding, 16, _pagePadding, 36),
         itemCount: state.orders.length + 1,
-        separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 18 : 14),
+        // Distinguish orders with whitespace, not lines or borders.
+        separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 18 : 24),
         itemBuilder: (context, index) {
           if (index == 0) {
             return Center(
@@ -161,9 +210,12 @@ final class ReceivedOrdersPage extends ConsumerWidget {
 
     if (succeeded) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحديث حالة الطلب.'),
+        SnackBar(
+          content: const Text('تم تحديث حالة الطلب.'),
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -208,9 +260,12 @@ final class ReceivedOrdersPage extends ConsumerWidget {
 
     if (succeeded) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم إرسال الرد بنجاح.'),
+        SnackBar(
+          content: const Text('تم إرسال الرد بنجاح.'),
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -230,20 +285,44 @@ final class _PageHeading extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'الطلبات المستلمة',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              height: 1.15,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.receipt_long_rounded,
+                  size: 21,
+                  color: colors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'الطلبات المستلمة',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 7),
-          Text(
-            'اعرف الحالة الحالية واتخذ الإجراء التالي بدون تشتيت.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colors.onSurfaceVariant,
-              height: 1.5,
+          const SizedBox(height: 9),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4),
+            child: Text(
+              'اعرف الحالة الحالية واتخذ الإجراء التالي بدون تشتيت.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+                height: 1.5,
+              ),
             ),
           ),
         ],
@@ -269,44 +348,50 @@ final class _ReceivedOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final accent = _statusAccentColor(context, order);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: _ordersCardColor(context),
         borderRadius: BorderRadius.circular(_cardRadius),
-        border: Border.all(color: colors.outlineVariant),
+        boxShadow: _cardShadow(context),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_cardRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Thin colored accent that reflects the order's current stage.
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              height: 4,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [accent, accent.withValues(alpha: 0.25)],
+                ),
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _OrderHeader(order: order),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   _OrderSummary(order: order),
                   if (order.fulfillmentStatus != null) ...[
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
                     _FulfillmentProgress(status: order.fulfillmentStatus!),
                   ],
                 ],
               ),
             ),
-            Divider(height: 1, color: colors.outlineVariant),
             _OrderItemsSection(order: order),
-            if (order.notes?.trim().isNotEmpty ?? false) ...[
-              Divider(height: 1, color: colors.outlineVariant),
+            if (order.notes?.trim().isNotEmpty ?? false)
               _OrderNotes(notes: order.notes!.trim()),
-            ],
-            Divider(height: 1, color: colors.outlineVariant),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
               child: _OrderActions(
                 order: order,
                 isSubmitting: isSubmitting,
@@ -344,21 +429,39 @@ final class _OrderHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleLarge?.copyWith(
+                  color: colors.onSurface,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.25,
                 ),
               ),
-              const SizedBox(height: 5),
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: Text(
-                  order.orderId,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+              const SizedBox(height: 7),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.event_outlined,
+                      size: 14,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'تاريخ الطلب: ${order.createdAt == null ? 'غير متوفر' : _formatReceivedOrderDate(order.createdAt!)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -378,23 +481,25 @@ final class _OrderSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasMeta =
+        order.fulfillmentStatus != null ||
+        (order.hasResponse && !order.hasSelection);
+    if (!hasMeta) {
+      return const SizedBox.shrink();
+    }
+
     return Wrap(
-      spacing: 18,
+      spacing: 10,
       runSpacing: 10,
       children: [
-        _MetaValue(
-          icon: Icons.shopping_bag_outlined,
-          text:
-              '${order.items.length} ${order.items.length == 1 ? 'عنصر' : 'عناصر'}',
-        ),
         if (order.fulfillmentStatus != null)
-          _MetaValue(
+          _MetaChip(
             icon: Icons.local_shipping_outlined,
             text: order.fulfillmentStatus!.displayLabel,
             emphasized: true,
           ),
         if (order.hasResponse && !order.hasSelection)
-          _MetaValue(
+          _MetaChip(
             icon: Icons.person_search_outlined,
             text: 'بانتظار اختيار العميل',
           ),
@@ -403,8 +508,9 @@ final class _OrderSummary extends StatelessWidget {
   }
 }
 
-final class _MetaValue extends StatelessWidget {
-  const _MetaValue({
+// Compact information chip used for order meta values.
+final class _MetaChip extends StatelessWidget {
+  const _MetaChip({
     required this.icon,
     required this.text,
     this.emphasized = false,
@@ -419,23 +525,32 @@ final class _MetaValue extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 17,
-          color: emphasized ? colors.primary : colors.onSurfaceVariant,
-        ),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: emphasized ? colors.onSurface : colors.onSurfaceVariant,
-            fontWeight: emphasized ? FontWeight.w700 : FontWeight.w500,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: emphasized
+            ? colors.primary.withValues(alpha: 0.09)
+            : colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: emphasized ? colors.primary : colors.onSurfaceVariant,
           ),
-        ),
-      ],
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: emphasized ? colors.onSurface : colors.onSurfaceVariant,
+              fontWeight: emphasized ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -452,25 +567,22 @@ final class _ResponseStatus extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(minHeight: 34),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color: status
-            ? colors.primary.withValues(alpha: 0.09)
+            ? colors.primary.withValues(alpha: 0.1)
             : colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: status ? colors.primary : colors.onSurfaceVariant,
-              shape: BoxShape.circle,
-            ),
+          Icon(
+            status ? Icons.check_rounded : Icons.schedule_rounded,
+            size: 15,
+            color: status ? colors.primary : colors.onSurfaceVariant,
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 6),
           Text(
             status ? 'تم الرد' : 'بانتظار الرد',
             style: theme.textTheme.labelMedium?.copyWith(
@@ -484,6 +596,7 @@ final class _ResponseStatus extends StatelessWidget {
   }
 }
 
+// A numbered step tracker with connectors; completed steps show a check.
 final class _FulfillmentProgress extends StatelessWidget {
   const _FulfillmentProgress({required this.status});
 
@@ -510,42 +623,54 @@ final class _FulfillmentProgress extends StatelessWidget {
                 child: Text(
                   status.displayLabel,
                   style: theme.textTheme.titleSmall?.copyWith(
+                    color: colors.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              Text(
-                '${currentStep + 1} من 5',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${currentStep + 1} من 5',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
-            children: List.generate(5, (index) {
-              final active = index <= currentStep;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsetsDirectional.only(end: index == 4 ? 0 : 5),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? colors.primary
-                          : colors.onSurface.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(99),
+            children: [
+              for (var index = 0; index < 5; index++) ...[
+                _StepDot(index: index, currentStep: currentStep),
+                if (index < 4)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOutCubic,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: index < currentStep
+                              ? colors.primary
+                              : colors.onSurface.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
+              ],
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 11),
           Text(
             status.progressDescription,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -559,6 +684,90 @@ final class _FulfillmentProgress extends StatelessWidget {
   }
 }
 
+final class _StepDot extends StatelessWidget {
+  const _StepDot({required this.index, required this.currentStep});
+
+  final int index;
+  final int currentStep;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final passed = index <= currentStep;
+    final isCurrent = index == currentStep;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+      width: isCurrent ? 28 : 24,
+      height: isCurrent ? 28 : 24,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: passed ? colors.primary : colors.surface,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: passed ? colors.primary : colors.outlineVariant,
+          width: 1.4,
+        ),
+        boxShadow: isCurrent
+            ? [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: passed
+          ? (index < currentStep
+                ? Icon(Icons.check_rounded, size: 14, color: colors.onPrimary)
+                : Text(
+                    '${index + 1}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: colors.onPrimary,
+                    ),
+                  ))
+          : Text(
+              '${index + 1}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+    );
+  }
+}
+
+// Read prices only when they are plain, non-negative numeric values.
+// An absent/invalid price must never silently become zero in totals.
+num? _parseReceivedOrderPrice(String? raw) {
+  final value = raw?.trim() ?? '';
+  if (!RegExp(r'^\d+(?:\.\d+)?$').hasMatch(value)) return null;
+  return num.tryParse(value);
+}
+
+String _formatReceivedOrderAmount(num amount) {
+  final fixed = amount.toStringAsFixed(2);
+  return fixed.endsWith('.00') ? fixed.substring(0, fixed.length - 3) : fixed;
+}
+
+String _receivedOrderPriceText(String? offeredPrice, String originalPrice) {
+  final offer = offeredPrice?.trim() ?? '';
+  return offer.isNotEmpty ? offer : originalPrice.trim();
+}
+
+String _formatReceivedOrderDate(DateTime date) {
+  final local = date.toLocal();
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${two(local.day)}/${two(local.month)}/${local.year}  '
+      '${two(local.hour)}:${two(local.minute)}';
+}
+
 final class _OrderItemsSection extends StatelessWidget {
   const _OrderItemsSection({required this.order});
 
@@ -568,47 +777,157 @@ final class _OrderItemsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final selected = _hasRecordedItemSelection(order);
+
+    var quantityTotal = 0;
+    num calculatedAmount = 0;
+    var missingPrice = false;
+    for (final item in order.items) {
+      final quantity = _orderDisplayQuantity(order, item);
+      quantityTotal += quantity;
+      if (quantity == 0) continue;
+
+      final unitPrice = _parseReceivedOrderPrice(
+        _receivedOrderPriceText(
+          _orderOfferedPrice(order, item),
+          item.unitPrice,
+        ),
+      );
+      if (unitPrice == null) {
+        missingPrice = true;
+      } else {
+        calculatedAmount += unitPrice * quantity;
+      }
+    }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'العناصر',
+                  'أصناف الطلب',
                   style: theme.textTheme.titleSmall?.copyWith(
+                    color: colors.onSurface,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              Text(
-                '${order.items.length}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+              if (order.items.length > 1)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'مرّر لعرض البقية',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.swipe_rounded,
+                      size: 16,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
-          DecoratedBox(
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 152,
+            child: ListView.separated(
+              key: const ValueKey<String>('received-order-items-horizontal'),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: order.items.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final item = order.items[index];
+                return _OrderItemRow(
+                  item: item,
+                  quantity: _orderDisplayQuantity(order, item),
+                  offeredUnitPrice: _orderOfferedPrice(order, item),
+                  selected: selected,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: colors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(_innerRadius),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (var index = 0; index < order.items.length; index++) ...[
-                  _OrderItemRow(item: order.items[index]),
-                  if (index < order.items.length - 1)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Divider(height: 1, color: colors.outlineVariant),
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 8,
+                  children: [
+                    _OrderTotalMetric(
+                      label: 'إجمالي الأصناف',
+                      value: '${order.items.length}',
                     ),
-                ],
+                    _OrderTotalMetric(
+                      label: selected ? 'الكمية المختارة' : 'إجمالي الكمية',
+                      value: '$quantityTotal',
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  child: Container(
+                    height: 1,
+                    color: colors.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selected
+                            ? 'إجمالي المبلغ (للكميات المختارة)'
+                            : 'إجمالي المبلغ (تقديري)',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        missingPrice
+                            ? 'غير مكتمل — أسعار ناقصة'
+                            : _formatReceivedOrderAmount(calculatedAmount),
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: missingPrice
+                              ? colors.onSurfaceVariant
+                              : colors.primary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -618,55 +937,194 @@ final class _OrderItemsSection extends StatelessWidget {
   }
 }
 
-final class _OrderItemRow extends StatelessWidget {
-  const _OrderItemRow({required this.item});
+bool _hasRecordedItemSelection(ReceivedOrderEntity order) =>
+    order.items.any((item) => item.selectedQuantity != null);
 
-  final ReceivedOrderItemEntity item;
+int _orderDisplayQuantity(
+  ReceivedOrderEntity order,
+  ReceivedOrderItemEntity item,
+) {
+  // Selection may be recorded as zero units; don't mistake it for a new order.
+  return _hasRecordedItemSelection(order)
+      ? (item.selectedQuantity ?? 0)
+      : item.requestedQuantity;
+}
+
+String? _orderOfferedPrice(
+  ReceivedOrderEntity order,
+  ReceivedOrderItemEntity item,
+) {
+  for (final responseItem
+      in order.response?.items ?? const <ReceivedOrderItemResponseEntity>[]) {
+    if (responseItem.orderRecipientItemId == item.id) {
+      return responseItem.offeredUnitPrice;
+    }
+  }
+  return null;
+}
+
+final class _OrderTotalMetric extends StatelessWidget {
+  const _OrderTotalMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(
-              item.productName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$label: ',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurfaceVariant,
           ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '× ${item.requestedQuantity}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (item.selectedQuantity != null) ...[
-                const SizedBox(height: 3),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurface,
+            fontWeight: FontWeight.w800,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Horizontal item preview inside a soft tile: image + name + quantity + price.
+final class _OrderItemRow extends StatelessWidget {
+  const _OrderItemRow({
+    required this.item,
+    required this.quantity,
+    required this.selected,
+    this.offeredUnitPrice,
+  });
+
+  final ReceivedOrderItemEntity item;
+  final int quantity;
+  final bool selected;
+  final String? offeredUnitPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final priceText = _receivedOrderPriceText(offeredUnitPrice, item.unitPrice);
+    final amount = _parseReceivedOrderPrice(priceText);
+    final subtotal = amount == null ? null : amount * quantity;
+
+    return Container(
+      width: 296,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _OrderProductThumbnail(imageUrl: item.imageUrl, size: 72),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'مختار ${item.selectedQuantity}',
+                  item.productName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${selected ? 'الكمية المختارة' : 'الكمية'}: $quantity',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w700,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'سعر الوحدة: ${priceText.isEmpty ? 'غير محدد' : priceText}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.09),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    'الإجمالي: ${subtotal == null ? 'غير محدد' : _formatReceivedOrderAmount(subtotal)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colors.primary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
-            ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+final class _OrderProductThumbnail extends StatelessWidget {
+  const _OrderProductThumbnail({required this.imageUrl, this.size = 60});
+
+  final String? imageUrl;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final url = imageUrl?.trim() ?? '';
+    final isHttpUrl = url.startsWith('https://') || url.startsWith('http://');
+    final fallback = Center(
+      child: Icon(
+        Icons.image_outlined,
+        color: colors.onSurfaceVariant.withValues(alpha: 0.58),
+        size: 24,
+      ),
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: ColoredBox(
+          color: colors.surfaceContainerHigh,
+          child: isHttpUrl
+              ? Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => fallback,
+                )
+              : fallback,
+        ),
       ),
     );
   }
@@ -683,22 +1141,29 @@ final class _OrderNotes extends StatelessWidget {
     final colors = theme.colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.notes_rounded, size: 18, color: colors.onSurfaceVariant),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              notes,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                height: 1.5,
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colors.tertiary.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(_innerRadius),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.notes_rounded, size: 18, color: colors.onSurfaceVariant),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Text(
+                notes,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  height: 1.5,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -753,12 +1218,22 @@ final class _OrderActions extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 2, bottom: 9),
-            child: Text(
-              'الإجراء التالي',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'الإجراء التالي',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.arrow_downward_rounded,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
           ),
           _PrimaryActionButton(
@@ -797,19 +1272,26 @@ final class _PrimaryActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return SizedBox(
       height: _controlHeight,
       child: FilledButton(
         onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          textStyle: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        style:
+            FilledButton.styleFrom(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ).copyWith(
+              overlayColor: WidgetStatePropertyAll(
+                colors.onPrimary.withValues(alpha: 0.12),
+              ),
+            ),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 180),
           child: loading
@@ -859,8 +1341,8 @@ final class _QuietState extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 36,
+            height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: colors.surface,
@@ -868,7 +1350,7 @@ final class _QuietState extends StatelessWidget {
             ),
             child: Icon(icon, size: 18, color: colors.onSurfaceVariant),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 11),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -876,6 +1358,7 @@ final class _QuietState extends StatelessWidget {
                 Text(
                   title,
                   style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -921,10 +1404,13 @@ final class _QuietIconButton extends StatelessWidget {
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: colors.surfaceContainerLow,
+            color: colors.surface.withValues(alpha: 0.7),
             shape: BoxShape.circle,
           ),
-          child: child,
+          child: IconTheme.merge(
+            data: IconThemeData(color: colors.onSurface),
+            child: child,
+          ),
         ),
       ),
     );
@@ -949,7 +1435,7 @@ final class _InlineErrorBanner extends StatelessWidget {
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           padding: const EdgeInsetsDirectional.fromSTEB(13, 9, 8, 9),
           decoration: BoxDecoration(
-            color: colors.errorContainer.withValues(alpha: 0.65),
+            color: colors.errorContainer.withValues(alpha: 0.75),
             borderRadius: BorderRadius.circular(_innerRadius),
           ),
           child: Row(
@@ -1162,13 +1648,27 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
         Padding(
           padding: EdgeInsets.fromLTRB(
             widget.desktop ? 24 : 20,
-            widget.desktop ? 24 : 18,
+            widget.desktop ? 22 : 18,
             widget.desktop ? 24 : 20,
-            16,
+            14,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(
+                  Icons.reply_rounded,
+                  size: 21,
+                  color: colors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1176,11 +1676,12 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
                     Text(
                       'رد المورد',
                       style: theme.textTheme.headlineSmall?.copyWith(
+                        color: colors.onSurface,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 4),
                     Text(
                       'حدد التوفر والكمية والسعر لكل عنصر.',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -1199,10 +1700,9 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
             ],
           ),
         ),
-        Divider(height: 1, color: colors.outlineVariant),
         Flexible(
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             itemCount: widget.order.items.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
@@ -1234,13 +1734,20 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
             },
           ),
         ),
-        Divider(height: 1, color: colors.outlineVariant),
-        Padding(
+        Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border(
+              top: BorderSide(
+                color: colors.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
           padding: EdgeInsets.fromLTRB(
             widget.desktop ? 24 : 18,
-            14,
+            12,
             widget.desktop ? 24 : 18,
-            widget.desktop ? 20 : 16,
+            widget.desktop ? 18 : 14,
           ),
           child: Row(
             children: [
@@ -1257,7 +1764,7 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
                 child: FilledButton(
                   onPressed: _submit,
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1311,11 +1818,16 @@ final class _ResponseEditorState extends State<_ResponseEditor> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 }
 
+// Each item editor lives inside its own soft tile for clearer separation.
 final class _ResponseItemEditor extends StatelessWidget {
   const _ResponseItemEditor({
     required this.item,
@@ -1336,7 +1848,7 @@ final class _ResponseItemEditor extends StatelessWidget {
         draft.availability == ReceivedOrderAvailability.partial;
 
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
@@ -1345,54 +1857,85 @@ final class _ResponseItemEditor extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  item.productName,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
+              _OrderProductThumbnail(imageUrl: item.imageUrl, size: 56),
               const SizedBox(width: 12),
-              Text(
-                '× ${item.requestedQuantity}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: colors.onSurface,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'الكمية المطلوبة: ${item.requestedQuantity}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    if (item.unitPrice.trim().isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        'سعر الوحدة: ${item.unitPrice.trim()}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          DropdownButtonFormField<ReceivedOrderAvailability>(
-            initialValue: draft.availability,
-            isExpanded: true,
-            decoration: _fieldDecoration(context, label: 'حالة التوفر'),
-            items: const [
-              DropdownMenuItem(
+          SegmentedButton<ReceivedOrderAvailability>(
+            segments: const [
+              ButtonSegment(
                 value: ReceivedOrderAvailability.full,
-                child: Text('متوفر بالكامل'),
+                label: Text('متوفر بالكامل'),
+                icon: Icon(Icons.check_circle_outline_rounded, size: 18),
               ),
-              DropdownMenuItem(
+              ButtonSegment(
                 value: ReceivedOrderAvailability.partial,
-                child: Text('متوفر جزئيًا'),
+                label: Text('جزئيًا'),
+                icon: Icon(Icons.adjust_rounded, size: 18),
               ),
-              DropdownMenuItem(
+              ButtonSegment(
                 value: ReceivedOrderAvailability.unavailable,
-                child: Text('غير متوفر'),
+                label: Text('غير متوفر'),
+                icon: Icon(Icons.cancel_outlined, size: 18),
               ),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                onAvailabilityChanged(value);
+            selected: {draft.availability},
+            onSelectionChanged: (selection) {
+              if (selection.isNotEmpty) {
+                onAvailabilityChanged(selection.first);
               }
             },
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
-              final stackFields = constraints.maxWidth < 460;
+              final stackFields = constraints.maxWidth < 282;
 
               if (stackFields) {
                 return Column(
@@ -1404,6 +1947,7 @@ final class _ResponseItemEditor extends StatelessWidget {
                       decoration: _fieldDecoration(
                         context,
                         label: 'الكمية المتاحة',
+                        prefixIcon: Icons.shopping_basket_outlined,
                       ),
                       onChanged: (value) {
                         draft.availableQuantity = value;
@@ -1411,12 +1955,14 @@ final class _ResponseItemEditor extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      initialValue: draft.offeredUnitPrice,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       decoration: _fieldDecoration(
                         context,
-                        label: 'السعر - اختياري',
+                        label: 'سعر العرض - اختياري',
+                        prefixIcon: Icons.price_change_outlined,
                       ),
                       onChanged: (value) {
                         draft.offeredUnitPrice = value;
@@ -1436,6 +1982,7 @@ final class _ResponseItemEditor extends StatelessWidget {
                       decoration: _fieldDecoration(
                         context,
                         label: 'الكمية المتاحة',
+                        prefixIcon: Icons.shopping_basket_outlined,
                       ),
                       onChanged: (value) {
                         draft.availableQuantity = value;
@@ -1445,12 +1992,14 @@ final class _ResponseItemEditor extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
+                      initialValue: draft.offeredUnitPrice,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       decoration: _fieldDecoration(
                         context,
-                        label: 'السعر - اختياري',
+                        label: 'سعر العرض - اختياري',
+                        prefixIcon: Icons.price_change_outlined,
                       ),
                       onChanged: (value) {
                         draft.offeredUnitPrice = value;
@@ -1465,7 +2014,11 @@ final class _ResponseItemEditor extends StatelessWidget {
           TextFormField(
             maxLength: 2000,
             maxLines: 2,
-            decoration: _fieldDecoration(context, label: 'ملاحظات - اختيارية'),
+            decoration: _fieldDecoration(
+              context,
+              label: 'ملاحظات - اختيارية',
+              prefixIcon: Icons.notes_rounded,
+            ),
             onChanged: (value) {
               draft.notes = value;
             },
@@ -1479,11 +2032,15 @@ final class _ResponseItemEditor extends StatelessWidget {
 InputDecoration _fieldDecoration(
   BuildContext context, {
   required String label,
+  IconData? prefixIcon,
 }) {
   final colors = Theme.of(context).colorScheme;
 
   return InputDecoration(
     labelText: label,
+    prefixIcon: prefixIcon == null
+        ? null
+        : Icon(prefixIcon, size: 20, color: colors.onSurfaceVariant),
     filled: true,
     fillColor: colors.surface,
     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -1501,7 +2058,9 @@ InputDecoration _fieldDecoration(
     ),
     disabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(13),
-      borderSide: BorderSide(color: colors.outlineVariant),
+      borderSide: BorderSide(
+        color: colors.outlineVariant.withValues(alpha: 0.6),
+      ),
     ),
   );
 }
@@ -1544,20 +2103,22 @@ final class _Message extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64,
-                height: 64,
+                width: 68,
+                height: 68,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(20),
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: _cardShadow(context),
                 ),
-                child: Icon(icon, size: 29, color: colors.onSurfaceVariant),
+                child: Icon(icon, size: 30, color: colors.onSurfaceVariant),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(
+                  color: colors.onSurface,
                   fontWeight: FontWeight.w800,
                 ),
               ),

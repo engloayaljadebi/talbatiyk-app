@@ -36,8 +36,6 @@ class Product extends Model
             'quantity' => 'integer',
             'is_available' => 'boolean',
             'version' => 'integer',
-            'version' => 'integer',
-            'version' => 'integer',
             'colors' => 'array',
             'discount' => 'decimal:2',
             'rating' => 'decimal:2',

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:talbatiyk/core/network/generated_api_client.dart';
+import 'package:talbatiyk/core/network/network_providers.dart';
 import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
 import 'package:talbatiyk/features/business/presentation/pages/business_profile_edit_page.dart';
 import 'package:talbatiyk/features/business/presentation/pages/business_workspace_page.dart';
@@ -17,8 +19,13 @@ void main() {
     );
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
+      ProviderScope(
+        overrides: [
+          generatedApiClientProvider.overrideWithValue(
+            GeneratedApiClient.create(baseUrl: 'http://127.0.0.1:8000/api/v1'),
+          ),
+        ],
+        child: const MaterialApp(
           home: BusinessWorkspacePage(businesses: <BusinessEntity>[business]),
         ),
       ),

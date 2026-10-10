@@ -9,7 +9,9 @@ import '../widgets/product_list.dart';
 import '../widgets/view_toggle.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
-  const ProductsPage({super.key});
+  const ProductsPage({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<ProductsPage> createState() => _ProductsPageState();
@@ -43,21 +45,48 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
-      appBar: AppBar(
-        title: const Text('المنتجات'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          ViewToggle(isGrid: state.isGrid, onChanged: controller.changeView),
-          FilterButton(
-            isActive: controller.hasActiveFilters,
-            onPressed: _openFilters,
-          ),
-        ],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('المنتجات'),
+              centerTitle: true,
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              actions: [
+                ViewToggle(
+                  isGrid: state.isGrid,
+                  onChanged: controller.changeView,
+                ),
+                FilterButton(
+                  isActive: controller.hasActiveFilters,
+                  onPressed: _openFilters,
+                ),
+              ],
+            ),
       body: Column(
         children: [
+          if (widget.embedded)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 12, 4),
+              child: Row(
+                children: [
+                  Text(
+                    'اكتشف المنتجات',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const Spacer(),
+                  ViewToggle(
+                    isGrid: state.isGrid,
+                    onChanged: controller.changeView,
+                  ),
+                  FilterButton(
+                    isActive: controller.hasActiveFilters,
+                    onPressed: _openFilters,
+                  ),
+                ],
+              ),
+            ),
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),

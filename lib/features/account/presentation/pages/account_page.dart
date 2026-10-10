@@ -14,6 +14,9 @@ import '../../../products/presentation/widgets/product_image.dart';
 import '../../../received_orders/domain/entities/received_order_entity.dart';
 import '../../../received_orders/presentation/pages/received_orders_page.dart';
 import '../../../received_orders/presentation/providers/received_orders_provider.dart';
+import '../../../supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
+import '../../../products/presentation/widgets/product_grid.dart';
 
 enum AccountType { supplier, shopOwner }
 
@@ -39,6 +42,7 @@ class AccountPage extends ConsumerStatefulWidget {
     this.displayName = 'مستخدم طلبيتك',
     this.businessName = 'لم تتم إضافة اسم النشاط',
     this.phoneNumber = 'غير مضاف',
+    this.viewedStore,
     this.accountType = AccountType.shopOwner,
     this.onEditProfile,
     this.onOpenSettings,
@@ -49,6 +53,7 @@ class AccountPage extends ConsumerStatefulWidget {
   final String displayName;
   final String businessName;
   final String phoneNumber;
+  final SupplierCandidateEntity? viewedStore;
   final AccountType accountType;
   final VoidCallback? onEditProfile;
   final VoidCallback? onOpenSettings;
@@ -88,6 +93,9 @@ class _AccountPageState extends ConsumerState<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.viewedStore != null) {
+      return _PublicStoreAccountView(store: widget.viewedStore!);
+    }
     final businessController = ref.watch(businessControllerProvider);
     final businessState = businessController.state;
     final businesses = businessState.businesses;
@@ -120,15 +128,73 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         : widget.accountType;
     final headerBusinessName = selectedBusiness?.name ?? widget.businessName;
 
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.surface,
       appBar: AppBar(
-        title: const Text('حسابي'),
-        centerTitle: true,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        title: Text(
+          selectedBusiness?.name ?? 'حسابي',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        centerTitle: false,
+        titleSpacing: 18,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.onSurface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        actions: [
+          if (selectedBusiness != null)
+            IconButton(
+              tooltip: 'إضافة منتج',
+              onPressed: () => _openAddProduct(selectedBusiness),
+              icon: const Icon(Icons.add_box_outlined),
+            ),
+          IconButton(
+            tooltip: 'الإشعارات',
+            onPressed: () => _executeOrNotify(
+              context,
+              widget.onOpenNotifications,
+              'الإشعارات',
+            ),
+            icon: const Icon(Icons.notifications_none_rounded),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'خيارات الحساب',
+            icon: const Icon(Icons.more_horiz_rounded),
+            onSelected: (value) {
+              if (value == 'settings') {
+                _executeOrNotify(
+                  context,
+                  widget.onOpenSettings,
+                  'إعدادات التطبيق',
+                );
+              } else if (value == 'edit' && selectedBusiness != null) {
+                _openBusinessProfileSettings(selectedBusiness);
+              } else if (value == 'logout') {
+                _executeOrNotify(context, widget.onLogout, 'تسجيل الخروج');
+              }
+            },
+            itemBuilder: (context) => [
+              if (selectedBusiness != null)
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Text('تعديل بيانات النشاط'),
+                ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Text('إعدادات التطبيق'),
+              ),
+              const PopupMenuItem(value: 'logout', child: Text('تسجيل الخروج')),
+            ],
+          ),
+          const SizedBox(width: 6),
+        ],
       ),
       body: SafeArea(
         child: ListView(
@@ -143,8 +209,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -179,9 +244,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 availableCount: productList
                     .where((product) => product.isAvailable)
                     .length,
-                unavailableCount:
-                    productList.length -
-                    productList.where((product) => product.isAvailable).length,
+                orderCount: orderList.length,
               )
             else
               _ProfileCard(
@@ -194,7 +257,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   'تعديل البيانات',
                 ),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             if (selectedBusiness != null)
               _SupplierProfileActions(
                 onAddProduct: () async => _openAddProduct(selectedBusiness),
@@ -229,31 +292,27 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   ),
                 ],
               ),
-            const SizedBox(height: 16),
+            if (selectedBusiness != null) ...[
+              const SizedBox(height: 22),
+              _SupplierQuickLinks(
+                onOrders: () => _openReceivedOrders(selectedBusiness),
+                onBusiness: () =>
+                    _openBusinessProfileSettings(selectedBusiness),
+                onNotifications: () => _executeOrNotify(
+                  context,
+                  widget.onOpenNotifications,
+                  'الإشعارات',
+                ),
+              ),
+            ],
+            const SizedBox(height: 22),
             if (selectedBusiness != null)
               _SupplierContentTabs(
                 products: productList,
                 orders: orderList,
                 onOpenProduct: (product) =>
                     _openProduct(product, selectedBusiness),
-                onOpenOrder: () async {
-                  await Navigator.of(context).push<void>(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          ReceivedOrdersPage(businessId: selectedBusiness.id),
-                    ),
-                  );
-
-                  if (!mounted) {
-                    return;
-                  }
-
-                  await ref
-                      .read(
-                        receivedOrdersControllerProvider(selectedBusiness.id),
-                      )
-                      .loadReceivedOrders();
-                },
+                onOpenOrder: () => _openReceivedOrders(selectedBusiness),
                 onAddProduct: () => _openAddProduct(selectedBusiness),
                 onRefreshProducts: () async {
                   ref.invalidate(
@@ -336,6 +395,21 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     );
   }
 
+  // Keep the original orders route and refresh behavior in one place.
+  Future<void> _openReceivedOrders(BusinessEntity business) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => ReceivedOrdersPage(businessId: business.id),
+      ),
+    );
+
+    if (!mounted) return;
+
+    await ref
+        .read(receivedOrdersControllerProvider(business.id))
+        .loadReceivedOrders();
+  }
+
   Future<void> _openAddProduct(BusinessEntity business) async {
     await Navigator.of(context).push<Object?>(
       MaterialPageRoute<Object?>(
@@ -413,93 +487,108 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final initial = displayName.trim().isEmpty
+        ? 'ط'
+        : displayName.trim().characters.first;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              size: 32,
-              color: AppColors.primary,
+          Row(
+            children: [
+              _ProfileAvatar(initial: initial, diameter: 94),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      accountType.label,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            businessName,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colors.onSurfaceVariant,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  businessName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          accountType.icon,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          accountType.label,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: AppColors.primaryDark,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined, size: 19),
+              label: const Text('تعديل الملف الشخصي'),
             ),
-          ),
-          IconButton(
-            tooltip: 'تعديل البيانات',
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined),
-            color: AppColors.primary,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.initial, this.diameter = 92});
+
+  final String initial;
+  final double diameter;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: diameter,
+      height: diameter,
+      padding: const EdgeInsets.all(3),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [AppColors.primary, Color(0xFFF3A163), AppColors.primaryDark],
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          shape: BoxShape.circle,
+        ),
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            initial,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: colors.onPrimaryContainer,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -510,176 +599,199 @@ class _SupplierProfileHeader extends StatelessWidget {
     required this.business,
     required this.productCount,
     required this.availableCount,
-    required this.unavailableCount,
+    required this.orderCount,
   });
 
   final BusinessEntity business;
   final int productCount;
   final int availableCount;
-  final int unavailableCount;
-
-  String get _initial {
-    final normalized = business.name.trim();
-    if (normalized.isEmpty) {
-      return 'م';
-    }
-    final first = normalized.characters.first;
-    return first.isEmpty ? 'م' : first;
-  }
+  final int? orderCount;
 
   @override
   Widget build(BuildContext context) {
-    final description = _cleanText(business.description);
-    final location = _cleanText(business.location);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final description = business.description?.trim();
+    final location = business.location?.trim();
+    final normalized = business.name.trim();
+    final initial = normalized.isEmpty ? 'م' : normalized.characters.first;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    _initial,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
+              _ProfileAvatar(initial: initial, diameter: 90),
+              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      business.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    _ProfileStatTile(label: 'المنتجات', value: '$productCount'),
+                    _ProfileStatTile(
+                      label: 'المتاحة',
+                      value: '$availableCount',
                     ),
-                    if (description != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                    if (location != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              location,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    if (orderCount != null)
+                      _ProfileStatTile(label: 'الطلبات', value: '$orderCount'),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _ProfileStatTile(
-                  label: 'منتجات',
-                  value: '$productCount',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ProfileStatTile(
-                  label: 'متاحة',
-                  value: '$availableCount',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ProfileStatTile(
-                  label: 'غير متاحة',
-                  value: '$unavailableCount',
-                ),
-              ),
-            ],
+          Text(
+            business.name,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: colors.onSurface,
+            ),
           ),
+          if (description != null && description.isNotEmpty) ...[
+            const SizedBox(height: 5),
+            Text(
+              description,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.5,
+                color: colors.onSurface,
+              ),
+            ),
+          ],
+          if (location != null && location.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.place_outlined, size: 17, color: colors.primary),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    location,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
-  }
-
-  String? _cleanText(String? value) {
-    final normalized = value?.trim() ?? '';
-    return normalized.isEmpty ? null : normalized;
   }
 }
 
 class _ProfileStatTile extends StatelessWidget {
   const _ProfileStatTile({required this.label, required this.value});
-
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          maxLines: 1,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SupplierQuickLinks extends StatelessWidget {
+  const _SupplierQuickLinks({
+    required this.onOrders,
+    required this.onBusiness,
+    required this.onNotifications,
+  });
+
+  final VoidCallback onOrders;
+  final VoidCallback onBusiness;
+  final VoidCallback onNotifications;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _QuickLink(
+          icon: Icons.receipt_long_outlined,
+          title: 'الطلبات',
+          onTap: onOrders,
+        ),
+        _QuickLink(
+          icon: Icons.storefront_outlined,
+          title: 'النشاط',
+          onTap: onBusiness,
+        ),
+        _QuickLink(
+          icon: Icons.notifications_none_rounded,
+          title: 'التنبيهات',
+          onTap: onNotifications,
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickLink extends StatelessWidget {
+  const _QuickLink({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return InkWell(
+      customBorder: const CircleBorder(),
+      onTap: onTap,
       child: Column(
         children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
+          Container(
+            width: 64,
+            height: 64,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.surfaceContainerLow,
             ),
+            child: Icon(icon, size: 25, color: colors.onSurface),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 7),
           Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
+            title,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -703,16 +815,25 @@ class _SupplierProfileActions extends StatelessWidget {
         Expanded(
           child: FilledButton.icon(
             onPressed: onAddProduct,
-            icon: const Icon(Icons.add_rounded),
+            style: FilledButton.styleFrom(
+              elevation: 0,
+              minimumSize: const Size.fromHeight(44),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 19),
             label: const Text('إضافة منتج'),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: OutlinedButton.icon(
+          child: FilledButton.tonalIcon(
             onPressed: onOpenSettings,
-            icon: const Icon(Icons.settings_outlined),
-            label: const Text('الإعدادات'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('تعديل البيانات'),
           ),
         ),
       ],
@@ -745,59 +866,54 @@ class _SupplierContentTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final productHeight = products.isEmpty
         ? 300.0
-        : ((products.length / 3).ceil() * 170.0) + 24.0;
+        : ((products.length / 3).ceil() * 160.0) + 24.0;
 
     final orderHeight = orders.isEmpty ? 260.0 : (orders.length * 170.0) + 24.0;
 
     final tabHeight = productHeight > orderHeight ? productHeight : orderHeight;
 
+    final colors = Theme.of(context).colorScheme;
     return DefaultTabController(
       length: 3,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          children: [
-            const TabBar(
-              tabs: [
-                Tab(icon: Icon(Icons.grid_view_rounded), text: 'المنتجات'),
-                Tab(icon: Icon(Icons.view_agenda_rounded), text: 'العرض'),
-                Tab(icon: Icon(Icons.receipt_long_rounded), text: 'الطلبات'),
+      child: Column(
+        children: [
+          TabBar(
+            tabs: const [
+              Tab(icon: Icon(Icons.grid_on_rounded), text: 'المنتجات'),
+              Tab(icon: Icon(Icons.view_agenda_outlined), text: 'العرض'),
+              Tab(icon: Icon(Icons.receipt_long_outlined), text: 'الطلبات'),
+            ],
+            labelColor: colors.primary,
+            unselectedLabelColor: colors.onSurfaceVariant,
+            indicatorColor: colors.primary,
+            dividerColor: colors.outlineVariant.withValues(alpha: 0.4),
+          ),
+          SizedBox(
+            height: tabHeight,
+            child: TabBarView(
+              children: [
+                _ManagedGrid(
+                  products: products,
+                  onOpenProduct: onOpenProduct,
+                  onAddProduct: onAddProduct,
+                  onRefresh: onRefreshProducts,
+                ),
+                _ProductShowcase(
+                  products: products,
+                  onOpenProduct: onOpenProduct,
+                  onAddProduct: onAddProduct,
+                  onRefresh: onRefreshProducts,
+                ),
+                _OrdersTab(
+                  orders: orders,
+                  onOpenOrder: onOpenOrder,
+                  onAdvanceOrder: onAdvanceOrder,
+                  onRefresh: onRefreshOrders,
+                ),
               ],
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primary,
             ),
-            SizedBox(
-              height: tabHeight,
-              child: TabBarView(
-                children: [
-                  _ManagedGrid(
-                    products: products,
-                    onOpenProduct: onOpenProduct,
-                    onAddProduct: onAddProduct,
-                    onRefresh: onRefreshProducts,
-                  ),
-                  _ProductShowcase(
-                    products: products,
-                    onOpenProduct: onOpenProduct,
-                    onAddProduct: onAddProduct,
-                    onRefresh: onRefreshProducts,
-                  ),
-                  _OrdersTab(
-                    orders: orders,
-                    onOpenOrder: onOpenOrder,
-                    onAdvanceOrder: onAdvanceOrder,
-                    onRefresh: onRefreshOrders,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -885,7 +1001,6 @@ class _OrderSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1088,12 +1203,12 @@ class _ManagedGrid extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => onRefresh(),
       child: GridView.builder(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.72,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+          childAspectRatio: 0.9,
         ),
         itemCount: products.length,
         itemBuilder: (context, index) {
@@ -1178,78 +1293,92 @@ class _ProductGridTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusLabel = _syncLabel(product);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: '${product.name}، ${product.price.toStringAsFixed(0)} ريال يمني',
+      child: Material(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ProductImage(imageUrl: product.displayImagePath),
-                  ),
-                  if (!product.isAvailable)
-                    PositionedDirectional(
-                      end: 8,
-                      top: 8,
-                      child: _StatusBadge(
-                        label: 'غير متاح',
-                        color: AppColors.background,
-                        textColor: AppColors.textPrimary,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ProductImage(imageUrl: product.displayImagePath),
+              // Keep name and price readable over diverse product images.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.35, 1],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.72),
+                        ],
                       ),
                     ),
-                  if (product.needsSync)
-                    PositionedDirectional(
-                      start: 8,
-                      top: 8,
-                      child: _StatusBadge(
-                        label: statusLabel,
-                        color: product.syncStatus == ProductSyncStatus.failed
-                            ? AppColors.error
-                            : AppColors.warning,
-                        textColor: Colors.white,
+                  ),
+                ),
+              ),
+              PositionedDirectional(
+                start: 7,
+                end: 7,
+                bottom: 7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                ],
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(height: 3),
+                    Text(
+                      '${product.price.toStringAsFixed(0)} ر.ي',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${product.price.toStringAsFixed(0)} ر.ي',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              if (!product.isAvailable)
+                PositionedDirectional(
+                  start: 5,
+                  top: 5,
+                  child: _StatusBadge(
+                    label: 'غير متاح',
+                    color: colors.surface,
+                    textColor: colors.onSurface,
+                  ),
+                ),
+              if (product.needsSync)
+                PositionedDirectional(
+                  end: 5,
+                  top: 5,
+                  child: _StatusBadge(
+                    label: _syncLabel(product),
+                    color: product.syncStatus == ProductSyncStatus.failed
+                        ? colors.error
+                        : AppColors.warning,
+                    textColor: Colors.white,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -1272,8 +1401,7 @@ class _ShowcaseCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(14),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -1431,11 +1559,8 @@ class _AccountSection extends StatelessWidget {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(children: children),
         ),
@@ -1527,6 +1652,136 @@ class _LogoutButton extends StatelessWidget {
       onPressed: onPressed,
       icon: const Icon(Icons.logout_rounded),
       label: const Text('تسجيل الخروج'),
+    );
+  }
+}
+
+/// Customer-facing presentation of another business account.
+/// Never loads owner-only profile, settings or received orders.
+class _PublicStoreAccountView extends ConsumerWidget {
+  const _PublicStoreAccountView({required this.store});
+
+  final SupplierCandidateEntity store;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final discovery = ref.watch(productDiscoveryProvider);
+    final follow = ref.watch(supplierFollowProvider(store.id));
+    final allProducts = discovery.loadedDiscoveryProducts;
+
+    final products = allProducts
+        .where((product) => product.supplierId == store.id)
+        .toList(growable: false);
+
+    final colors = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      key: const ValueKey<String>('public-store-account-page'),
+      backgroundColor: colors.surface,
+      appBar: AppBar(
+        title: Text(
+          store.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        backgroundColor: colors.surface,
+        foregroundColor: colors.onSurface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SupplierProfileHeader(
+                    business: BusinessEntity(
+                      id: store.id,
+                      name: store.name,
+                    ),
+                    productCount: products.length,
+                    availableCount: products
+                        .where((product) => product.isAvailable)
+                        .length,
+                    orderCount: null,
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.tonalIcon(
+                    key: const ValueKey<String>('public-store-follow'),
+                    onPressed: follow.canToggle
+                        ? () async {
+                            await follow.toggle();
+                            if (!context.mounted) return;
+
+                            final error = follow.errorMessage;
+                            if (error != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(error)),
+                              );
+                            }
+                          }
+                        : null,
+                    icon: follow.isLoading || follow.isUpdating
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            follow.isFollowing == true
+                                ? Icons.check_circle_outline
+                                : Icons.person_add_alt_1_outlined,
+                          ),
+                    label: Text(
+                      follow.isFollowing == true
+                          ? 'تتم المتابعة'
+                          : 'متابعة المتجر',
+                    ),
+                  ),
+                  if (follow.errorMessage != null)
+                    TextButton(
+                      onPressed: follow.loadStatus,
+                      child: const Text('إعادة التحقق من المتابعة'),
+                    ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'منتجات المتجر',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'المعروض حاليًا من الكتالوج المحمل، وليس بالضرورة جميع المنتجات.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: discovery.state.isLoading && allProducts.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : products.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              discovery.state.errorMessage != null
+                                  ? 'تعذر تحميل منتجات الكتالوج.'
+                                  : 'لا توجد منتجات لهذا المتجر ضمن الكتالوج المحمل.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      : ProductGrid(products: products),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

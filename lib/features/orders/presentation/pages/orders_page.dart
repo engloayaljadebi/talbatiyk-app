@@ -60,14 +60,14 @@ class OrdersPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const _OrdersHeader(),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 16),
 
                         ...List.generate(state.orders.length, (index) {
                           final OrderEntity order = state.orders[index];
 
                           return Padding(
                             padding: EdgeInsets.only(
-                              bottom: index == state.orders.length - 1 ? 0 : 14,
+                              bottom: index == state.orders.length - 1 ? 0 : 16,
                             ),
                             child: _OrderCard(
                               order: order,
@@ -241,7 +241,14 @@ class _ReceivedOrdersCenterTabState
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          decoration: BoxDecoration(color: colors.surface),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: colors.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+          ),
           child: businesses.length > 1
               ? DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -328,10 +335,10 @@ class _OrdersHeader extends StatelessWidget {
         children: [
           Text(
             'طلبياتك',
-            style: theme.textTheme.headlineMedium?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              letterSpacing: -0.4,
-              height: 1.15,
+              letterSpacing: -0.3,
+              height: 1.25,
             ),
           ),
           const SizedBox(height: 7),
@@ -362,25 +369,28 @@ class _OrderCard extends StatelessWidget {
 
     return Material(
       color: colors.surface,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 1,
+      shadowColor: colors.shadow.withValues(alpha: 0.12),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.55),
-            ),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _OrderTopSection(order: order, status: status),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
+
+                _OrderItemsPreview(items: order.items),
+
+                const SizedBox(height: 14),
 
                 Divider(
                   height: 1,
@@ -388,11 +398,11 @@ class _OrderCard extends StatelessWidget {
                   color: colors.outlineVariant.withValues(alpha: 0.55),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 _OrderSummary(order: order),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 Row(
                   children: [
@@ -533,6 +543,157 @@ class _OrderStatusBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+// Actual order items stay within the order card; horizontal scrolling keeps
+// long multi-item orders compact on narrow Android screens.
+class _OrderItemsPreview extends StatelessWidget {
+  const _OrderItemsPreview({required this.items});
+
+  final List<OrderItemEntity> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'الأصناف',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Text(
+              '${items.length} ${items.length == 1 ? 'صنف' : 'أصناف'}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.swipe_rounded, size: 17, color: colors.onSurfaceVariant),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 110,
+          child: ListView.separated(
+            key: const ValueKey<String>('sent-order-items-horizontal'),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 9),
+            itemBuilder: (context, index) => _SentItemMiniCard(
+              item: items[index],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SentItemMiniCard extends StatelessWidget {
+  const _SentItemMiniCard({required this.item});
+
+  final OrderItemEntity item;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final url = item.imageUrl.trim();
+
+    return Container(
+      width: 205,
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: url.isEmpty
+                    ? _fallback(colors)
+                    : Image.network(
+                        url,
+                        width: 45,
+                        height: 45,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _fallback(colors),
+                      ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  item.productName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w700,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Text(
+                'العدد ${item.quantity}',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              Flexible(
+                child: Text(
+                  '${_formatPrice(item.totalPrice)} ر.ي',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fallback(ColorScheme colors) => Container(
+    width: 45,
+    height: 45,
+    color: colors.surfaceContainerHigh,
+    alignment: Alignment.center,
+    child: Icon(
+      Icons.inventory_2_outlined,
+      size: 21,
+      color: colors.onSurfaceVariant,
+    ),
+  );
 }
 
 class _OrderSummary extends StatelessWidget {

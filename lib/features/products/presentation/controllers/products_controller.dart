@@ -19,6 +19,11 @@ class ProductsController extends ChangeNotifier {
 
   List<ProductEntity> _allProducts = [];
 
+  /// Snapshot of loaded discovery products, independent of active UI filters.
+  /// This is NOT the complete server catalog when the API is paginated.
+  List<ProductEntity> get loadedDiscoveryProducts =>
+      List<ProductEntity>.unmodifiable(_allProducts);
+
   ProductsState state = const ProductsState();
 
   List<String> get categories {

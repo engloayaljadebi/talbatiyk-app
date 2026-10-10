@@ -13,7 +13,7 @@ import '../../../received_orders/presentation/providers/received_orders_provider
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../orders/presentation/providers/orders_provider.dart';
-import '../../../products/presentation/pages/products_page.dart';
+import '../../../browse/presentation/pages/browse_page.dart';
 import '../../../products/presentation/providers/products_provider.dart';
 import '../widgets/home_bottom_navigation.dart';
 
@@ -27,6 +27,10 @@ class MainPage extends ConsumerStatefulWidget {
 
 class _MainPageState extends ConsumerState<MainPage>
     with WidgetsBindingObserver {
+  /// Controls Home -> Browse/Products even if Stores was selected previously.
+  final GlobalKey<BrowsePageState> _browsePageKey =
+      GlobalKey<BrowsePageState>();
+
   /// رقم القسم المحدد حاليًا.
   int _currentIndex = 0;
 
@@ -176,12 +180,15 @@ class _MainPageState extends ConsumerState<MainPage>
   late final List<Widget> _pages = [
     HomePage(
       // Home لا تعرف أرقام Tabs أو GoRouter؛ الـShell يمرر الإجراءات فقط.
-      onViewProducts: () => _changePage(1),
+      onViewProducts: () {
+        _browsePageKey.currentState?.showProducts();
+        _changePage(1);
+      },
       onOpenCart: () => _changePage(2),
       onOpenAccount: () => _changePage(4),
       onOpenNotifications: _openNotifications,
     ),
-    ProductsPage(),
+    BrowsePage(key: _browsePageKey),
     const CartPage(),
     const OrdersPage(),
     AccountPage(

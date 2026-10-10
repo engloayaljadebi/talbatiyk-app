@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:talbatiyk/core/network/generated_api_client.dart';
+import 'package:talbatiyk/core/network/network_providers.dart';
 import 'package:talbatiyk/features/account/presentation/pages/account_page.dart';
 import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
 import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
@@ -52,6 +54,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          generatedApiClientProvider.overrideWithValue(
+            GeneratedApiClient.create(baseUrl: 'http://127.0.0.1:8000/api/v1'),
+          ),
           authProvider.overrideWith((ref) => authController),
           businessControllerProvider.overrideWith((ref) => businessController),
           supplierManagedProductsProvider.overrideWith(
@@ -68,8 +73,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final supplierSettings = find.widgetWithIcon(
-      OutlinedButton,
-      Icons.settings_outlined,
+      FilledButton,
+      Icons.edit_outlined,
     );
 
     expect(supplierSettings, findsOneWidget);

@@ -723,24 +723,18 @@ class _OrderItemsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return _SectionCard(
       title: 'المنتجات (${items.length})',
-      child: Column(
-        children: [
-          for (int index = 0; index < items.length; index++) ...[
-            _OrderItemTile(item: items[index]),
-            if (index < items.length - 1)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Divider(
-                  height: 1,
-                  color: colors.outlineVariant.withValues(alpha: 0.5),
-                ),
-              ),
-          ],
-        ],
+      child: SizedBox(
+        height: 216,
+        child: ListView.separated(
+          key: const ValueKey<String>('sent-order-details-items-horizontal'),
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: items.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 10),
+          itemBuilder: (context, index) => _OrderItemTile(item: items[index]),
+        ),
       ),
     );
   }
@@ -757,49 +751,55 @@ class _OrderItemTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _OrderItemImage(imageUrl: item.imageUrl),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.productName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'الكمية: ${item.quantity}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'سعر الوحدة: ${_formatPrice(item.unitPrice)} ر.ي',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 7),
-              Text(
-                '${_formatPrice(item.totalPrice)} ر.ي',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+    return Container(
+      width: 176,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _OrderItemImage(imageUrl: item.imageUrl),
+          const SizedBox(height: 9),
+          Text(
+            item.productName,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
           ),
-        ),
-      ],
+          const Spacer(),
+          Text(
+            'الكمية: ${item.quantity}',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'سعر الوحدة: ${_formatPrice(item.unitPrice)} ر.ي',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_formatPrice(item.totalPrice)} ر.ي',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

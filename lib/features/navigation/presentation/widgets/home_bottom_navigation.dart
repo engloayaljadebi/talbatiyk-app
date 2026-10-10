@@ -23,7 +23,7 @@ class HomeBottomNavigation extends StatelessWidget {
       selectedIcon: Icons.home_rounded,
     ),
     _NavigationItem(
-      label: 'المنتجات',
+      label: 'تصفح',
       icon: Icons.inventory_2_outlined,
       selectedIcon: Icons.inventory_2_rounded,
     ),
