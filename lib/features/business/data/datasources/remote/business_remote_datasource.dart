@@ -42,7 +42,13 @@ final class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
 
   @override
   Future<BuiltList<BusinessResource>> index() async {
-    final response = await _apiClient.businesses.businessIndex();
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
+    final response = await _apiClient.businesses.businessIndex(
+      extra: authExtra,
+    );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 
@@ -65,9 +71,14 @@ final class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
       );
     }
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.businesses.businessShow(
       business: normalizedBusinessId,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 
@@ -82,9 +93,14 @@ final class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
   Future<BusinessResource> store({
     required CreateBusinessRequest request,
   }) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.businesses.businessStore(
       createBusinessRequest: request,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 

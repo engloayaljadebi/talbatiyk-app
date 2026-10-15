@@ -8,6 +8,7 @@ import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dar
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/sync/orders_sync_coordinator.dart';
 import 'package:talbatiyk/features/orders/domain/services/order_id_transition_registry.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   group('OrdersSyncCoordinator', () {
@@ -18,7 +19,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
+        final local = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
@@ -56,6 +60,7 @@ void main() {
         );
 
         final coordinator = OrdersSyncCoordinator(
+          sessionFence: createLegacyOrderTestFence(),
           database: database,
           localDataSource: local,
           remoteDataSource: remote,
@@ -89,7 +94,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
+        final local = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
@@ -112,6 +120,7 @@ void main() {
         );
 
         final coordinator = OrdersSyncCoordinator(
+          sessionFence: createLegacyOrderTestFence(),
           database: database,
           localDataSource: local,
           remoteDataSource: remote,
@@ -141,7 +150,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
+        final local = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final localOrder = await local.createOrder(
           CreateOrderModel(
@@ -170,6 +182,7 @@ void main() {
         );
 
         final coordinator = OrdersSyncCoordinator(
+          sessionFence: createLegacyOrderTestFence(),
           database: database,
           localDataSource: local,
           remoteDataSource: remote,
@@ -203,7 +216,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final local = OrdersLocalDataSource(database);
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
@@ -237,6 +253,7 @@ void main() {
       );
 
       final coordinator = OrdersSyncCoordinator(
+        sessionFence: createLegacyOrderTestFence(),
         database: database,
         localDataSource: local,
         remoteDataSource: remote,
@@ -277,7 +294,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final local = OrdersLocalDataSource(database);
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
@@ -311,6 +331,7 @@ void main() {
       );
 
       final coordinator = OrdersSyncCoordinator(
+        sessionFence: createLegacyOrderTestFence(),
         database: database,
         localDataSource: local,
         remoteDataSource: remote,
@@ -339,7 +360,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final local = OrdersLocalDataSource(database);
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final localOrder = await local.createOrder(
         CreateOrderModel(
@@ -372,6 +396,7 @@ void main() {
       );
 
       final coordinator = OrdersSyncCoordinator(
+        sessionFence: createLegacyOrderTestFence(),
         database: database,
         localDataSource: local,
         remoteDataSource: remote,
@@ -387,60 +412,58 @@ void main() {
       expect(operations.single.attempts, 0);
     });
 
-    test(
-      'registers order ID transition when create sync succeeds',
-      () async {
-        final database = AppDatabase.forTesting(NativeDatabase.memory());
+    test('registers order ID transition when create sync succeeds', () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
 
-        addTearDown(database.close);
+      addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
-        final transitionRegistry = OrderIdTransitionRegistry();
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
+      final transitionRegistry = OrderIdTransitionRegistry();
 
-        final localOrder = await local.createOrder(
-          CreateOrderModel(
-            supplierIds: const ['supplier-1'],
-            notes: 'Offline',
-            items: const [
-              OrderItemModel(
-                productId: 'product-1',
-                productName: 'Product 1',
-                unitPrice: 100,
-                quantity: 2,
-                supplierId: 'supplier-1',
-                supplierName: 'Supplier 1',
-              ),
-            ],
-          ),
-        );
+      final localOrder = await local.createOrder(
+        CreateOrderModel(
+          supplierIds: const ['supplier-1'],
+          notes: 'Offline',
+          items: const [
+            OrderItemModel(
+              productId: 'product-1',
+              productName: 'Product 1',
+              unitPrice: 100,
+              quantity: 2,
+              supplierId: 'supplier-1',
+              supplierName: 'Supplier 1',
+            ),
+          ],
+        ),
+      );
 
-        final remote = _FakeOrdersDataSource(
-          createdOrder: OrderModel(
-            id: 'server-order-uuid-1',
-            status: 'pending',
-            notes: 'Offline',
-            createdAt: DateTime.utc(2026, 8, 26),
-            items: localOrder.items,
-          ),
-        );
+      final remote = _FakeOrdersDataSource(
+        createdOrder: OrderModel(
+          id: 'server-order-uuid-1',
+          status: 'pending',
+          notes: 'Offline',
+          createdAt: DateTime.utc(2026, 8, 26),
+          items: localOrder.items,
+        ),
+      );
 
-        final coordinator = OrdersSyncCoordinator(
-          database: database,
-          localDataSource: local,
-          remoteDataSource: remote,
-          transitionRegistry: transitionRegistry,
-        );
+      final coordinator = OrdersSyncCoordinator(
+        sessionFence: createLegacyOrderTestFence(),
+        database: database,
+        localDataSource: local,
+        remoteDataSource: remote,
+        transitionRegistry: transitionRegistry,
+      );
 
-        expect(transitionRegistry.resolve(localOrder.id), localOrder.id);
+      expect(transitionRegistry.resolve(localOrder.id), localOrder.id);
 
-        await coordinator.syncPendingOrders();
+      await coordinator.syncPendingOrders();
 
-        expect(
-          transitionRegistry.resolve(localOrder.id),
-          'server-order-uuid-1',
-        );
-      },
-    );
+      expect(transitionRegistry.resolve(localOrder.id), 'server-order-uuid-1');
+    });
 
     test(
       'does not register order ID transition when completeCreateSync throws',
@@ -449,7 +472,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final local = _ThrowingCompleteCreateSyncLocalDataSource(database);
+        final local = _ThrowingCompleteCreateSyncLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
         final transitionRegistry = OrderIdTransitionRegistry();
 
         final localOrder = await local.createOrder(
@@ -480,6 +506,7 @@ void main() {
         );
 
         final coordinator = OrdersSyncCoordinator(
+          sessionFence: createLegacyOrderTestFence(),
           database: database,
           localDataSource: local,
           remoteDataSource: remote,
@@ -533,7 +560,10 @@ class _FakeOrdersDataSource implements OrdersDataSource {
 
 final class _ThrowingCompleteCreateSyncLocalDataSource
     extends OrdersLocalDataSource {
-  _ThrowingCompleteCreateSyncLocalDataSource(super.database);
+  _ThrowingCompleteCreateSyncLocalDataSource(
+    super.database, {
+    required super.sessionFence,
+  });
 
   @override
   Future<OrderModel> completeCreateSync({
@@ -544,4 +574,3 @@ final class _ThrowingCompleteCreateSyncLocalDataSource
     throw StateError('Simulated disk/database failure in completeCreateSync');
   }
 }
-

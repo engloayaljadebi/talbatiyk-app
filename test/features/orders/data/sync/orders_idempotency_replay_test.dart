@@ -10,6 +10,7 @@ import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:talbatiyk/features/orders/data/sync/orders_sync_coordinator.dart';
 import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   test(
@@ -23,6 +24,7 @@ void main() {
 
       final OrdersLocalDataSource localDataSource = OrdersLocalDataSource(
         database,
+        sessionFence: createLegacyOrderTestFence(),
       );
 
       final _LostResponseThenReplayOrdersDataSource remoteDataSource =
@@ -30,6 +32,7 @@ void main() {
 
       final OrdersRepositoryImpl repository = OrdersRepositoryImpl(
         localDataSource,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: remoteDataSource,
       );
 
@@ -91,6 +94,7 @@ void main() {
        * exact same idempotency key is reused.
        */
       final OrdersSyncCoordinator coordinator = OrdersSyncCoordinator(
+        sessionFence: createLegacyOrderTestFence(),
         database: database,
         localDataSource: localDataSource,
         remoteDataSource: remoteDataSource,

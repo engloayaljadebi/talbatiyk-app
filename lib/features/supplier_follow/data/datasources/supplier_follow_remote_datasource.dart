@@ -17,27 +17,42 @@ final class SupplierFollowRemoteDataSourceImpl
 
   @override
   Future<bool> isFollowing(String businessId) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.supplierFollow.supplierFollowShow(
       business: businessId,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     return _readStatus(response.data, businessId);
   }
 
   @override
   Future<bool> follow(String businessId) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.supplierFollow.supplierFollowStore(
       business: businessId,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     return _readStatus(response.data, businessId);
   }
 
   @override
   Future<bool> unfollow(String businessId) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.supplierFollow.supplierFollowDestroy(
       business: businessId,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     return _readStatus(response.data, businessId);
   }

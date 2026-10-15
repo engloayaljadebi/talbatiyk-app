@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
+import 'legacy_ownership_schema_fixture.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
@@ -36,7 +37,7 @@ void main() {
 
         final operations = await database.select(database.syncOperations).get();
 
-        expect(database.schemaVersion, 12);
+        expect(database.schemaVersion, 14);
         expect(notifications, isEmpty);
 
         expect(operations, hasLength(1));
@@ -47,7 +48,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(file), 12);
+      expect(_readUserVersion(file), 14);
       expect(_tableExists(file, 'notification_records'), isTrue);
     });
 
@@ -78,7 +79,7 @@ void main() {
             .select(database.notificationRecords)
             .get();
 
-        expect(database.schemaVersion, 12);
+        expect(database.schemaVersion, 14);
         expect(notifications, hasLength(1));
         expect(notifications.single.userId, 'existing-user');
         expect(notifications.single.id, 'existing-notification');
@@ -86,7 +87,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(file), 12);
+      expect(_readUserVersion(file), 14);
       expect(_tableExists(file, 'notification_records'), isTrue);
     });
   });
@@ -99,6 +100,7 @@ Future<void> _createBrokenV7Fixture(File file) async {
 
   try {
     raw.execute('DROP TABLE notification_records;');
+    removeV13OwnershipColumnsFromLegacyFixture(raw);
     raw.execute('PRAGMA user_version = 7;');
 
     if (_userVersion(raw) != 7) {
@@ -119,6 +121,7 @@ Future<void> _createHealthyV7Fixture(File file) async {
   final sqlite.Database raw = sqlite.sqlite3.open(file.path);
 
   try {
+    removeV13OwnershipColumnsFromLegacyFixture(raw);
     raw.execute('PRAGMA user_version = 7;');
 
     if (_userVersion(raw) != 7) {

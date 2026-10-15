@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../auth/domain/services/account_session_fence.dart';
 import '../../domain/entities/products_entity.dart';
 import '../datasources/local/products_local_datasource.dart';
 import '../datasources/products_datasource.dart';
@@ -17,10 +18,12 @@ final class ProductsSyncCoordinator {
   ProductsSyncCoordinator({
     required this._localDataSource,
     required this._remoteDataSource,
-  });
+    required AccountSessionFence sessionFence,
+  }) : _sessionFence = sessionFence;
 
   final ProductsLocalDataSource _localDataSource;
   final ProductsMutationRemoteDataSource _remoteDataSource;
+  final AccountSessionFence _sessionFence;
 
   bool _isSyncing = false;
 
@@ -29,6 +32,7 @@ final class ProductsSyncCoordinator {
       return;
     }
 
+    final lease = _sessionFence.capture();
     _isSyncing = true;
 
     try {
@@ -39,6 +43,7 @@ final class ProductsSyncCoordinator {
           await (database.select(database.syncOperations)
                 ..where(
                   (table) =>
+                      table.ownerUserId.equals(lease.ownerUserId) &
                       table.entityType.equals('product') &
                       (table.operation.equals('update') |
                           table.operation.equals('delete')) &
@@ -50,11 +55,19 @@ final class ProductsSyncCoordinator {
                 ..orderBy([(table) => OrderingTerm.asc(table.createdAt)]))
               .get();
 
+      lease.ensureCurrent();
+
       for (final operation in operations) {
+        lease.ensureCurrent();
+
+        if (operation.ownerUserId != lease.ownerUserId) {
+          throw StateError('Product Outbox owner mismatch.');
+        }
+
         if (operation.operation == 'update') {
-          await _syncUpdate(operation);
+          await _syncUpdate(operation, lease);
         } else if (operation.operation == 'delete') {
-          await _syncDelete(operation);
+          await _syncDelete(operation, lease);
         }
       }
     } finally {
@@ -62,7 +75,11 @@ final class ProductsSyncCoordinator {
     }
   }
 
-  Future<void> _syncUpdate(SyncOperation operation) async {
+  Future<void> _syncUpdate(
+    SyncOperation operation,
+    AccountSessionLease lease,
+  ) async {
+    lease.ensureCurrent();
     final attempts = operation.attempts + 1;
 
     late final Map<String, dynamic> payload;
@@ -76,8 +93,10 @@ final class ProductsSyncCoordinator {
       imageMutation = _requiredImageMutation(payload);
       product = _productFromPayload(payload, expectedVersion: expectedVersion);
     } catch (error) {
+      lease.ensureCurrent();
       await _markPermanentFailure(
         operation: operation,
+        lease: lease,
         attempts: attempts,
         error: error,
       );
@@ -91,6 +110,8 @@ final class ProductsSyncCoordinator {
         expectedVersion: expectedVersion,
         removeImage: imageMutation == 'remove',
       );
+
+      lease.ensureCurrent();
 
       ProductModel finalProduct = metadataProduct;
 
@@ -119,6 +140,8 @@ final class ProductsSyncCoordinator {
         );
       }
 
+      lease.ensureCurrent();
+
       final finalVersion = finalProduct.serverVersion;
 
       if (finalVersion == null || finalVersion < 1) {
@@ -127,15 +150,25 @@ final class ProductsSyncCoordinator {
         );
       }
 
-      await _localDataSource.upsertSyncedProduct(finalProduct);
-
-      await (_localDataSource.database.delete(
-        _localDataSource.database.syncOperations,
-      )..where((table) => table.id.equals(operation.id))).go();
+      final database = _localDataSource.database;
+      await database.transaction(() async {
+        await _assertOwnedOperation(operation, lease);
+        await _localDataSource.upsertSyncedProduct(finalProduct);
+        lease.ensureCurrent();
+        await (database.delete(database.syncOperations)..where(
+              (table) =>
+                  table.id.equals(operation.id) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
+        lease.ensureCurrent();
+      });
     } catch (error) {
+      lease.ensureCurrent();
       if (_isPermanentRemoteFailure(error)) {
         await _markPermanentFailure(
           operation: operation,
+          lease: lease,
           attempts: attempts,
           error: error,
         );
@@ -143,11 +176,20 @@ final class ProductsSyncCoordinator {
         return;
       }
 
-      await _markRetry(operation: operation, attempts: attempts, error: error);
+      await _markRetry(
+        operation: operation,
+        lease: lease,
+        attempts: attempts,
+        error: error,
+      );
     }
   }
 
-  Future<void> _syncDelete(SyncOperation operation) async {
+  Future<void> _syncDelete(
+    SyncOperation operation,
+    AccountSessionLease lease,
+  ) async {
+    lease.ensureCurrent();
     final attempts = operation.attempts + 1;
 
     late final Map<String, dynamic> payload;
@@ -159,8 +201,10 @@ final class ProductsSyncCoordinator {
       businessId = _requiredString(payload, 'supplierId');
       expectedVersion = _requiredPositiveInt(payload, 'expectedVersion');
     } catch (error) {
+      lease.ensureCurrent();
       await _markPermanentFailure(
         operation: operation,
+        lease: lease,
         attempts: attempts,
         error: error,
       );
@@ -178,18 +222,28 @@ final class ProductsSyncCoordinator {
       final database = _localDataSource.database;
 
       await database.transaction(() async {
-        await (database.delete(
-          database.syncOperations,
-        )..where((table) => table.id.equals(operation.id))).go();
-
-        await (database.delete(
-          database.productRecords,
-        )..where((table) => table.id.equals(operation.entityId))).go();
+        await _assertOwnedOperation(operation, lease);
+        await (database.delete(database.syncOperations)..where(
+              (table) =>
+                  table.id.equals(operation.id) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
+        lease.ensureCurrent();
+        await (database.delete(database.productRecords)..where(
+              (table) =>
+                  table.id.equals(operation.entityId) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
+        lease.ensureCurrent();
       });
     } catch (error) {
+      lease.ensureCurrent();
       if (_isPermanentRemoteFailure(error)) {
         await _markPermanentFailure(
           operation: operation,
+          lease: lease,
           attempts: attempts,
           error: error,
         );
@@ -197,71 +251,120 @@ final class ProductsSyncCoordinator {
         return;
       }
 
-      await _markRetry(operation: operation, attempts: attempts, error: error);
+      await _markRetry(
+        operation: operation,
+        lease: lease,
+        attempts: attempts,
+        error: error,
+      );
     }
   }
 
   Future<void> _markRetry({
     required SyncOperation operation,
+    required AccountSessionLease lease,
     required int attempts,
     required Object error,
   }) async {
     final database = _localDataSource.database;
 
     await database.transaction(() async {
-      await (database.update(
-        database.syncOperations,
-      )..where((table) => table.id.equals(operation.id))).write(
-        SyncOperationsCompanion(
-          status: const Value(SyncOperationStatuses.retrying),
-          attempts: Value(attempts),
-          lastError: Value(error.toString()),
-          nextAttemptAt: Value(
-            DateTime.now().toUtc().add(_retryDelay(attempts)),
-          ),
-        ),
-      );
+      await _assertOwnedOperation(operation, lease);
+      await (database.update(database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operation.id) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            SyncOperationsCompanion(
+              status: const Value(SyncOperationStatuses.retrying),
+              attempts: Value(attempts),
+              lastError: Value(error.toString()),
+              nextAttemptAt: Value(
+                DateTime.now().toUtc().add(_retryDelay(attempts)),
+              ),
+            ),
+          );
+      lease.ensureCurrent();
 
-      await (database.update(
-        database.productRecords,
-      )..where((table) => table.id.equals(operation.entityId))).write(
-        ProductRecordsCompanion(
-          syncError: Value(error.toString()),
-          syncAttempts: Value(attempts),
-        ),
-      );
+      await (database.update(database.productRecords)..where(
+            (table) =>
+                table.id.equals(operation.entityId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            ProductRecordsCompanion(
+              syncError: Value(error.toString()),
+              syncAttempts: Value(attempts),
+            ),
+          );
+      lease.ensureCurrent();
     });
   }
 
   Future<void> _markPermanentFailure({
     required SyncOperation operation,
+    required AccountSessionLease lease,
     required int attempts,
     required Object error,
   }) async {
     final database = _localDataSource.database;
 
     await database.transaction(() async {
-      await (database.update(
-        database.syncOperations,
-      )..where((table) => table.id.equals(operation.id))).write(
-        SyncOperationsCompanion(
-          status: const Value(SyncOperationStatuses.permanentFailure),
-          attempts: Value(attempts),
-          lastError: Value(error.toString()),
-          nextAttemptAt: const Value(null),
-        ),
-      );
+      await _assertOwnedOperation(operation, lease);
+      await (database.update(database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operation.id) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            SyncOperationsCompanion(
+              status: const Value(SyncOperationStatuses.permanentFailure),
+              attempts: Value(attempts),
+              lastError: Value(error.toString()),
+              nextAttemptAt: const Value(null),
+            ),
+          );
+      lease.ensureCurrent();
 
-      await (database.update(
-        database.productRecords,
-      )..where((table) => table.id.equals(operation.entityId))).write(
-        ProductRecordsCompanion(
-          syncStatus: Value(ProductSyncStatus.failed.name),
-          syncError: Value(error.toString()),
-          syncAttempts: Value(attempts),
-        ),
-      );
+      await (database.update(database.productRecords)..where(
+            (table) =>
+                table.id.equals(operation.entityId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            ProductRecordsCompanion(
+              syncStatus: Value(ProductSyncStatus.failed.name),
+              syncError: Value(error.toString()),
+              syncAttempts: Value(attempts),
+            ),
+          );
+      lease.ensureCurrent();
     });
+  }
+
+  Future<void> _assertOwnedOperation(
+    SyncOperation operation,
+    AccountSessionLease lease,
+  ) async {
+    lease.ensureCurrent();
+    if (operation.ownerUserId != lease.ownerUserId) {
+      throw StateError('Product Outbox owner mismatch.');
+    }
+    final database = _localDataSource.database;
+    final current =
+        await (database.select(database.syncOperations)..where(
+              (table) =>
+                  table.id.equals(operation.id) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .getSingleOrNull();
+    lease.ensureCurrent();
+    if (current == null ||
+        current.payloadJson != operation.payloadJson ||
+        current.operation != operation.operation) {
+      throw StateError('Product Outbox changed during synchronization.');
+    }
   }
 
   bool _isPermanentRemoteFailure(Object error) {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../../../../core/database/app_database.dart';
+import '../../../../auth/domain/services/account_session_fence.dart';
 import '../../../domain/entities/products_entity.dart';
 import '../../models/products_model.dart';
 import '../products_datasource.dart';
@@ -16,18 +17,29 @@ class ProductsLocalDataSource
         ProductsWritableDataSource,
         ProductsSyncedStoreDataSource,
         ProductsPublishAttemptDataSource {
-  ProductsLocalDataSource(this.database);
+  ProductsLocalDataSource(
+    this.database, {
+    required AccountSessionFence sessionFence,
+  }) : _sessionFence = sessionFence;
 
   final AppDatabase database;
+  final AccountSessionFence _sessionFence;
 
   @override
   Future<List<ProductModel>> getProducts() async {
+    final lease = _sessionFence.capture();
+
     /// نستبعد المنتجات المحذوفة محليًا ونرتب الأحدث أولًا.
     final query = database.select(database.productRecords)
-      ..where((table) => table.deletedAt.isNull())
+      ..where(
+        (table) =>
+            table.deletedAt.isNull() &
+            table.ownerUserId.equals(lease.ownerUserId),
+      )
       ..orderBy([(table) => OrderingTerm.desc(table.createdAt)]);
 
     final records = await query.get();
+    lease.ensureCurrent();
 
     return List<ProductModel>.unmodifiable(
       records.map((record) {
@@ -65,6 +77,7 @@ class ProductsLocalDataSource
     required String businessId,
     required List<ProductModel> serverProducts,
   }) async {
+    final lease = _sessionFence.capture();
     final normalizedBusinessId = businessId.trim();
 
     if (normalizedBusinessId.isEmpty) {
@@ -108,9 +121,17 @@ class ProductsLocalDataSource
     }
 
     return database.transaction(() async {
-      final existingRecords = await (database.select(
-        database.productRecords,
-      )..where((table) => table.supplierId.equals(normalizedBusinessId))).get();
+      lease.ensureCurrent();
+
+      final existingRecords =
+          await (database.select(database.productRecords)..where(
+                (table) =>
+                    table.supplierId.equals(normalizedBusinessId) &
+                    table.ownerUserId.equals(lease.ownerUserId),
+              ))
+              .get();
+
+      lease.ensureCurrent();
 
       final existingById = {
         for (final record in existingRecords) record.id: record,
@@ -205,11 +226,15 @@ class ProductsLocalDataSource
           continue;
         }
 
-        await (database.delete(
-          database.productRecords,
-        )..where((table) => table.id.equals(current.id))).go();
+        await (database.delete(database.productRecords)..where(
+              (table) =>
+                  table.id.equals(current.id) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
       }
 
+      lease.ensureCurrent();
       return List<ProductModel>.unmodifiable(visible);
     });
   }
@@ -220,6 +245,7 @@ class ProductsLocalDataSource
   /// أو تسجيل المزامنة دون حفظ المنتج.
   @override
   Future<ProductModel> createProduct(ProductModel product) async {
+    final lease = _sessionFence.capture();
     final now = DateTime.now();
 
     /// أي منتج جديد يُحفظ أولًا بحالة انتظار الرفع.
@@ -246,33 +272,45 @@ class ProductsLocalDataSource
 
     await database.transaction(() async {
       /// نحفظ المنتج أو نحدّث السجل إذا كان المعرف موجودًا مسبقًا.
+      lease.ensureCurrent();
+
+      final productRow = ProductRecordsCompanion.insert(
+        ownerUserId: Value(lease.ownerUserId),
+        id: pendingProduct.id,
+        supplierId: pendingProduct.supplierId,
+        supplierName: pendingProduct.supplierName,
+        name: pendingProduct.name,
+        price: pendingProduct.price,
+        category: Value(pendingProduct.category),
+        brand: Value(pendingProduct.brand),
+        description: Value(pendingProduct.description),
+        colorsJson: Value(jsonEncode(pendingProduct.colors)),
+        quantity: Value(pendingProduct.quantity),
+        isAvailable: Value(pendingProduct.isAvailable),
+        discount: Value(pendingProduct.discount),
+        rating: Value(pendingProduct.rating),
+        localImagePath: Value(pendingProduct.localImagePath),
+        remoteImageUrl: Value(
+          pendingProduct.imageUrl.trim().isEmpty
+              ? null
+              : pendingProduct.imageUrl,
+        ),
+        syncStatus: Value(pendingProduct.syncStatus.name),
+        syncError: Value(pendingProduct.syncError),
+        createdAt: pendingProduct.createdAt!,
+        updatedAt: pendingProduct.updatedAt!,
+      );
+
       await database
           .into(database.productRecords)
-          .insertOnConflictUpdate(
-            ProductRecordsCompanion.insert(
-              id: pendingProduct.id,
-              supplierId: pendingProduct.supplierId,
-              supplierName: pendingProduct.supplierName,
-              name: pendingProduct.name,
-              price: pendingProduct.price,
-              category: Value(pendingProduct.category),
-              brand: Value(pendingProduct.brand),
-              description: Value(pendingProduct.description),
-              colorsJson: Value(jsonEncode(pendingProduct.colors)),
-              quantity: Value(pendingProduct.quantity),
-              isAvailable: Value(pendingProduct.isAvailable),
-              discount: Value(pendingProduct.discount),
-              rating: Value(pendingProduct.rating),
-              localImagePath: Value(pendingProduct.localImagePath),
-              remoteImageUrl: Value(
-                pendingProduct.imageUrl.trim().isEmpty
-                    ? null
-                    : pendingProduct.imageUrl,
-              ),
-              syncStatus: Value(pendingProduct.syncStatus.name),
-              syncError: Value(pendingProduct.syncError),
-              createdAt: pendingProduct.createdAt!,
-              updatedAt: pendingProduct.updatedAt!,
+          .insert(
+            productRow,
+            onConflict: DoUpdate(
+              (_) => productRow,
+              target: [
+                database.productRecords.ownerUserId,
+                database.productRecords.id,
+              ],
             ),
           );
 
@@ -281,6 +319,7 @@ class ProductsLocalDataSource
           .into(database.syncOperations)
           .insertOnConflictUpdate(
             SyncOperationsCompanion.insert(
+              ownerUserId: Value(lease.ownerUserId),
               id: 'product:create:${pendingProduct.id}',
               entityType: 'product',
               entityId: pendingProduct.id,
@@ -300,6 +339,7 @@ class ProductsLocalDataSource
   /// الهدف هو جعل قائمة إدارة منتجات المورد مطابقة للحقيقة السحابية مباشرة.
   @override
   Future<ProductModel> upsertSyncedProduct(ProductModel product) async {
+    final lease = _sessionFence.capture();
     final now = DateTime.now();
 
     final syncedProduct = ProductModel(
@@ -325,34 +365,44 @@ class ProductsLocalDataSource
       updatedAt: product.updatedAt ?? now,
     );
 
+    lease.ensureCurrent();
+
+    final syncedRow = ProductRecordsCompanion.insert(
+      ownerUserId: Value(lease.ownerUserId),
+      id: syncedProduct.id,
+      supplierId: syncedProduct.supplierId,
+      supplierName: syncedProduct.supplierName,
+      name: syncedProduct.name,
+      price: syncedProduct.price,
+      category: Value(syncedProduct.category),
+      brand: Value(syncedProduct.brand),
+      description: Value(syncedProduct.description),
+      colorsJson: Value(jsonEncode(syncedProduct.colors)),
+      quantity: Value(syncedProduct.quantity),
+      isAvailable: Value(syncedProduct.isAvailable),
+      discount: Value(syncedProduct.discount),
+      rating: Value(syncedProduct.rating),
+      localImagePath: Value(syncedProduct.localImagePath),
+      serverVersion: Value(syncedProduct.serverVersion),
+      remoteImageUrl: Value(
+        syncedProduct.imageUrl.trim().isEmpty ? null : syncedProduct.imageUrl,
+      ),
+      syncStatus: Value(ProductSyncStatus.synced.name),
+      syncError: const Value(null),
+      createdAt: syncedProduct.createdAt!,
+      updatedAt: syncedProduct.updatedAt!,
+    );
+
     await database
         .into(database.productRecords)
-        .insertOnConflictUpdate(
-          ProductRecordsCompanion.insert(
-            id: syncedProduct.id,
-            supplierId: syncedProduct.supplierId,
-            supplierName: syncedProduct.supplierName,
-            name: syncedProduct.name,
-            price: syncedProduct.price,
-            category: Value(syncedProduct.category),
-            brand: Value(syncedProduct.brand),
-            description: Value(syncedProduct.description),
-            colorsJson: Value(jsonEncode(syncedProduct.colors)),
-            quantity: Value(syncedProduct.quantity),
-            isAvailable: Value(syncedProduct.isAvailable),
-            discount: Value(syncedProduct.discount),
-            rating: Value(syncedProduct.rating),
-            localImagePath: Value(syncedProduct.localImagePath),
-            serverVersion: Value(syncedProduct.serverVersion),
-            remoteImageUrl: Value(
-              syncedProduct.imageUrl.trim().isEmpty
-                  ? null
-                  : syncedProduct.imageUrl,
-            ),
-            syncStatus: Value(ProductSyncStatus.synced.name),
-            syncError: const Value(null),
-            createdAt: syncedProduct.createdAt!,
-            updatedAt: syncedProduct.updatedAt!,
+        .insert(
+          syncedRow,
+          onConflict: DoUpdate(
+            (_) => syncedRow,
+            target: [
+              database.productRecords.ownerUserId,
+              database.productRecords.id,
+            ],
           ),
         );
 
@@ -364,6 +414,7 @@ class ProductsLocalDataSource
     required ProductModel product,
     required String idempotencyKey,
   }) async {
+    final lease = _sessionFence.capture();
     final normalizedKey = idempotencyKey.trim();
     final clientProductId = product.id.trim();
 
@@ -376,9 +427,13 @@ class ProductsLocalDataSource
     }
 
     return database.transaction(() async {
+      lease.ensureCurrent();
+
       final existing =
           await (database.select(database.productPublishAttemptRecords)..where(
-                (table) => table.clientProductId.equals(clientProductId),
+                (table) =>
+                    table.clientProductId.equals(clientProductId) &
+                    table.ownerUserId.equals(lease.ownerUserId),
               ))
               .getSingleOrNull();
 
@@ -390,6 +445,7 @@ class ProductsLocalDataSource
           );
         }
 
+        lease.ensureCurrent();
         return _mapPublishAttempt(existing);
       }
 
@@ -401,6 +457,7 @@ class ProductsLocalDataSource
             ProductPublishAttemptRecordsCompanion.insert(
               idempotencyKey: normalizedKey,
               clientProductId: clientProductId,
+              ownerUserId: Value(lease.ownerUserId),
               supplierId: product.supplierId.trim(),
               supplierName: product.supplierName.trim(),
               name: product.name.trim(),
@@ -419,22 +476,28 @@ class ProductsLocalDataSource
           );
 
       final inserted =
-          await (database.select(database.productPublishAttemptRecords)
-                ..where((table) => table.idempotencyKey.equals(normalizedKey)))
+          await (database.select(database.productPublishAttemptRecords)..where(
+                (table) =>
+                    table.idempotencyKey.equals(normalizedKey) &
+                    table.ownerUserId.equals(lease.ownerUserId),
+              ))
               .getSingle();
 
+      lease.ensureCurrent();
       return _mapPublishAttempt(inserted);
     });
   }
 
   @override
   Future<List<ProductPublishAttempt>> getRetryablePublishAttempts() async {
+    final lease = _sessionFence.capture();
     final now = DateTime.now().toUtc();
 
     final rows =
         await (database.select(database.productPublishAttemptRecords)
               ..where(
                 (table) =>
+                    table.ownerUserId.equals(lease.ownerUserId) &
                     (table.status.equals(
                           ProductPublishAttemptStatuses.pending,
                         ) |
@@ -446,6 +509,8 @@ class ProductsLocalDataSource
               )
               ..orderBy([(table) => OrderingTerm.asc(table.createdAt)]))
             .get();
+
+    lease.ensureCurrent();
 
     return List<ProductPublishAttempt>.unmodifiable(
       rows.map(_mapPublishAttempt),
@@ -459,17 +524,35 @@ class ProductsLocalDataSource
     required Object error,
     required DateTime nextAttemptAt,
   }) async {
-    await (database.update(
-      database.productPublishAttemptRecords,
-    )..where((table) => table.idempotencyKey.equals(idempotencyKey))).write(
-      ProductPublishAttemptRecordsCompanion(
-        status: const Value(ProductPublishAttemptStatuses.retrying),
-        attempts: Value(attempts),
-        lastError: Value(error.toString()),
-        nextAttemptAt: Value(nextAttemptAt.toUtc()),
-        updatedAt: Value(DateTime.now().toUtc()),
-      ),
-    );
+    final lease = _sessionFence.capture();
+
+    await database.transaction(() async {
+      lease.ensureCurrent();
+
+      final changed =
+          await (database.update(database.productPublishAttemptRecords)..where(
+                (table) =>
+                    table.idempotencyKey.equals(idempotencyKey) &
+                    table.ownerUserId.equals(lease.ownerUserId),
+              ))
+              .write(
+                ProductPublishAttemptRecordsCompanion(
+                  status: const Value(ProductPublishAttemptStatuses.retrying),
+                  attempts: Value(attempts),
+                  lastError: Value(error.toString()),
+                  nextAttemptAt: Value(nextAttemptAt.toUtc()),
+                  updatedAt: Value(DateTime.now().toUtc()),
+                ),
+              );
+
+      lease.ensureCurrent();
+
+      if (changed != 1) {
+        throw StateError(
+          'Publication attempt does not belong to the current account.',
+        );
+      }
+    });
   }
 
   @override
@@ -478,24 +561,66 @@ class ProductsLocalDataSource
     required int attempts,
     required Object error,
   }) async {
-    await (database.update(
-      database.productPublishAttemptRecords,
-    )..where((table) => table.idempotencyKey.equals(idempotencyKey))).write(
-      ProductPublishAttemptRecordsCompanion(
-        status: const Value(ProductPublishAttemptStatuses.permanentFailure),
-        attempts: Value(attempts),
-        lastError: Value(error.toString()),
-        nextAttemptAt: const Value<DateTime?>(null),
-        updatedAt: Value(DateTime.now().toUtc()),
-      ),
-    );
+    final lease = _sessionFence.capture();
+
+    await database.transaction(() async {
+      lease.ensureCurrent();
+
+      final changed =
+          await (database.update(database.productPublishAttemptRecords)..where(
+                (table) =>
+                    table.idempotencyKey.equals(idempotencyKey) &
+                    table.ownerUserId.equals(lease.ownerUserId),
+              ))
+              .write(
+                ProductPublishAttemptRecordsCompanion(
+                  status: const Value(
+                    ProductPublishAttemptStatuses.permanentFailure,
+                  ),
+                  attempts: Value(attempts),
+                  lastError: Value(error.toString()),
+                  nextAttemptAt: const Value<DateTime?>(null),
+                  updatedAt: Value(DateTime.now().toUtc()),
+                ),
+              );
+
+      lease.ensureCurrent();
+
+      if (changed != 1) {
+        throw StateError(
+          'Publication attempt does not belong to the current account.',
+        );
+      }
+    });
   }
 
   @override
   Future<void> completePublishAttempt(String idempotencyKey) async {
-    await (database.delete(
-      database.productPublishAttemptRecords,
-    )..where((table) => table.idempotencyKey.equals(idempotencyKey))).go();
+    final lease = _sessionFence.capture();
+
+    await database.transaction(() async {
+      final existing =
+          await (database.select(database.productPublishAttemptRecords)
+                ..where((table) => table.idempotencyKey.equals(idempotencyKey)))
+              .getSingleOrNull();
+
+      lease.ensureCurrent();
+
+      if (existing == null || existing.ownerUserId != lease.ownerUserId) {
+        throw StateError(
+          'Publication attempt does not belong to the current account.',
+        );
+      }
+
+      await (database.delete(database.productPublishAttemptRecords)..where(
+            (table) =>
+                table.idempotencyKey.equals(idempotencyKey) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .go();
+
+      lease.ensureCurrent();
+    });
   }
 
   ProductPublishAttempt _mapPublishAttempt(ProductPublishAttemptRecord record) {
@@ -568,11 +693,18 @@ class ProductsLocalDataSource
   /// يحدّث المنتج محليًا ويسجل العملية المناسبة في طابور المزامنة.
   @override
   Future<ProductModel> updateProduct(ProductModel product) async {
+    final lease = _sessionFence.capture();
     final now = DateTime.now().toUtc();
 
-    final currentRecord = await (database.select(
-      database.productRecords,
-    )..where((table) => table.id.equals(product.id))).getSingleOrNull();
+    final currentRecord =
+        await (database.select(database.productRecords)..where(
+              (table) =>
+                  table.id.equals(product.id) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .getSingleOrNull();
+
+    lease.ensureCurrent();
 
     if (currentRecord == null) {
       throw StateError('Cannot update a Product that is not stored locally.');
@@ -591,6 +723,14 @@ class ProductsLocalDataSource
     final existingUpdateOperation = await (database.select(
       database.syncOperations,
     )..where((table) => table.id.equals(updateOperationId))).getSingleOrNull();
+
+    for (final operation in [pendingCreateOperation, existingUpdateOperation]) {
+      if (operation != null && operation.ownerUserId != lease.ownerUserId) {
+        throw StateError('Product Outbox belongs to another session.');
+      }
+    }
+
+    lease.ensureCurrent();
 
     if (!isWaitingForCreate && currentRecord.serverVersion == null) {
       throw StateError(
@@ -636,36 +776,41 @@ class ProductsLocalDataSource
     );
 
     await database.transaction(() async {
-      await (database.update(
-        database.productRecords,
-      )..where((table) => table.id.equals(product.id))).write(
-        ProductRecordsCompanion(
-          supplierId: Value(updatedProduct.supplierId),
-          supplierName: Value(updatedProduct.supplierName),
-          name: Value(updatedProduct.name),
-          category: Value(updatedProduct.category),
-          brand: Value(updatedProduct.brand),
-          description: Value(updatedProduct.description),
-          price: Value(updatedProduct.price),
-          quantity: Value(updatedProduct.quantity),
-          isAvailable: Value(updatedProduct.isAvailable),
-          discount: Value(updatedProduct.discount),
-          rating: Value(updatedProduct.rating),
-          colorsJson: Value(jsonEncode(updatedProduct.colors)),
-          localImagePath: Value(updatedProduct.localImagePath),
-          remoteImageUrl: Value(
-            updatedProduct.imageUrl.trim().isEmpty
-                ? null
-                : updatedProduct.imageUrl,
-          ),
-          serverVersion: Value(currentRecord.serverVersion),
-          syncStatus: Value(nextSyncStatus.name),
-          syncError: const Value(null),
-          syncAttempts: const Value(0),
-          updatedAt: Value(now),
-          deletedAt: const Value(null),
-        ),
-      );
+      lease.ensureCurrent();
+
+      await (database.update(database.productRecords)..where(
+            (table) =>
+                table.id.equals(product.id) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            ProductRecordsCompanion(
+              supplierId: Value(updatedProduct.supplierId),
+              supplierName: Value(updatedProduct.supplierName),
+              name: Value(updatedProduct.name),
+              category: Value(updatedProduct.category),
+              brand: Value(updatedProduct.brand),
+              description: Value(updatedProduct.description),
+              price: Value(updatedProduct.price),
+              quantity: Value(updatedProduct.quantity),
+              isAvailable: Value(updatedProduct.isAvailable),
+              discount: Value(updatedProduct.discount),
+              rating: Value(updatedProduct.rating),
+              colorsJson: Value(jsonEncode(updatedProduct.colors)),
+              localImagePath: Value(updatedProduct.localImagePath),
+              remoteImageUrl: Value(
+                updatedProduct.imageUrl.trim().isEmpty
+                    ? null
+                    : updatedProduct.imageUrl,
+              ),
+              serverVersion: Value(currentRecord.serverVersion),
+              syncStatus: Value(nextSyncStatus.name),
+              syncError: const Value(null),
+              syncAttempts: const Value(0),
+              updatedAt: Value(now),
+              deletedAt: const Value(null),
+            ),
+          );
 
       if (isWaitingForCreate) {
         await (database.delete(
@@ -684,6 +829,7 @@ class ProductsLocalDataSource
           ),
         );
 
+        lease.ensureCurrent();
         return;
       }
 
@@ -695,6 +841,7 @@ class ProductsLocalDataSource
           .into(database.syncOperations)
           .insert(
             SyncOperationsCompanion.insert(
+              ownerUserId: Value(lease.ownerUserId),
               id: updateOperationId,
               entityType: 'product',
               entityId: product.id,
@@ -707,13 +854,17 @@ class ProductsLocalDataSource
               createdAt: now,
             ),
           );
+
+      lease.ensureCurrent();
     });
 
+    lease.ensureCurrent();
     return updatedProduct;
   }
 
   @override
   Future<void> deleteProduct(String productId) async {
+    final lease = _sessionFence.capture();
     final normalizedProductId = productId.trim();
 
     if (normalizedProductId.isEmpty) {
@@ -721,9 +872,14 @@ class ProductsLocalDataSource
     }
 
     final currentRecord =
-        await (database.select(database.productRecords)
-              ..where((table) => table.id.equals(normalizedProductId)))
+        await (database.select(database.productRecords)..where(
+              (table) =>
+                  table.id.equals(normalizedProductId) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
             .getSingleOrNull();
+
+    lease.ensureCurrent();
 
     if (currentRecord == null) {
       return;
@@ -735,6 +891,22 @@ class ProductsLocalDataSource
       database.syncOperations,
     )..where((table) => table.id.equals(createOperationId))).getSingleOrNull();
 
+    final existingOperations =
+        await (database.select(database.syncOperations)..where(
+              (table) =>
+                  table.entityType.equals('product') &
+                  table.entityId.equals(normalizedProductId),
+            ))
+            .get();
+
+    for (final operation in existingOperations) {
+      if (operation.ownerUserId != lease.ownerUserId) {
+        throw StateError('Product Outbox belongs to another session.');
+      }
+    }
+
+    lease.ensureCurrent();
+
     if (pendingCreateOperation == null && currentRecord.serverVersion == null) {
       throw StateError(
         'Cannot queue a server Product delete without a confirmed server version.',
@@ -744,37 +916,53 @@ class ProductsLocalDataSource
     final now = DateTime.now().toUtc();
 
     await database.transaction(() async {
+      lease.ensureCurrent();
+
       if (pendingCreateOperation != null) {
-        await (database.delete(
-          database.syncOperations,
-        )..where((table) => table.entityId.equals(normalizedProductId))).go();
+        await (database.delete(database.syncOperations)..where(
+              (table) =>
+                  table.entityId.equals(normalizedProductId) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
 
-        await (database.delete(
-          database.productRecords,
-        )..where((table) => table.id.equals(normalizedProductId))).go();
+        await (database.delete(database.productRecords)..where(
+              (table) =>
+                  table.id.equals(normalizedProductId) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .go();
 
+        lease.ensureCurrent();
         return;
       }
 
-      await (database.update(
-        database.productRecords,
-      )..where((table) => table.id.equals(normalizedProductId))).write(
-        ProductRecordsCompanion(
-          syncStatus: Value(ProductSyncStatus.pendingDelete.name),
-          syncError: const Value(null),
-          syncAttempts: const Value(0),
-          updatedAt: Value(now),
-          deletedAt: Value(now),
-        ),
-      );
+      await (database.update(database.productRecords)..where(
+            (table) =>
+                table.id.equals(normalizedProductId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            ProductRecordsCompanion(
+              syncStatus: Value(ProductSyncStatus.pendingDelete.name),
+              syncError: const Value(null),
+              syncAttempts: const Value(0),
+              updatedAt: Value(now),
+              deletedAt: Value(now),
+            ),
+          );
 
       await (database.delete(database.syncOperations)..where(
-            (table) => table.id.equals('product:update:$normalizedProductId'),
+            (table) =>
+                table.id.equals('product:update:$normalizedProductId') &
+                table.ownerUserId.equals(lease.ownerUserId),
           ))
           .go();
 
       await (database.delete(database.syncOperations)..where(
-            (table) => table.id.equals('product:delete:$normalizedProductId'),
+            (table) =>
+                table.id.equals('product:delete:$normalizedProductId') &
+                table.ownerUserId.equals(lease.ownerUserId),
           ))
           .go();
 
@@ -782,6 +970,7 @@ class ProductsLocalDataSource
           .into(database.syncOperations)
           .insert(
             SyncOperationsCompanion.insert(
+              ownerUserId: Value(lease.ownerUserId),
               id: 'product:delete:$normalizedProductId',
               entityType: 'product',
               entityId: normalizedProductId,
@@ -795,6 +984,8 @@ class ProductsLocalDataSource
               createdAt: now,
             ),
           );
+
+      lease.ensureCurrent();
     });
   }
 

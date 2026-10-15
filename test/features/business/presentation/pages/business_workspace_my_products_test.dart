@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
 import 'package:talbatiyk/features/business/presentation/pages/business_workspace_page.dart';
 import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
@@ -34,6 +36,9 @@ void main() {
         ProviderScope(
           overrides: [
             appDatabaseProvider.overrideWithValue(database),
+            accountSessionFenceProvider.overrideWithValue(
+              createLegacyOrderTestFence(),
+            ),
             supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
               const _EmptyRemote(),
             ),
@@ -114,6 +119,9 @@ void main() {
         ProviderScope(
           overrides: [
             appDatabaseProvider.overrideWithValue(database),
+            accountSessionFenceProvider.overrideWithValue(
+              createLegacyOrderTestFence(),
+            ),
             supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
               remote,
             ),
@@ -149,6 +157,9 @@ void main() {
         ProviderScope(
           overrides: [
             appDatabaseProvider.overrideWithValue(database),
+            accountSessionFenceProvider.overrideWithValue(
+              createLegacyOrderTestFence(),
+            ),
             supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
               _RemoteWithProducts(<ProductModel>[
                 const ProductModel(
@@ -203,6 +214,9 @@ void main() {
       ProviderScope(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             const _EmptyRemote(),
           ),
@@ -239,6 +253,7 @@ void main() {
         .insert(
           ProductRecordsCompanion.insert(
             id: 'sync-late',
+            ownerUserId: const Value(legacyOrderTestUserId),
             supplierId: 'business-sync',
             supplierName: 'متجر النخبة',
             name: 'طاولة',
@@ -267,6 +282,9 @@ void main() {
       ProviderScope(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             const _EmptyRemote(),
           ),
@@ -294,6 +312,9 @@ void main() {
       ProviderScope(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             const _EmptyRemote(),
           ),
@@ -325,6 +346,9 @@ void main() {
       ProviderScope(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             _RemoteWithProducts(<ProductModel>[
               const ProductModel(

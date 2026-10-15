@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
@@ -14,7 +15,10 @@ void main() {
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
     discoveryDataSource = ProductsDiscoveryLocalDataSource(database);
-    managementDataSource = ProductsLocalDataSource(database);
+    managementDataSource = ProductsLocalDataSource(
+      database,
+      sessionFence: createLegacyOrderTestFence(),
+    );
   });
 
   tearDown(() async {

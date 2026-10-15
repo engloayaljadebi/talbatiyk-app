@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_datasource.dart';
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   group('OrdersLocalDataSource', () {
@@ -12,7 +13,10 @@ void main() {
     setUp(() {
       database = AppDatabase.forTesting(NativeDatabase.memory());
 
-      dataSource = OrdersLocalDataSource(database);
+      dataSource = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
     });
 
     tearDown(() async {
@@ -49,6 +53,7 @@ void main() {
 
         final OrdersLocalDataSource reloadedDataSource = OrdersLocalDataSource(
           database,
+          sessionFence: createLegacyOrderTestFence(),
         );
 
         final List<OrderModel> orders = await reloadedDataSource.getOrders();

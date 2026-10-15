@@ -3,22 +3,36 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../../../../core/database/app_database.dart';
+import '../../../../auth/domain/services/account_session_fence.dart';
 import '../../models/orders_model.dart';
 import 'package:uuid/uuid.dart';
 import '../orders_datasource.dart';
 
 class OrdersLocalDataSource implements OrdersDataSource {
-  OrdersLocalDataSource(this._database);
+  OrdersLocalDataSource(
+    this._database, {
+    required AccountSessionFence sessionFence,
+  }) : _sessionFence = sessionFence;
 
   final AppDatabase _database;
+  final AccountSessionFence _sessionFence;
 
   @override
   Future<List<OrderModel>> getOrders() async {
+    final lease = _sessionFence.capture();
+
     final List<OrderRecord> orderRows =
-        await (_database.select(_database.orderRecords)..orderBy([
-              (OrderRecords table) => OrderingTerm.desc(table.createdAt),
-            ]))
+        await (_database.select(_database.orderRecords)
+              ..where(
+                (OrderRecords table) =>
+                    table.ownerUserId.equals(lease.ownerUserId),
+              )
+              ..orderBy([
+                (OrderRecords table) => OrderingTerm.desc(table.createdAt),
+              ]))
             .get();
+
+    lease.ensureCurrent();
 
     final List<OrderModel> orders = [];
 
@@ -28,6 +42,8 @@ class OrdersLocalDataSource implements OrdersDataSource {
                 (OrderItemRecords table) => table.orderId.equals(orderRow.id),
               ))
               .get();
+
+      lease.ensureCurrent();
 
       orders.add(
         OrderModel(
@@ -41,11 +57,14 @@ class OrdersLocalDataSource implements OrdersDataSource {
       );
     }
 
+    lease.ensureCurrent();
     return List<OrderModel>.unmodifiable(orders);
   }
 
   @override
   Future<OrderModel> createOrder(CreateOrderModel request) async {
+    final lease = _sessionFence.capture();
+
     final CreateOrderModel queuedRequest = request.idempotencyKey.trim().isEmpty
         ? request.copyWith(idempotencyKey: Uuid().v4())
         : request;
@@ -64,13 +83,22 @@ class OrdersLocalDataSource implements OrdersDataSource {
     await _database.transaction(() async {
       // يجب أن يبقى الطلب المحلي والـOutbox في transaction واحدة:
       // إما أن يُحفَظ الاثنان أو لا يُحفَظ أي منهما.
-      await _saveOrderRows(order, updatedAt: now);
+      lease.ensureCurrent();
+
+      await _saveOrderRows(
+        order,
+        updatedAt: now,
+        ownerUserId: lease.ownerUserId,
+      );
+
+      lease.ensureCurrent();
 
       await _database
           .into(_database.syncOperations)
           .insertOnConflictUpdate(
             SyncOperationsCompanion.insert(
               id: 'order:create:$orderId',
+              ownerUserId: Value(lease.ownerUserId),
               entityType: 'order',
               entityId: orderId,
               operation: 'create',
@@ -78,8 +106,11 @@ class OrdersLocalDataSource implements OrdersDataSource {
               createdAt: now,
             ),
           );
+
+      lease.ensureCurrent();
     });
 
+    lease.ensureCurrent();
     return order;
   }
 
@@ -88,11 +119,22 @@ class OrdersLocalDataSource implements OrdersDataSource {
   /// This is used after successful remote creation so the
   /// server-generated order ID is preserved locally.
   Future<OrderModel> saveOrder(OrderModel order) async {
-    final DateTime now = DateTime.now().toUtc();
+    final lease = _sessionFence.capture();
+    final now = DateTime.now().toUtc();
 
     await _database.transaction(() async {
-      await _saveOrderRows(order, updatedAt: now);
+      lease.ensureCurrent();
+
+      await _saveOrderRows(
+        order,
+        updatedAt: now,
+        ownerUserId: lease.ownerUserId,
+      );
+
+      lease.ensureCurrent();
     });
+
+    lease.ensureCurrent();
 
     return OrderModel(
       id: order.id,
@@ -111,25 +153,48 @@ class OrdersLocalDataSource implements OrdersDataSource {
     required String operationId,
     required OrderModel remoteOrder,
   }) async {
-    final DateTime now = DateTime.now().toUtc();
+    final lease = _sessionFence.capture();
+    final now = DateTime.now().toUtc();
 
     await _database.transaction(() async {
-      await (_database.delete(_database.orderItemRecords)..where(
-            (OrderItemRecords table) => table.orderId.equals(localOrderId),
+      await _requireOwnedCreateOutbox(
+        lease: lease,
+        orderId: localOrderId,
+        operationId: operationId,
+      );
+
+      lease.ensureCurrent();
+
+      await (_database.delete(
+        _database.orderItemRecords,
+      )..where((table) => table.orderId.equals(localOrderId))).go();
+
+      await (_database.delete(_database.orderRecords)..where(
+            (table) =>
+                table.id.equals(localOrderId) &
+                table.ownerUserId.equals(lease.ownerUserId),
           ))
           .go();
 
-      await (_database.delete(
-        _database.orderRecords,
-      )..where((OrderRecords table) => table.id.equals(localOrderId))).go();
+      lease.ensureCurrent();
 
-      await _saveOrderRows(remoteOrder, updatedAt: now);
+      await _saveOrderRows(
+        remoteOrder,
+        updatedAt: now,
+        ownerUserId: lease.ownerUserId,
+      );
 
-      await (_database.delete(
-        _database.syncOperations,
-      )..where((SyncOperations table) => table.id.equals(operationId))).go();
+      await (_database.delete(_database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operationId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .go();
+
+      lease.ensureCurrent();
     });
 
+    lease.ensureCurrent();
     return remoteOrder;
   }
 
@@ -141,20 +206,39 @@ class OrdersLocalDataSource implements OrdersDataSource {
     required String localOrderId,
     required String operationId,
   }) async {
+    final lease = _sessionFence.capture();
+
     await _database.transaction(() async {
-      await (_database.delete(_database.orderItemRecords)..where(
-            (OrderItemRecords table) => table.orderId.equals(localOrderId),
+      await _requireOwnedCreateOutbox(
+        lease: lease,
+        orderId: localOrderId,
+        operationId: operationId,
+      );
+
+      lease.ensureCurrent();
+
+      await (_database.delete(
+        _database.orderItemRecords,
+      )..where((table) => table.orderId.equals(localOrderId))).go();
+
+      await (_database.delete(_database.orderRecords)..where(
+            (table) =>
+                table.id.equals(localOrderId) &
+                table.ownerUserId.equals(lease.ownerUserId),
           ))
           .go();
 
-      await (_database.delete(
-        _database.orderRecords,
-      )..where((OrderRecords table) => table.id.equals(localOrderId))).go();
+      await (_database.delete(_database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operationId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .go();
 
-      await (_database.delete(
-        _database.syncOperations,
-      )..where((SyncOperations table) => table.id.equals(operationId))).go();
+      lease.ensureCurrent();
     });
+
+    lease.ensureCurrent();
   }
 
   /// يسجل فشلًا مؤقتًا مع موعد المحاولة التالية.
@@ -167,16 +251,34 @@ class OrdersLocalDataSource implements OrdersDataSource {
     required Object error,
     required DateTime nextAttemptAt,
   }) async {
-    await (_database.update(
-      _database.syncOperations,
-    )..where((SyncOperations table) => table.id.equals(operationId))).write(
-      SyncOperationsCompanion(
-        status: const Value(SyncOperationStatuses.retrying),
-        attempts: Value(attempts),
-        lastError: Value(error.toString()),
-        nextAttemptAt: Value(nextAttemptAt.toUtc()),
-      ),
-    );
+    final lease = _sessionFence.capture();
+
+    await _database.transaction(() async {
+      await _requireOwnedCreateOperation(
+        lease: lease,
+        operationId: operationId,
+      );
+
+      lease.ensureCurrent();
+
+      await (_database.update(_database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operationId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            SyncOperationsCompanion(
+              status: const Value(SyncOperationStatuses.retrying),
+              attempts: Value(attempts),
+              lastError: Value(error.toString()),
+              nextAttemptAt: Value(nextAttemptAt.toUtc()),
+            ),
+          );
+
+      lease.ensureCurrent();
+    });
+
+    lease.ensureCurrent();
   }
 
   /// يسجل failure نهائيًا بدون حذف الـOrder أو الـOutbox.
@@ -188,16 +290,34 @@ class OrdersLocalDataSource implements OrdersDataSource {
     required int attempts,
     required Object error,
   }) async {
-    await (_database.update(
-      _database.syncOperations,
-    )..where((SyncOperations table) => table.id.equals(operationId))).write(
-      SyncOperationsCompanion(
-        status: const Value(SyncOperationStatuses.permanentFailure),
-        attempts: Value(attempts),
-        lastError: Value(error.toString()),
-        nextAttemptAt: const Value<DateTime?>(null),
-      ),
-    );
+    final lease = _sessionFence.capture();
+
+    await _database.transaction(() async {
+      await _requireOwnedCreateOperation(
+        lease: lease,
+        operationId: operationId,
+      );
+
+      lease.ensureCurrent();
+
+      await (_database.update(_database.syncOperations)..where(
+            (table) =>
+                table.id.equals(operationId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            SyncOperationsCompanion(
+              status: const Value(SyncOperationStatuses.permanentFailure),
+              attempts: Value(attempts),
+              lastError: Value(error.toString()),
+              nextAttemptAt: const Value<DateTime?>(null),
+            ),
+          );
+
+      lease.ensureCurrent();
+    });
+
+    lease.ensureCurrent();
   }
 
   /// Reconciles the complete server-owned order snapshot atomically.
@@ -209,59 +329,72 @@ class OrdersLocalDataSource implements OrdersDataSource {
   Future<void> replaceServerSnapshotPreservingPendingCreates(
     List<OrderModel> serverOrders,
   ) async {
-    final List<OrderModel> snapshot = List<OrderModel>.unmodifiable(
-      serverOrders,
-    );
+    final lease = _sessionFence.capture();
 
-    final Set<String> serverOrderIds = snapshot
-        .map((OrderModel order) => order.id)
-        .toSet();
-
-    final DateTime now = DateTime.now().toUtc();
+    final snapshot = List<OrderModel>.unmodifiable(serverOrders);
+    final serverOrderIds = snapshot.map((order) => order.id).toSet();
+    final now = DateTime.now().toUtc();
 
     await _database.transaction(() async {
+      lease.ensureCurrent();
+
       final pendingCreates =
           await (_database.select(_database.syncOperations)..where(
-                (SyncOperations table) =>
+                (table) =>
                     table.entityType.equals('order') &
-                    table.operation.equals('create'),
+                    table.operation.equals('create') &
+                    table.ownerUserId.equals(lease.ownerUserId),
               ))
               .get();
 
-      final Set<String> protectedLocalOrderIds = pendingCreates
+      lease.ensureCurrent();
+
+      final protectedLocalOrderIds = pendingCreates
           .map((operation) => operation.entityId)
           .toSet();
 
-      final existingOrders = await _database
-          .select(_database.orderRecords)
-          .get();
+      final existingOrders = await (_database.select(
+        _database.orderRecords,
+      )..where((table) => table.ownerUserId.equals(lease.ownerUserId))).get();
 
-      final List<String> staleServerOrderIds = existingOrders
+      lease.ensureCurrent();
+
+      final staleServerOrderIds = existingOrders
           .map((order) => order.id)
           .where(
-            (String orderId) =>
+            (orderId) =>
                 !serverOrderIds.contains(orderId) &&
                 !protectedLocalOrderIds.contains(orderId),
           )
           .toList(growable: false);
 
       if (staleServerOrderIds.isNotEmpty) {
-        await (_database.delete(_database.orderItemRecords)..where(
-              (OrderItemRecords table) =>
-                  table.orderId.isIn(staleServerOrderIds),
-            ))
-            .go();
+        await (_database.delete(
+          _database.orderItemRecords,
+        )..where((table) => table.orderId.isIn(staleServerOrderIds))).go();
 
         await (_database.delete(_database.orderRecords)..where(
-              (OrderRecords table) => table.id.isIn(staleServerOrderIds),
+              (table) =>
+                  table.id.isIn(staleServerOrderIds) &
+                  table.ownerUserId.equals(lease.ownerUserId),
             ))
             .go();
       }
 
-      for (final OrderModel order in snapshot) {
-        await _saveOrderRows(order, updatedAt: now);
+      for (final order in snapshot) {
+        lease.ensureCurrent();
+
+        await _saveOrderRows(
+          order,
+          updatedAt: now,
+          ownerUserId: lease.ownerUserId,
+        );
       }
+
+      lease.ensureCurrent();
     });
+
+    lease.ensureCurrent();
   }
 
   /// Updates only the last known server-authoritative aggregate lifecycle.
@@ -272,27 +405,128 @@ class OrdersLocalDataSource implements OrdersDataSource {
     required String orderId,
     required String aggregateStatus,
   }) async {
-    final DateTime now = DateTime.now().toUtc();
+    final lease = _sessionFence.capture();
+    final now = DateTime.now().toUtc();
 
-    await (_database.update(
+    await _database.transaction(() async {
+      lease.ensureCurrent();
+
+      final existing = await (_database.select(
+        _database.orderRecords,
+      )..where((table) => table.id.equals(orderId))).getSingleOrNull();
+
+      lease.ensureCurrent();
+
+      // Preserve the original no-op semantics for an absent order.
+      if (existing == null) {
+        return;
+      }
+
+      if (existing.ownerUserId != lease.ownerUserId) {
+        throw StateError(
+          'Refusing to update an order owned by another or unknown account.',
+        );
+      }
+
+      await (_database.update(_database.orderRecords)..where(
+            (table) =>
+                table.id.equals(orderId) &
+                table.ownerUserId.equals(lease.ownerUserId),
+          ))
+          .write(
+            OrderRecordsCompanion(
+              aggregateStatus: Value(aggregateStatus),
+              updatedAt: Value(now),
+            ),
+          );
+
+      lease.ensureCurrent();
+    });
+
+    lease.ensureCurrent();
+  }
+
+  Future<void> _requireOwnedCreateOutbox({
+    required AccountSessionLease lease,
+    required String orderId,
+    required String operationId,
+  }) async {
+    lease.ensureCurrent();
+
+    final order = await (_database.select(
       _database.orderRecords,
-    )..where((OrderRecords table) => table.id.equals(orderId))).write(
-      OrderRecordsCompanion(
-        aggregateStatus: Value(aggregateStatus),
-        updatedAt: Value(now),
-      ),
-    );
+    )..where((table) => table.id.equals(orderId))).getSingleOrNull();
+
+    lease.ensureCurrent();
+
+    final operation = await (_database.select(
+      _database.syncOperations,
+    )..where((table) => table.id.equals(operationId))).getSingleOrNull();
+
+    lease.ensureCurrent();
+
+    if (order?.ownerUserId != lease.ownerUserId ||
+        operation?.ownerUserId != lease.ownerUserId ||
+        operation?.entityType != 'order' ||
+        operation?.operation != 'create' ||
+        operation?.entityId != orderId) {
+      throw StateError(
+        'Refusing to mutate an order or outbox not owned by this session.',
+      );
+    }
+  }
+
+  Future<void> _requireOwnedCreateOperation({
+    required AccountSessionLease lease,
+    required String operationId,
+  }) async {
+    lease.ensureCurrent();
+
+    final operation = await (_database.select(
+      _database.syncOperations,
+    )..where((table) => table.id.equals(operationId))).getSingleOrNull();
+
+    lease.ensureCurrent();
+
+    if (operation?.ownerUserId != lease.ownerUserId ||
+        operation?.entityType != 'order' ||
+        operation?.operation != 'create') {
+      throw StateError(
+        'Refusing to modify an outbox owned by another or unknown account.',
+      );
+    }
   }
 
   Future<void> _saveOrderRows(
     OrderModel order, {
     required DateTime updatedAt,
+    String? ownerUserId,
   }) async {
+    final lease = _sessionFence.capture();
+    final effectiveOwner = lease.ownerUserId;
+
+    if (ownerUserId != null && ownerUserId != effectiveOwner) {
+      throw StateError('Order owner does not match the active session.');
+    }
+
+    final existing = await (_database.select(
+      _database.orderRecords,
+    )..where((table) => table.id.equals(order.id))).getSingleOrNull();
+
+    lease.ensureCurrent();
+
+    if (existing != null && existing.ownerUserId != effectiveOwner) {
+      throw StateError(
+        'Refusing to overwrite an order owned by another or unknown account.',
+      );
+    }
+
     await _database
         .into(_database.orderRecords)
         .insertOnConflictUpdate(
           OrderRecordsCompanion.insert(
             id: order.id,
+            ownerUserId: Value(effectiveOwner),
             status: Value(order.status),
             aggregateStatus: Value(order.aggregateStatus),
             notes: Value(order.notes),
@@ -324,6 +558,8 @@ class OrdersLocalDataSource implements OrdersDataSource {
             ),
           );
     }
+
+    lease.ensureCurrent();
   }
 
   Map<String, Object?> _createOrderPayload(CreateOrderModel request) {

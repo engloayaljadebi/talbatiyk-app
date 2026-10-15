@@ -8,6 +8,7 @@ import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dar
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   test(
@@ -21,6 +22,7 @@ void main() {
 
       final OrdersLocalDataSource localDataSource = OrdersLocalDataSource(
         database,
+        sessionFence: createLegacyOrderTestFence(),
       );
 
       late final _InspectingRemoteOrdersDataSource remoteDataSource;
@@ -74,6 +76,7 @@ void main() {
 
       final OrdersRepositoryImpl repository = OrdersRepositoryImpl(
         localDataSource,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: remoteDataSource,
       );
 

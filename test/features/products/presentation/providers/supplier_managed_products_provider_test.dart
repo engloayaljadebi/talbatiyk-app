@@ -4,10 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
+import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
 import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
 import 'package:talbatiyk/features/products/presentation/providers/products_provider.dart';
 
+final _providerTestSession = AuthSessionEntity(
+  user: AuthUserEntity(
+    id: 'supplier-provider-test-owner',
+    username: 'supplier-provider-test',
+    displayName: 'Supplier Provider Test',
+    status: 'active',
+    lastLoginAt: null,
+    contacts: const <AuthContactEntity>[],
+  ),
+);
+
+final _providerTestFence = AccountSessionFence(() => _providerTestSession);
 void main() {
   test(
     'supplier management provider stores the Business server snapshot locally',
@@ -17,6 +32,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(_providerTestFence),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             _FakeRemote(
               products: <ProductModel>[
@@ -55,6 +71,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(_providerTestFence),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             _FakeRemote(
               error: DioException(
@@ -96,6 +113,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(_providerTestFence),
           supplierProductManagementRemoteDataSourceProvider.overrideWithValue(
             _FakeRemote(
               error: DioException(

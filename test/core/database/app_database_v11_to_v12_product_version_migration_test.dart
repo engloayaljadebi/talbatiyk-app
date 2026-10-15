@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
+import 'legacy_ownership_schema_fixture.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 
@@ -64,6 +65,7 @@ void main() {
       final raw = sqlite.sqlite3.open(file.path);
 
       raw.execute('ALTER TABLE product_records DROP COLUMN server_version;');
+      removeV13OwnershipColumnsFromLegacyFixture(raw);
       raw.execute('PRAGMA user_version = 11;');
       raw.close();
 
@@ -80,7 +82,7 @@ void main() {
         (row) => row.id == 'pending-create',
       );
 
-      expect(upgraded.schemaVersion, 12);
+      expect(upgraded.schemaVersion, 14);
 
       // Existing server-backed rows receive the backend rollout baseline.
       expect(serverProduct.serverVersion, 1);

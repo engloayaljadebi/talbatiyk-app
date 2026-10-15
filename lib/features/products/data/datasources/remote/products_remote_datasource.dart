@@ -60,6 +60,7 @@ final class ProductsRemoteDataSource
 
   @override
   Future<List<ProductModel>> getBusinessProducts(String businessId) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
     final normalizedBusinessId = businessId.trim();
 
     if (normalizedBusinessId.isEmpty) {
@@ -75,7 +76,10 @@ final class ProductsRemoteDataSource
         business: normalizedBusinessId,
         page: page,
         perPage: _perPage,
+        extra: authExtra,
       );
+
+      _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
       final responseBody = response.data;
 
@@ -127,6 +131,7 @@ final class ProductsRemoteDataSource
     ProductModel product, {
     required String idempotencyKey,
   }) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
     final normalizedIdempotencyKey = idempotencyKey.trim();
 
     if (normalizedIdempotencyKey.isEmpty) {
@@ -181,7 +186,10 @@ final class ProductsRemoteDataSource
       brand: normalizedBrand.isEmpty ? null : normalizedBrand,
       description: normalizedDescription.isEmpty ? null : normalizedDescription,
       image: image,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 
@@ -202,6 +210,7 @@ final class ProductsRemoteDataSource
     required int expectedVersion,
     required bool removeImage,
   }) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
     if (expectedVersion < 1) {
       throw ArgumentError.value(
         expectedVersion,
@@ -242,7 +251,10 @@ final class ProductsRemoteDataSource
       business: businessId,
       product: productId,
       updateProductRequest: request,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 
@@ -260,6 +272,7 @@ final class ProductsRemoteDataSource
     required int expectedVersion,
     required String localImagePath,
   }) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
     final normalizedBusinessId = businessId.trim();
     final normalizedProductId = productId.trim();
     final normalizedImagePath = localImagePath.trim();
@@ -296,7 +309,10 @@ final class ProductsRemoteDataSource
       product: normalizedProductId,
       expectedVersion: expectedVersion,
       image: image,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final responseBody = response.data;
 
@@ -313,6 +329,7 @@ final class ProductsRemoteDataSource
     required String productId,
     required int expectedVersion,
   }) async {
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
     final normalizedBusinessId = businessId.trim();
     final normalizedProductId = productId.trim();
 
@@ -332,6 +349,9 @@ final class ProductsRemoteDataSource
       business: normalizedBusinessId,
       product: normalizedProductId,
       expectedVersion: expectedVersion,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
   }
 }

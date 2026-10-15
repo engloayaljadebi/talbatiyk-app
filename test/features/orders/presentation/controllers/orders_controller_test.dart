@@ -6,6 +6,7 @@ import 'package:talbatiyk/features/orders/data/repositories/orders_repository_im
 import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
 import 'package:talbatiyk/features/orders/domain/usecases/orders_usecase.dart';
 import 'package:talbatiyk/features/orders/presentation/controllers/orders_controller.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   late AppDatabase database;
@@ -15,10 +16,18 @@ void main() {
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
 
-    dataSource = OrdersLocalDataSource(database);
+    dataSource = OrdersLocalDataSource(
+      database,
+      sessionFence: createLegacyOrderTestFence(),
+    );
 
     controller = OrdersController(
-      OrdersUseCase(OrdersRepositoryImpl(dataSource)),
+      OrdersUseCase(
+        OrdersRepositoryImpl(
+          dataSource,
+          sessionFence: createLegacyOrderTestFence(),
+        ),
+      ),
       autoLoad: false,
     );
   });

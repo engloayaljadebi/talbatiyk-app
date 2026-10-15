@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../auth/domain/services/account_session_fence.dart';
 import '../../domain/services/order_id_transition_registry.dart';
 import '../datasources/local/orders_local_datasource.dart';
 import '../datasources/orders_datasource.dart';
@@ -15,9 +16,11 @@ final class OrdersSyncCoordinator {
     required this._localDataSource,
     required this._remoteDataSource,
     this._transitionRegistry,
-  });
+    required AccountSessionFence sessionFence,
+  }) : _sessionFence = sessionFence;
 
   final AppDatabase _database;
+  final AccountSessionFence _sessionFence;
   final OrdersLocalDataSource _localDataSource;
   final OrdersDataSource _remoteDataSource;
   final OrderIdTransitionRegistry? _transitionRegistry;
@@ -26,6 +29,15 @@ final class OrdersSyncCoordinator {
 
   Future<void> syncPendingOrders() async {
     if (_isSyncing) {
+      return;
+    }
+
+    AccountSessionLease lease;
+
+    try {
+      lease = _sessionFence.capture();
+    } on StateError {
+      // No authenticated account: do not touch pending operations.
       return;
     }
 
@@ -40,6 +52,7 @@ final class OrdersSyncCoordinator {
                   (SyncOperations table) =>
                       table.entityType.equals('order') &
                       table.operation.equals('create') &
+                      table.ownerUserId.equals(lease.ownerUserId) &
                       (table.status.equals(SyncOperationStatuses.pending) |
                           table.status.equals(SyncOperationStatuses.retrying)) &
                       (table.nextAttemptAt.isNull() |
@@ -50,15 +63,41 @@ final class OrdersSyncCoordinator {
                 ]))
               .get();
 
+      lease.ensureCurrent();
+
       for (final SyncOperation operation in operations) {
-        await _syncCreate(operation);
+        lease.ensureCurrent();
+        await _syncCreate(operation, lease);
       }
     } finally {
       _isSyncing = false;
     }
   }
 
-  Future<void> _syncCreate(SyncOperation operation) async {
+  Future<void> _syncCreate(
+    SyncOperation operation,
+    AccountSessionLease lease,
+  ) async {
+    lease.ensureCurrent();
+
+    if (operation.ownerUserId != lease.ownerUserId) {
+      return;
+    }
+
+    final ownedOrder =
+        await (_database.select(_database.orderRecords)..where(
+              (table) =>
+                  table.id.equals(operation.entityId) &
+                  table.ownerUserId.equals(lease.ownerUserId),
+            ))
+            .getSingleOrNull();
+
+    lease.ensureCurrent();
+
+    if (ownedOrder == null) {
+      return;
+    }
+
     final int attempts = operation.attempts + 1;
 
     late final CreateOrderModel request;
@@ -68,6 +107,8 @@ final class OrdersSyncCoordinator {
       // إعادة إرسال نفس JSON التالف لاحقًا لن تجعله صالحًا.
       request = _decodeCreatePayload(operation.payloadJson);
     } catch (error) {
+      lease.ensureCurrent();
+
       await _localDataSource.markCreateSyncPermanentFailure(
         operationId: operation.id,
         attempts: attempts,
@@ -78,9 +119,13 @@ final class OrdersSyncCoordinator {
     }
 
     try {
+      lease.ensureCurrent();
+
       final OrderModel remoteOrder = await _remoteDataSource.createOrder(
         request,
       );
+
+      lease.ensureCurrent();
 
       // إذا فشل reconciliation بعد قبول السيرفر نبقي العملية Retryable.
       // replay بنفس idempotency key يعيد نفس Order بدل إنشاء duplicate.
@@ -90,11 +135,15 @@ final class OrdersSyncCoordinator {
         remoteOrder: remoteOrder,
       );
 
+      lease.ensureCurrent();
+
       _transitionRegistry?.registerTransition(
         localOrderId: operation.entityId,
         serverOrderId: remoteOrder.id,
       );
     } catch (error) {
+      lease.ensureCurrent();
+
       if (_isPermanentRemoteFailure(error)) {
         await _localDataSource.markCreateSyncPermanentFailure(
           operationId: operation.id,

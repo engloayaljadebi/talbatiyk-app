@@ -9,6 +9,7 @@ import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dar
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   group('OrdersRepositoryImpl', () {
@@ -19,7 +20,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final localDataSource = OrdersLocalDataSource(database);
+      final localDataSource = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final serverCreatedAt = DateTime.utc(2026, 8, 24, 12);
 
@@ -52,6 +56,7 @@ void main() {
 
       final repository = OrdersRepositoryImpl(
         localDataSource,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: remoteDataSource,
       );
 
@@ -114,7 +119,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final localDataSource = OrdersLocalDataSource(database);
+        final localDataSource = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final remoteDataSource = _FakeRemoteOrdersDataSource(
           createError: DioException(
@@ -126,6 +134,7 @@ void main() {
 
         final repository = OrdersRepositoryImpl(
           localDataSource,
+          sessionFence: createLegacyOrderTestFence(),
           remoteDataSource: remoteDataSource,
         );
 
@@ -208,7 +217,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final localDataSource = OrdersLocalDataSource(database);
+      final localDataSource = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
       final requestOptions = RequestOptions(path: '/orders');
 
       final remoteError = DioException(
@@ -228,6 +240,7 @@ void main() {
 
       final repository = OrdersRepositoryImpl(
         localDataSource,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: remoteDataSource,
       );
 
@@ -273,7 +286,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final localDataSource = OrdersLocalDataSource(database);
+      final localDataSource = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final requestOptions = RequestOptions(path: '/orders');
 
@@ -294,6 +310,7 @@ void main() {
 
       final repository = OrdersRepositoryImpl(
         localDataSource,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: remoteDataSource,
       );
 
@@ -336,7 +353,10 @@ void main() {
 
         addTearDown(database.close);
 
-        final localDataSource = OrdersLocalDataSource(database);
+        final localDataSource = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final remoteError = StateError('Remote create failed');
 
@@ -346,6 +366,7 @@ void main() {
 
         final repository = OrdersRepositoryImpl(
           localDataSource,
+          sessionFence: createLegacyOrderTestFence(),
           remoteDataSource: remoteDataSource,
         );
 
@@ -401,9 +422,15 @@ void main() {
 
         addTearDown(database.close);
 
-        final localDataSource = OrdersLocalDataSource(database);
+        final localDataSource = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
-        final repository = OrdersRepositoryImpl(localDataSource);
+        final repository = OrdersRepositoryImpl(
+          localDataSource,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         final request = CreateOrderRequest(
           supplierIds: const ['supplier-1'],

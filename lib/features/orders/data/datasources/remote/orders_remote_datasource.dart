@@ -12,7 +12,9 @@ class OrdersRemoteDataSource implements OrdersDataSource {
 
   @override
   Future<List<OrderModel>> getOrders() async {
-    final response = await generatedApiClient.orders.orderIndex();
+    final response = await generatedApiClient.orders.orderIndex(
+      extra: generatedApiClient.captureOrderAuthExtra(),
+    );
     final responseBody = response.data;
 
     if (responseBody == null) {
@@ -68,6 +70,7 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     final response = await generatedApiClient.orders.orderStore(
       idempotencyKey: idempotencyKey,
       createOrderRequest: apiRequest,
+      extra: generatedApiClient.captureOrderAuthExtra(),
     );
 
     final responseBody = response.data;

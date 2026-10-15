@@ -179,4 +179,92 @@ void main() {
       expect(created.id, isNot(product.id));
     },
   );
+  test('account switch rejects stale product publishing response', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() async => server.close(force: true));
+
+    final requestReceived = Completer<void>();
+    final releaseResponse = Completer<void>();
+
+    const businessId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    final baseUrl = 'http://${server.address.address}:${server.port}/api/v1';
+
+    final subscription = server.listen((request) async {
+      await request.drain<void>();
+
+      if (!requestReceived.isCompleted) {
+        requestReceived.complete();
+      }
+
+      await releaseResponse.future;
+
+      request.response
+        ..statusCode = HttpStatus.created
+        ..headers.contentType = ContentType.json
+        ..write(
+          jsonEncode({
+            'data': {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'supplier_id': businessId,
+              'supplier_name': 'Supplier',
+              'name': 'Private account A product',
+              'description': '',
+              'category': 'Electronics',
+              'brand': '',
+              'price': 100,
+              'quantity': 2,
+              'is_available': true,
+              'version': 1,
+              'image_url': null,
+              'colors': <String>[],
+              'discount': 0,
+              'rating': 0,
+              'created_at': '2026-10-15T00:00:00+00:00',
+              'updated_at': '2026-10-15T00:00:00+00:00',
+            },
+          }),
+        );
+
+      await request.response.close();
+    });
+
+    addTearDown(subscription.cancel);
+
+    final client = GeneratedApiClient.create(baseUrl: baseUrl);
+    client.setAccessToken('account-A-token');
+
+    final source = ProductsRemoteDataSource(client);
+
+    const product = ProductModel(
+      id: 'temporary-client-id',
+      supplierId: businessId,
+      supplierName: 'Supplier',
+      name: 'Private account A product',
+      price: 100,
+      imageUrl: '',
+      category: 'Electronics',
+      brand: 'Test Brand',
+      isAvailable: true,
+      quantity: 2,
+    );
+
+    final pending = source.createProductIdempotently(
+      product,
+      idempotencyKey: '22222222-2222-4222-8222-222222222222',
+    );
+
+    try {
+      await requestReceived.future;
+
+      client.setAccessToken('account-B-token');
+      releaseResponse.complete();
+
+      await expectLater(pending, throwsA(isA<StateError>()));
+    } finally {
+      if (!releaseResponse.isCompleted) {
+        releaseResponse.complete();
+      }
+    }
+  });
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -95,6 +96,70 @@ void main() {
       expect(products[1].serverVersion, 4);
     },
   );
+  test('account switch rejects stale managed product response', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() async => server.close(force: true));
+
+    final requestReceived = Completer<void>();
+    final releaseResponse = Completer<void>();
+
+    const businessId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    final baseUrl = 'http://${server.address.address}:${server.port}/api/v1';
+
+    final subscription = server.listen((request) async {
+      if (!requestReceived.isCompleted) {
+        requestReceived.complete();
+      }
+
+      await releaseResponse.future;
+
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(
+          jsonEncode(
+            _pageEnvelope(
+              baseUrl: baseUrl,
+              businessId: businessId,
+              page: 1,
+              lastPage: 1,
+              products: [
+                _productJson(
+                  id: '11111111-1111-4111-8111-111111111111',
+                  businessId: businessId,
+                  name: 'Private account A product',
+                  version: 1,
+                ),
+              ],
+            ),
+          ),
+        );
+
+      await request.response.close();
+    });
+
+    addTearDown(subscription.cancel);
+
+    final client = GeneratedApiClient.create(baseUrl: baseUrl);
+    client.setAccessToken('account-A-token');
+
+    final source = ProductsRemoteDataSource(client);
+    final pending = source.getBusinessProducts(businessId);
+
+    try {
+      await requestReceived.future;
+
+      client.setAccessToken('account-B-token');
+      releaseResponse.complete();
+
+      await expectLater(pending, throwsA(isA<StateError>()));
+    } finally {
+      if (!releaseResponse.isCompleted) {
+        releaseResponse.complete();
+      }
+    }
+  });
 }
 
 Map<String, dynamic> _productJson({

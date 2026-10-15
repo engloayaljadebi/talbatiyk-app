@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
@@ -29,7 +30,10 @@ void main() {
         quantity: 4,
       );
 
-      final firstDataSource = ProductsLocalDataSource(database);
+      final firstDataSource = ProductsLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final firstAttempt = await firstDataSource.preparePublishAttempt(
         product: product,
@@ -46,7 +50,10 @@ void main() {
       /*
        * A new datasource instance simulates process/repository recreation.
        */
-      final afterRestart = ProductsLocalDataSource(database);
+      final afterRestart = ProductsLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       final recovered = await afterRestart.getRetryablePublishAttempts();
 
@@ -105,7 +112,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final dataSource = ProductsLocalDataSource(database);
+      final dataSource = ProductsLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       const first = ProductModel(
         id: '88888888-8888-4888-8888-888888888888',

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/orders_entity.dart';
+import '../../../auth/domain/services/account_session_fence.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../datasources/local/orders_local_datasource.dart';
 import '../datasources/orders_datasource.dart';
@@ -11,91 +12,123 @@ import '../models/orders_model.dart';
 import 'package:uuid/uuid.dart';
 
 class OrdersRepositoryImpl implements OrdersRepository {
-  const OrdersRepositoryImpl(this.localDataSource, {this.remoteDataSource});
+  const OrdersRepositoryImpl(
+    this.localDataSource, {
+    required AccountSessionFence sessionFence,
+    this.remoteDataSource,
+  }) : _sessionFence = sessionFence;
 
   final OrdersLocalDataSource localDataSource;
   final OrdersDataSource? remoteDataSource;
+  final AccountSessionFence _sessionFence;
 
   @override
   Future<List<OrderEntity>> getOrders() async {
-    final OrdersDataSource? remote = remoteDataSource;
+    final lease = _sessionFence.capture();
+    final remote = remoteDataSource;
 
     if (remote != null) {
       try {
-        final List<OrderModel> remoteOrders = await remote.getOrders();
+        lease.ensureCurrent();
+
+        final remoteOrders = await remote.getOrders();
+
+        lease.ensureCurrent();
 
         await localDataSource.replaceServerSnapshotPreservingPendingCreates(
           remoteOrders,
         );
+
+        lease.ensureCurrent();
       } catch (error) {
+        lease.ensureCurrent();
+
         if (!_shouldUseLocalReadFallback(error)) {
           rethrow;
         }
       }
     }
 
-    final List<OrderModel> models = await localDataSource.getOrders();
+    lease.ensureCurrent();
+
+    final models = await localDataSource.getOrders();
+
+    lease.ensureCurrent();
 
     return List<OrderEntity>.unmodifiable(models.map(OrdersMapper.toEntity));
   }
 
   @override
   Future<OrderEntity> createOrder(CreateOrderRequest request) async {
-    final CreateOrderModel
-    createModel = OrdersMapper.toCreateModel(request).copyWith(
-      // One logical create gets one idempotency key before local persistence
-      // or network I/O.
-      idempotencyKey: Uuid().v4(),
-    );
+    final lease = _sessionFence.capture();
 
-    // Local Order + Outbox are committed atomically before the first
-    // network attempt. Drift remains the durable source of truth.
-    final OrderModel localOrder = await localDataSource.createOrder(
-      createModel,
-    );
+    final CreateOrderModel createModel = OrdersMapper.toCreateModel(
+      request,
+    ).copyWith(idempotencyKey: Uuid().v4());
 
-    final OrdersDataSource? remote = remoteDataSource;
+    lease.ensureCurrent();
+
+    // Durable local Order + Outbox before attempting the network.
+    final localOrder = await localDataSource.createOrder(createModel);
+
+    // An account switch here must prevent the first remote attempt.
+    lease.ensureCurrent();
+
+    final remote = remoteDataSource;
 
     if (remote == null) {
+      lease.ensureCurrent();
       return OrdersMapper.toEntity(localOrder);
     }
 
-    final String operationId = 'order:create:${localOrder.id}';
+    final operationId = 'order:create:${localOrder.id}';
 
     late final OrderModel remoteOrder;
 
     try {
+      lease.ensureCurrent();
+
       remoteOrder = await remote.createOrder(createModel);
+
+      lease.ensureCurrent();
     } catch (error) {
+      // Invalidation must never become an offline success result.
+      lease.ensureCurrent();
+
       if (_shouldRemainQueued(error)) {
-        // Retryable or ambiguous transport/server outcomes remain durable.
-        // SyncCoordinator will replay the same logical operation later.
         return OrdersMapper.toEntity(localOrder);
       }
 
       if (_isDefinitiveRemoteRejection(error)) {
-        // A definitive client-side rejection was not accepted by the server.
         await localDataSource.discardPendingCreate(
           localOrderId: localOrder.id,
           operationId: operationId,
         );
+
+        lease.ensureCurrent();
       }
 
-      // Unknown/non-Dio failures are surfaced, but their durable local state
-      // is retained because the remote outcome may be ambiguous.
+      // Preserve local state for unknown or ambiguous outcomes.
       rethrow;
     }
+
     try {
+      lease.ensureCurrent();
+
       await localDataSource.completeCreateSync(
         localOrderId: localOrder.id,
         operationId: operationId,
         remoteOrder: remoteOrder,
       );
 
+      lease.ensureCurrent();
+
       return OrdersMapper.toEntity(remoteOrder);
     } catch (_) {
-      // The server already accepted the logical operation. Keep the durable
-      // local Order + Outbox so a later idempotent replay can reconcile it.
+      // Preserve idempotent replay for a reconciliation failure,
+      // but do not hide a change of authenticated account.
+      lease.ensureCurrent();
+
       return OrdersMapper.toEntity(localOrder);
     }
   }

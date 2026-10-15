@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
@@ -11,6 +12,7 @@ import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk/features/order_response_comparison/data/datasources/remote/order_response_comparison_remote_datasource.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
 import 'package:talbatiyk/features/order_response_comparison/domain/errors/stale_order_version_exception.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   group('OrderResponseComparisonRemoteDataSourceImpl', () {
@@ -42,7 +44,10 @@ void main() {
       dataSource = OrderResponseComparisonRemoteDataSourceImpl(apiClient);
 
       database = AppDatabase.forTesting(NativeDatabase.memory());
-      ordersLocalDataSource = OrdersLocalDataSource(database);
+      ordersLocalDataSource = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
       repository = OrderResponseComparisonRepositoryImpl(
         dataSource,
         ordersLocalDataSource,
@@ -55,6 +60,7 @@ void main() {
           .insert(
             OrderRecordsCompanion.insert(
               id: orderId,
+              ownerUserId: const Value(legacyOrderTestUserId),
               createdAt: now,
               updatedAt: now,
             ),
@@ -127,6 +133,7 @@ void main() {
         )..where((table) => table.id.equals(orderId))).getSingle();
 
         expect(storedOrder.status, 'pending');
+        expect(storedOrder.ownerUserId, legacyOrderTestUserId);
         expect(storedOrder.aggregateStatus, 'responses_received');
       },
     );
@@ -217,6 +224,7 @@ void main() {
         )..where((table) => table.id.equals(orderId))).getSingle();
 
         expect(storedOrder.status, 'pending');
+        expect(storedOrder.ownerUserId, legacyOrderTestUserId);
         expect(storedOrder.aggregateStatus, 'suppliers_selected');
       },
     );

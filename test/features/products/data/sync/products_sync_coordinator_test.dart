@@ -1,7 +1,11 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
@@ -18,11 +22,15 @@ void main() {
 
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
-    local = ProductsLocalDataSource(database);
+    local = ProductsLocalDataSource(
+      database,
+      sessionFence: createLegacyOrderTestFence(),
+    );
     remote = _FakeMutationRemoteDataSource();
     coordinator = ProductsSyncCoordinator(
       localDataSource: local,
       remoteDataSource: remote,
+      sessionFence: createLegacyOrderTestFence(),
     );
   });
 
@@ -160,6 +168,222 @@ void main() {
     expect(product.syncStatus, ProductSyncStatus.failed.name);
   });
 
+  test('foreign account product outbox is not replayed', () async {
+    await _seedProduct(
+      local,
+      id: 'foreign-product',
+      version: 4,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await local.updateProduct(
+      _editedProduct(
+        id: 'foreign-product',
+        imageUrl: 'https://server.test/old.jpg',
+      ),
+    );
+
+    await (database.update(database.syncOperations)
+          ..where((row) => row.id.equals('product:update:foreign-product')))
+        .write(const SyncOperationsCompanion(ownerUserId: Value('account-A')));
+
+    await coordinator.syncPendingProducts();
+
+    expect(remote.metadataExpectedVersions, isEmpty);
+  });
+
+  test('legacy unowned product outbox is not replayed', () async {
+    await _seedProduct(
+      local,
+      id: 'unowned-product',
+      version: 4,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await local.updateProduct(
+      _editedProduct(
+        id: 'unowned-product',
+        imageUrl: 'https://server.test/old.jpg',
+      ),
+    );
+
+    await (database.update(
+      database.syncOperations,
+    )..where((row) => row.id.equals('product:update:unowned-product'))).write(
+      const SyncOperationsCompanion(ownerUserId: Value<String?>(null)),
+    );
+
+    await coordinator.syncPendingProducts();
+
+    expect(remote.metadataExpectedVersions, isEmpty);
+  });
+
+  test('account switch after product HTTP response preserves outbox', () async {
+    AuthSessionEntity makeSession(String id) {
+      return AuthSessionEntity(
+        user: AuthUserEntity(
+          id: id,
+          username: id,
+          displayName: id,
+          status: 'active',
+          lastLoginAt: null,
+          contacts: const [],
+        ),
+      );
+    }
+
+    AuthSessionEntity? activeSession = makeSession('account-A');
+    final fence = AccountSessionFence(() => activeSession);
+
+    final protectedLocal = ProductsLocalDataSource(
+      database,
+      sessionFence: fence,
+    );
+
+    final protectedCoordinator = ProductsSyncCoordinator(
+      localDataSource: protectedLocal,
+      remoteDataSource: remote,
+      sessionFence: fence,
+    );
+
+    await _seedProduct(
+      protectedLocal,
+      id: 'switch-product',
+      version: 4,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await protectedLocal.updateProduct(
+      _editedProduct(
+        id: 'switch-product',
+        imageUrl: 'https://server.test/old.jpg',
+      ),
+    );
+
+    remote.afterMetadataSuccess = () {
+      activeSession = makeSession('account-B');
+    };
+
+    try {
+      await protectedCoordinator.syncPendingProducts();
+    } on StateError {
+      // A stale session must not reconcile account A data.
+    }
+
+    // Verify the fake HTTP operation actually completed.
+    expect(remote.metadataExpectedVersions, [4]);
+    expect(activeSession!.user.id, 'account-B');
+
+    final operation =
+        await (database.select(database.syncOperations)
+              ..where((row) => row.id.equals('product:update:switch-product')))
+            .getSingleOrNull();
+
+    final product = await (database.select(
+      database.productRecords,
+    )..where((row) => row.id.equals('switch-product'))).getSingle();
+
+    expect(
+      operation,
+      isA<SyncOperation>(),
+      reason: 'Account A Outbox must survive account switching.',
+    );
+
+    expect(operation!.ownerUserId, 'account-A');
+    expect(operation.status, SyncOperationStatuses.pending);
+    expect(product.syncStatus, ProductSyncStatus.pendingUpdate.name);
+  });
+
+  test('sync delete preserves account B record with the same ID', () async {
+    await _seedProduct(
+      local,
+      id: 'shared-delete-security',
+      version: 11,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await local.deleteProduct('shared-delete-security');
+
+    await database
+        .into(database.productRecords)
+        .insert(
+          ProductRecordsCompanion.insert(
+            id: 'shared-delete-security',
+            ownerUserId: const Value('account-B'),
+            supplierId: 'supplier-1',
+            supplierName: 'Supplier One',
+            name: 'Account B untouched',
+            price: 100,
+            serverVersion: const Value(7),
+            syncStatus: Value(ProductSyncStatus.synced.name),
+            createdAt: DateTime.utc(2026, 10, 4),
+            updatedAt: DateTime.utc(2026, 10, 4),
+          ),
+        );
+
+    await coordinator.syncPendingProducts();
+
+    final foreign =
+        await (database.select(database.productRecords)..where(
+              (row) =>
+                  row.id.equals('shared-delete-security') &
+                  row.ownerUserId.equals('account-B'),
+            ))
+            .getSingleOrNull();
+
+    expect(foreign, isNotNull);
+    expect(foreign!.name, 'Account B untouched');
+  });
+
+  test('sync retry preserves account B record with the same ID', () async {
+    await _seedProduct(
+      local,
+      id: 'shared-retry-security',
+      version: 5,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await local.updateProduct(
+      _editedProduct(
+        id: 'shared-retry-security',
+        imageUrl: 'https://server.test/old.jpg',
+      ),
+    );
+
+    await database
+        .into(database.productRecords)
+        .insert(
+          ProductRecordsCompanion.insert(
+            id: 'shared-retry-security',
+            ownerUserId: const Value('account-B'),
+            supplierId: 'supplier-1',
+            supplierName: 'Supplier One',
+            name: 'Account B untouched',
+            price: 100,
+            serverVersion: const Value(5),
+            syncStatus: Value(ProductSyncStatus.synced.name),
+            createdAt: DateTime.utc(2026, 10, 4),
+            updatedAt: DateTime.utc(2026, 10, 4),
+          ),
+        );
+
+    remote.failureStatus = 503;
+
+    await coordinator.syncPendingProducts();
+
+    final foreign =
+        await (database.select(database.productRecords)..where(
+              (row) =>
+                  row.id.equals('shared-retry-security') &
+                  row.ownerUserId.equals('account-B'),
+            ))
+            .getSingle();
+
+    expect(foreign.name, 'Account B untouched');
+    expect(foreign.syncStatus, ProductSyncStatus.synced.name);
+    expect(foreign.syncAttempts, 0);
+    expect(foreign.syncError, null);
+  });
   test('HTTP 503 stays retryable with backoff', () async {
     await _seedProduct(
       local,
@@ -282,6 +506,7 @@ ProductModel _editedProduct({
 final class _FakeMutationRemoteDataSource
     implements ProductsMutationRemoteDataSource {
   int? failureStatus;
+  void Function()? afterMetadataSuccess;
 
   final List<int> metadataExpectedVersions = <int>[];
   final List<int> imageExpectedVersions = <int>[];
@@ -312,6 +537,7 @@ final class _FakeMutationRemoteDataSource
     );
 
     _lastMetadataProduct = result;
+    afterMetadataSuccess?.call();
 
     return result;
   }

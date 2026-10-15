@@ -46,9 +46,14 @@ final class ReceivedOrdersRemoteDataSourceImpl
       );
     }
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.supplierOrders.supplierOrderIndex(
       business: business,
+      extra: authExtra,
     );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final body = response.data;
 
@@ -110,13 +115,18 @@ final class ReceivedOrdersRemoteDataSourceImpl
       );
     });
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.supplierOrderResponses
         .supplierOrderResponseStore(
           business: business,
           recipient: recipient,
           idempotencyKey: key,
           submitSupplierOrderResponseRequest: request,
+          extra: authExtra,
         );
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final body = response.data;
 
@@ -175,13 +185,18 @@ final class ReceivedOrdersRemoteDataSourceImpl
         ..status = _fulfillmentStatusToApi(status);
     });
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     try {
       final response = await _apiClient.supplierOrderFulfillment
           .supplierOrderFulfillmentUpdate(
             business: business,
             recipient: recipient,
             updateSupplierFulfillmentRequest: request,
+            extra: authExtra,
           );
+
+      _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
       final body = response.data;
 
@@ -193,6 +208,8 @@ final class ReceivedOrdersRemoteDataSourceImpl
 
       return body.data;
     } on DioException catch (error) {
+      _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
+
       if (error.response?.statusCode == 409) {
         throw const StaleRecipientFulfillmentVersionException();
       }

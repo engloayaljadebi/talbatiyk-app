@@ -6,6 +6,9 @@ part 'app_database.g.dart';
 class ProductRecords extends Table {
   TextColumn get id => text()();
 
+  /// NULL identifies historical records with unknown ownership.
+  TextColumn get ownerUserId => text().nullable()();
+
   TextColumn get supplierId => text()();
 
   TextColumn get supplierName => text()();
@@ -50,8 +53,12 @@ class ProductRecords extends Table {
 
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Server product IDs may be cached separately for different accounts.
+  /// Historical NULL-owner records are preserved but remain unclaimed.
   @override
-  Set<Column<Object>> get primaryKey => {id};
+  List<Set<Column>> get uniqueKeys => [
+    {ownerUserId, id},
+  ];
 }
 
 /// Server-owned snapshot used only by customer Product Discovery.
@@ -100,6 +107,9 @@ class ProductDiscoveryRecords extends Table {
 
 class OrderRecords extends Table {
   TextColumn get id => text()();
+
+  /// Null is reserved for legacy records with unknown ownership.
+  TextColumn get ownerUserId => text().nullable()();
 
   TextColumn get status => text().withDefault(const Constant('pending'))();
 
@@ -210,6 +220,9 @@ class ProductPublishAttemptRecords extends Table {
   /// Temporary client-side identity of the logical publication.
   TextColumn get clientProductId => text()();
 
+  /// NULL identifies historical attempts with unknown ownership.
+  TextColumn get ownerUserId => text().nullable()();
+
   TextColumn get supplierId => text()();
   TextColumn get supplierName => text()();
 
@@ -246,7 +259,7 @@ class ProductPublishAttemptRecords extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-    {clientProductId},
+    {ownerUserId, clientProductId},
   ];
 }
 
@@ -258,6 +271,9 @@ abstract final class SyncOperationStatuses {
 
 class SyncOperations extends Table {
   TextColumn get id => text()();
+
+  /// Null is reserved for legacy records with unknown ownership.
+  TextColumn get ownerUserId => text().nullable()();
 
   TextColumn get entityType => text()();
 
@@ -330,7 +346,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration {
@@ -404,6 +420,30 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 12) {
           await _ensureProductServerVersionColumn(m);
+        }
+
+        if (from < 13) {
+          // Preserve legacy records without assigning an owner.
+          await m.addColumn(orderRecords, orderRecords.ownerUserId);
+          await m.addColumn(syncOperations, syncOperations.ownerUserId);
+        }
+
+        if (from < 14) {
+          // Rebuild both tables to update identity constraints.
+          // Historical rows retain NULL ownership.
+          await m.alterTable(
+            TableMigration(
+              productRecords,
+              newColumns: [productRecords.ownerUserId],
+            ),
+          );
+
+          await m.alterTable(
+            TableMigration(
+              productPublishAttemptRecords,
+              newColumns: [productPublishAttemptRecords.ownerUserId],
+            ),
+          );
         }
       },
     );

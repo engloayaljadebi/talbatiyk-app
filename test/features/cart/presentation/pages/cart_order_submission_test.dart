@@ -9,7 +9,9 @@ import 'package:talbatiyk/features/cart/presentation/pages/cart_page.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dart';
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
 import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
 import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
 import 'package:talbatiyk/features/supplier_discovery/domain/repositories/supplier_discovery_repository.dart';
@@ -67,6 +69,9 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
         ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+        accountSessionFenceProvider.overrideWithValue(
+          createLegacyOrderTestFence(),
+        ),
         supplierDiscoveryRepositoryProvider.overrideWithValue(
           const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
             _supplierA,
@@ -122,6 +127,9 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
           ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierDiscoveryRepositoryProvider.overrideWithValue(
             const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
               _supplierA,
@@ -199,6 +207,9 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
         ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+        accountSessionFenceProvider.overrideWithValue(
+          createLegacyOrderTestFence(),
+        ),
         supplierDiscoveryRepositoryProvider.overrideWithValue(
           const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
             _supplierA,
@@ -314,6 +325,9 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
           ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
           supplierDiscoveryRepositoryProvider.overrideWithValue(
             const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
               _supplierA,

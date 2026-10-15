@@ -79,7 +79,11 @@ void main() {
 
       final baseUrl = 'http://${server.address.address}:${server.port}/api/v1';
 
+      var receivedRequests = 0;
+
       final subscription = server.listen((request) async {
+        receivedRequests++;
+
         request.response
           ..statusCode = HttpStatus.ok
           ..headers.contentType = ContentType.json
@@ -94,13 +98,20 @@ void main() {
 
       addTearDown(subscription.cancel);
 
-      final dataSource = SupplierFollowRemoteDataSourceImpl(
-        GeneratedApiClient.create(baseUrl: baseUrl),
-      );
+      final apiClient = GeneratedApiClient.create(baseUrl: baseUrl);
+      apiClient.setAccessToken('mismatch-test-access-token');
+
+      final dataSource = SupplierFollowRemoteDataSourceImpl(apiClient);
 
       await expectLater(
         dataSource.isFollowing(requestedBusinessId),
         throwsA(isA<StateError>()),
+      );
+
+      expect(
+        receivedRequests,
+        1,
+        reason: 'Mismatch test must reach the server.',
       );
     });
   });

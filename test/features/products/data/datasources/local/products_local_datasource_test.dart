@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
@@ -14,7 +15,10 @@ void main() {
 
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
-    dataSource = ProductsLocalDataSource(database);
+    dataSource = ProductsLocalDataSource(
+      database,
+      sessionFence: createLegacyOrderTestFence(),
+    );
   });
 
   tearDown(() async {
@@ -125,6 +129,7 @@ void main() {
           .insert(
             ProductRecordsCompanion.insert(
               id: productId,
+              ownerUserId: const Value(legacyOrderTestUserId),
               supplierId: 'supplier-1',
               supplierName: 'المورد الحقيقي',
               name: 'منتج متزامن',

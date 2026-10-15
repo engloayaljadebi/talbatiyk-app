@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../../support/legacy_order_test_fence.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
@@ -13,7 +14,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final local = ProductsLocalDataSource(database);
+      final local = ProductsLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       const id = 'product-update';
       const businessId = 'business-1';
@@ -70,7 +74,10 @@ void main() {
 
     addTearDown(database.close);
 
-    final local = ProductsLocalDataSource(database);
+    final local = ProductsLocalDataSource(
+      database,
+      sessionFence: createLegacyOrderTestFence(),
+    );
 
     const id = 'product-delete';
     const businessId = 'business-1';
@@ -109,7 +116,10 @@ void main() {
 
       addTearDown(database.close);
 
-      final local = ProductsLocalDataSource(database);
+      final local = ProductsLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       const id = 'stale-product';
       const businessId = 'business-1';

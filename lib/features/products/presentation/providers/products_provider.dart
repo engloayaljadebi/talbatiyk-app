@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
+import '../../../auth/presentation/providers/account_session_fence_provider.dart';
 
 import '../../data/datasources/local/products_discovery_local_datasource.dart';
 import '../../data/datasources/local/products_local_datasource.dart';
@@ -22,7 +23,10 @@ import '../controllers/products_controller.dart';
 final productsLocalDataSourceProvider = Provider<ProductsLocalDataSource>((
   ref,
 ) {
-  return ProductsLocalDataSource(ref.watch(appDatabaseProvider));
+  return ProductsLocalDataSource(
+    ref.watch(appDatabaseProvider),
+    sessionFence: ref.watch(accountSessionFenceProvider),
+  );
 });
 
 /// Product source used by the existing supplier-management Repository.
@@ -122,6 +126,7 @@ final productsSyncCoordinatorProvider = Provider<ProductsSyncCoordinator>((
   return ProductsSyncCoordinator(
     localDataSource: ref.watch(productsLocalDataSourceProvider),
     remoteDataSource: ref.watch(productsRemoteDataSourceProvider),
+    sessionFence: ref.watch(accountSessionFenceProvider),
   );
 });
 final productDiscoveryRemoteDataSourceProvider = Provider<ProductsDataSource>((

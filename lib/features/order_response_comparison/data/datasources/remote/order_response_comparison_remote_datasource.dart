@@ -36,8 +36,12 @@ final class OrderResponseComparisonRemoteDataSourceImpl
       );
     }
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     final response = await _apiClient.orderResponseComparisons
-        .orderResponseComparisonShow(order: order);
+        .orderResponseComparisonShow(order: order, extra: authExtra);
+
+    _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
     final body = response.data;
 
@@ -100,12 +104,17 @@ final class OrderResponseComparisonRemoteDataSourceImpl
         );
     });
 
+    final authExtra = _apiClient.captureProtectedRequestAuthExtra();
+
     try {
       final response = await _apiClient.orderResponseComparisons
           .orderResponseComparisonUpdate(
             order: order,
             selectOrderSupplierResponsesRequest: request,
+            extra: authExtra,
           );
+
+      _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
 
       final body = response.data;
 
@@ -115,6 +124,8 @@ final class OrderResponseComparisonRemoteDataSourceImpl
 
       return body.data;
     } on DioException catch (error) {
+      _apiClient.ensureProtectedRequestAuthCurrent(authExtra);
+
       if (error.response?.statusCode == 409) {
         throw const StaleOrderVersionException();
       }

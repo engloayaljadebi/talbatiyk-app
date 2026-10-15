@@ -18,6 +18,17 @@ class $ProductRecordsTable extends ProductRecords
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _supplierIdMeta = const VerificationMeta(
     'supplierId',
   );
@@ -257,6 +268,7 @@ class $ProductRecordsTable extends ProductRecords
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    ownerUserId,
     supplierId,
     supplierName,
     name,
@@ -295,6 +307,15 @@ class $ProductRecordsTable extends ProductRecords
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
     }
     if (data.containsKey('supplier_id')) {
       context.handle(
@@ -459,7 +480,11 @@ class $ProductRecordsTable extends ProductRecords
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {ownerUserId, id},
+  ];
   @override
   ProductRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -468,6 +493,10 @@ class $ProductRecordsTable extends ProductRecords
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      ),
       supplierId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}supplier_id'],
@@ -563,6 +592,9 @@ class $ProductRecordsTable extends ProductRecords
 
 class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   final String id;
+
+  /// NULL identifies historical records with unknown ownership.
+  final String? ownerUserId;
   final String supplierId;
   final String supplierName;
   final String name;
@@ -588,6 +620,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   final DateTime? deletedAt;
   const ProductRecord({
     required this.id,
+    this.ownerUserId,
     required this.supplierId,
     required this.supplierName,
     required this.name,
@@ -614,6 +647,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || ownerUserId != null) {
+      map['owner_user_id'] = Variable<String>(ownerUserId);
+    }
     map['supplier_id'] = Variable<String>(supplierId);
     map['supplier_name'] = Variable<String>(supplierName);
     map['name'] = Variable<String>(name);
@@ -651,6 +687,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   ProductRecordsCompanion toCompanion(bool nullToAbsent) {
     return ProductRecordsCompanion(
       id: Value(id),
+      ownerUserId: ownerUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUserId),
       supplierId: Value(supplierId),
       supplierName: Value(supplierName),
       name: Value(name),
@@ -692,6 +731,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ProductRecord(
       id: serializer.fromJson<String>(json['id']),
+      ownerUserId: serializer.fromJson<String?>(json['ownerUserId']),
       supplierId: serializer.fromJson<String>(json['supplierId']),
       supplierName: serializer.fromJson<String>(json['supplierName']),
       name: serializer.fromJson<String>(json['name']),
@@ -720,6 +760,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'ownerUserId': serializer.toJson<String?>(ownerUserId),
       'supplierId': serializer.toJson<String>(supplierId),
       'supplierName': serializer.toJson<String>(supplierName),
       'name': serializer.toJson<String>(name),
@@ -746,6 +787,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
 
   ProductRecord copyWith({
     String? id,
+    Value<String?> ownerUserId = const Value.absent(),
     String? supplierId,
     String? supplierName,
     String? name,
@@ -769,6 +811,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => ProductRecord(
     id: id ?? this.id,
+    ownerUserId: ownerUserId.present ? ownerUserId.value : this.ownerUserId,
     supplierId: supplierId ?? this.supplierId,
     supplierName: supplierName ?? this.supplierName,
     name: name ?? this.name,
@@ -800,6 +843,9 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   ProductRecord copyWithCompanion(ProductRecordsCompanion data) {
     return ProductRecord(
       id: data.id.present ? data.id.value : this.id,
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
       supplierId: data.supplierId.present
           ? data.supplierId.value
           : this.supplierId,
@@ -848,6 +894,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   String toString() {
     return (StringBuffer('ProductRecord(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
           ..write('name: $name, ')
@@ -876,6 +923,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
   @override
   int get hashCode => Object.hashAll([
     id,
+    ownerUserId,
     supplierId,
     supplierName,
     name,
@@ -903,6 +951,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
       identical(this, other) ||
       (other is ProductRecord &&
           other.id == this.id &&
+          other.ownerUserId == this.ownerUserId &&
           other.supplierId == this.supplierId &&
           other.supplierName == this.supplierName &&
           other.name == this.name &&
@@ -928,6 +977,7 @@ class ProductRecord extends DataClass implements Insertable<ProductRecord> {
 
 class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   final Value<String> id;
+  final Value<String?> ownerUserId;
   final Value<String> supplierId;
   final Value<String> supplierName;
   final Value<String> name;
@@ -952,6 +1002,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   final Value<int> rowid;
   const ProductRecordsCompanion({
     this.id = const Value.absent(),
+    this.ownerUserId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
     this.name = const Value.absent(),
@@ -977,6 +1028,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   });
   ProductRecordsCompanion.insert({
     required String id,
+    this.ownerUserId = const Value.absent(),
     required String supplierId,
     required String supplierName,
     required String name,
@@ -1008,6 +1060,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
        updatedAt = Value(updatedAt);
   static Insertable<ProductRecord> custom({
     Expression<String>? id,
+    Expression<String>? ownerUserId,
     Expression<String>? supplierId,
     Expression<String>? supplierName,
     Expression<String>? name,
@@ -1033,6 +1086,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (supplierName != null) 'supplier_name': supplierName,
       if (name != null) 'name': name,
@@ -1060,6 +1114,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
 
   ProductRecordsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? ownerUserId,
     Value<String>? supplierId,
     Value<String>? supplierName,
     Value<String>? name,
@@ -1085,6 +1140,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   }) {
     return ProductRecordsCompanion(
       id: id ?? this.id,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
       supplierId: supplierId ?? this.supplierId,
       supplierName: supplierName ?? this.supplierName,
       name: name ?? this.name,
@@ -1115,6 +1171,9 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
     }
     if (supplierId.present) {
       map['supplier_id'] = Variable<String>(supplierId.value);
@@ -1189,6 +1248,7 @@ class ProductRecordsCompanion extends UpdateCompanion<ProductRecord> {
   String toString() {
     return (StringBuffer('ProductRecordsCompanion(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
           ..write('name: $name, ')
@@ -1247,6 +1307,17 @@ class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _supplierIdMeta = const VerificationMeta(
     'supplierId',
@@ -1439,6 +1510,7 @@ class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
   List<GeneratedColumn> get $columns => [
     idempotencyKey,
     clientProductId,
+    ownerUserId,
     supplierId,
     supplierName,
     name,
@@ -1490,6 +1562,15 @@ class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
       );
     } else if (isInserting) {
       context.missing(_clientProductIdMeta);
+    }
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
     }
     if (data.containsKey('supplier_id')) {
       context.handle(
@@ -1636,7 +1717,7 @@ class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
   Set<GeneratedColumn> get $primaryKey => {idempotencyKey};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-    {clientProductId},
+    {ownerUserId, clientProductId},
   ];
   @override
   ProductPublishAttemptRecord map(
@@ -1653,6 +1734,10 @@ class $ProductPublishAttemptRecordsTable extends ProductPublishAttemptRecords
         DriftSqlType.string,
         data['${effectivePrefix}client_product_id'],
       )!,
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      ),
       supplierId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}supplier_id'],
@@ -1736,6 +1821,9 @@ class ProductPublishAttemptRecord extends DataClass
 
   /// Temporary client-side identity of the logical publication.
   final String clientProductId;
+
+  /// NULL identifies historical attempts with unknown ownership.
+  final String? ownerUserId;
   final String supplierId;
   final String supplierName;
   final String name;
@@ -1759,6 +1847,7 @@ class ProductPublishAttemptRecord extends DataClass
   const ProductPublishAttemptRecord({
     required this.idempotencyKey,
     required this.clientProductId,
+    this.ownerUserId,
     required this.supplierId,
     required this.supplierName,
     required this.name,
@@ -1782,6 +1871,9 @@ class ProductPublishAttemptRecord extends DataClass
     final map = <String, Expression>{};
     map['idempotency_key'] = Variable<String>(idempotencyKey);
     map['client_product_id'] = Variable<String>(clientProductId);
+    if (!nullToAbsent || ownerUserId != null) {
+      map['owner_user_id'] = Variable<String>(ownerUserId);
+    }
     map['supplier_id'] = Variable<String>(supplierId);
     map['supplier_name'] = Variable<String>(supplierName);
     map['name'] = Variable<String>(name);
@@ -1814,6 +1906,9 @@ class ProductPublishAttemptRecord extends DataClass
     return ProductPublishAttemptRecordsCompanion(
       idempotencyKey: Value(idempotencyKey),
       clientProductId: Value(clientProductId),
+      ownerUserId: ownerUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUserId),
       supplierId: Value(supplierId),
       supplierName: Value(supplierName),
       name: Value(name),
@@ -1850,6 +1945,7 @@ class ProductPublishAttemptRecord extends DataClass
     return ProductPublishAttemptRecord(
       idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
       clientProductId: serializer.fromJson<String>(json['clientProductId']),
+      ownerUserId: serializer.fromJson<String?>(json['ownerUserId']),
       supplierId: serializer.fromJson<String>(json['supplierId']),
       supplierName: serializer.fromJson<String>(json['supplierName']),
       name: serializer.fromJson<String>(json['name']),
@@ -1875,6 +1971,7 @@ class ProductPublishAttemptRecord extends DataClass
     return <String, dynamic>{
       'idempotencyKey': serializer.toJson<String>(idempotencyKey),
       'clientProductId': serializer.toJson<String>(clientProductId),
+      'ownerUserId': serializer.toJson<String?>(ownerUserId),
       'supplierId': serializer.toJson<String>(supplierId),
       'supplierName': serializer.toJson<String>(supplierName),
       'name': serializer.toJson<String>(name),
@@ -1898,6 +1995,7 @@ class ProductPublishAttemptRecord extends DataClass
   ProductPublishAttemptRecord copyWith({
     String? idempotencyKey,
     String? clientProductId,
+    Value<String?> ownerUserId = const Value.absent(),
     String? supplierId,
     String? supplierName,
     String? name,
@@ -1918,6 +2016,7 @@ class ProductPublishAttemptRecord extends DataClass
   }) => ProductPublishAttemptRecord(
     idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     clientProductId: clientProductId ?? this.clientProductId,
+    ownerUserId: ownerUserId.present ? ownerUserId.value : this.ownerUserId,
     supplierId: supplierId ?? this.supplierId,
     supplierName: supplierName ?? this.supplierName,
     name: name ?? this.name,
@@ -1952,6 +2051,9 @@ class ProductPublishAttemptRecord extends DataClass
       clientProductId: data.clientProductId.present
           ? data.clientProductId.value
           : this.clientProductId,
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
       supplierId: data.supplierId.present
           ? data.supplierId.value
           : this.supplierId,
@@ -1991,6 +2093,7 @@ class ProductPublishAttemptRecord extends DataClass
     return (StringBuffer('ProductPublishAttemptRecord(')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('clientProductId: $clientProductId, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
           ..write('name: $name, ')
@@ -2016,6 +2119,7 @@ class ProductPublishAttemptRecord extends DataClass
   int get hashCode => Object.hash(
     idempotencyKey,
     clientProductId,
+    ownerUserId,
     supplierId,
     supplierName,
     name,
@@ -2040,6 +2144,7 @@ class ProductPublishAttemptRecord extends DataClass
       (other is ProductPublishAttemptRecord &&
           other.idempotencyKey == this.idempotencyKey &&
           other.clientProductId == this.clientProductId &&
+          other.ownerUserId == this.ownerUserId &&
           other.supplierId == this.supplierId &&
           other.supplierName == this.supplierName &&
           other.name == this.name &&
@@ -2063,6 +2168,7 @@ class ProductPublishAttemptRecordsCompanion
     extends UpdateCompanion<ProductPublishAttemptRecord> {
   final Value<String> idempotencyKey;
   final Value<String> clientProductId;
+  final Value<String?> ownerUserId;
   final Value<String> supplierId;
   final Value<String> supplierName;
   final Value<String> name;
@@ -2084,6 +2190,7 @@ class ProductPublishAttemptRecordsCompanion
   const ProductPublishAttemptRecordsCompanion({
     this.idempotencyKey = const Value.absent(),
     this.clientProductId = const Value.absent(),
+    this.ownerUserId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
     this.name = const Value.absent(),
@@ -2106,6 +2213,7 @@ class ProductPublishAttemptRecordsCompanion
   ProductPublishAttemptRecordsCompanion.insert({
     required String idempotencyKey,
     required String clientProductId,
+    this.ownerUserId = const Value.absent(),
     required String supplierId,
     required String supplierName,
     required String name,
@@ -2138,6 +2246,7 @@ class ProductPublishAttemptRecordsCompanion
   static Insertable<ProductPublishAttemptRecord> custom({
     Expression<String>? idempotencyKey,
     Expression<String>? clientProductId,
+    Expression<String>? ownerUserId,
     Expression<String>? supplierId,
     Expression<String>? supplierName,
     Expression<String>? name,
@@ -2160,6 +2269,7 @@ class ProductPublishAttemptRecordsCompanion
     return RawValuesInsertable({
       if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (clientProductId != null) 'client_product_id': clientProductId,
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (supplierName != null) 'supplier_name': supplierName,
       if (name != null) 'name': name,
@@ -2184,6 +2294,7 @@ class ProductPublishAttemptRecordsCompanion
   ProductPublishAttemptRecordsCompanion copyWith({
     Value<String>? idempotencyKey,
     Value<String>? clientProductId,
+    Value<String?>? ownerUserId,
     Value<String>? supplierId,
     Value<String>? supplierName,
     Value<String>? name,
@@ -2206,6 +2317,7 @@ class ProductPublishAttemptRecordsCompanion
     return ProductPublishAttemptRecordsCompanion(
       idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       clientProductId: clientProductId ?? this.clientProductId,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
       supplierId: supplierId ?? this.supplierId,
       supplierName: supplierName ?? this.supplierName,
       name: name ?? this.name,
@@ -2235,6 +2347,9 @@ class ProductPublishAttemptRecordsCompanion
     }
     if (clientProductId.present) {
       map['client_product_id'] = Variable<String>(clientProductId.value);
+    }
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
     }
     if (supplierId.present) {
       map['supplier_id'] = Variable<String>(supplierId.value);
@@ -2298,6 +2413,7 @@ class ProductPublishAttemptRecordsCompanion
     return (StringBuffer('ProductPublishAttemptRecordsCompanion(')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('clientProductId: $clientProductId, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
           ..write('name: $name, ')
@@ -3303,6 +3419,17 @@ class $OrderRecordsTable extends OrderRecords
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -3360,6 +3487,7 @@ class $OrderRecordsTable extends OrderRecords
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    ownerUserId,
     status,
     aggregateStatus,
     notes,
@@ -3382,6 +3510,15 @@ class $OrderRecordsTable extends OrderRecords
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -3433,6 +3570,10 @@ class $OrderRecordsTable extends OrderRecords
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -3464,6 +3605,9 @@ class $OrderRecordsTable extends OrderRecords
 
 class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   final String id;
+
+  /// Null is reserved for legacy records with unknown ownership.
+  final String? ownerUserId;
   final String status;
   final String aggregateStatus;
   final String notes;
@@ -3471,6 +3615,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   final DateTime updatedAt;
   const OrderRecord({
     required this.id,
+    this.ownerUserId,
     required this.status,
     required this.aggregateStatus,
     required this.notes,
@@ -3481,6 +3626,9 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || ownerUserId != null) {
+      map['owner_user_id'] = Variable<String>(ownerUserId);
+    }
     map['status'] = Variable<String>(status);
     map['aggregate_status'] = Variable<String>(aggregateStatus);
     map['notes'] = Variable<String>(notes);
@@ -3492,6 +3640,9 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   OrderRecordsCompanion toCompanion(bool nullToAbsent) {
     return OrderRecordsCompanion(
       id: Value(id),
+      ownerUserId: ownerUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUserId),
       status: Value(status),
       aggregateStatus: Value(aggregateStatus),
       notes: Value(notes),
@@ -3507,6 +3658,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return OrderRecord(
       id: serializer.fromJson<String>(json['id']),
+      ownerUserId: serializer.fromJson<String?>(json['ownerUserId']),
       status: serializer.fromJson<String>(json['status']),
       aggregateStatus: serializer.fromJson<String>(json['aggregateStatus']),
       notes: serializer.fromJson<String>(json['notes']),
@@ -3519,6 +3671,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'ownerUserId': serializer.toJson<String?>(ownerUserId),
       'status': serializer.toJson<String>(status),
       'aggregateStatus': serializer.toJson<String>(aggregateStatus),
       'notes': serializer.toJson<String>(notes),
@@ -3529,6 +3682,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
 
   OrderRecord copyWith({
     String? id,
+    Value<String?> ownerUserId = const Value.absent(),
     String? status,
     String? aggregateStatus,
     String? notes,
@@ -3536,6 +3690,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
     DateTime? updatedAt,
   }) => OrderRecord(
     id: id ?? this.id,
+    ownerUserId: ownerUserId.present ? ownerUserId.value : this.ownerUserId,
     status: status ?? this.status,
     aggregateStatus: aggregateStatus ?? this.aggregateStatus,
     notes: notes ?? this.notes,
@@ -3545,6 +3700,9 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   OrderRecord copyWithCompanion(OrderRecordsCompanion data) {
     return OrderRecord(
       id: data.id.present ? data.id.value : this.id,
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
       status: data.status.present ? data.status.value : this.status,
       aggregateStatus: data.aggregateStatus.present
           ? data.aggregateStatus.value
@@ -3559,6 +3717,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   String toString() {
     return (StringBuffer('OrderRecord(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('status: $status, ')
           ..write('aggregateStatus: $aggregateStatus, ')
           ..write('notes: $notes, ')
@@ -3569,13 +3728,21 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, status, aggregateStatus, notes, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    ownerUserId,
+    status,
+    aggregateStatus,
+    notes,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is OrderRecord &&
           other.id == this.id &&
+          other.ownerUserId == this.ownerUserId &&
           other.status == this.status &&
           other.aggregateStatus == this.aggregateStatus &&
           other.notes == this.notes &&
@@ -3585,6 +3752,7 @@ class OrderRecord extends DataClass implements Insertable<OrderRecord> {
 
 class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   final Value<String> id;
+  final Value<String?> ownerUserId;
   final Value<String> status;
   final Value<String> aggregateStatus;
   final Value<String> notes;
@@ -3593,6 +3761,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   final Value<int> rowid;
   const OrderRecordsCompanion({
     this.id = const Value.absent(),
+    this.ownerUserId = const Value.absent(),
     this.status = const Value.absent(),
     this.aggregateStatus = const Value.absent(),
     this.notes = const Value.absent(),
@@ -3602,6 +3771,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   });
   OrderRecordsCompanion.insert({
     required String id,
+    this.ownerUserId = const Value.absent(),
     this.status = const Value.absent(),
     this.aggregateStatus = const Value.absent(),
     this.notes = const Value.absent(),
@@ -3613,6 +3783,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
        updatedAt = Value(updatedAt);
   static Insertable<OrderRecord> custom({
     Expression<String>? id,
+    Expression<String>? ownerUserId,
     Expression<String>? status,
     Expression<String>? aggregateStatus,
     Expression<String>? notes,
@@ -3622,6 +3793,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
       if (status != null) 'status': status,
       if (aggregateStatus != null) 'aggregate_status': aggregateStatus,
       if (notes != null) 'notes': notes,
@@ -3633,6 +3805,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
 
   OrderRecordsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? ownerUserId,
     Value<String>? status,
     Value<String>? aggregateStatus,
     Value<String>? notes,
@@ -3642,6 +3815,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   }) {
     return OrderRecordsCompanion(
       id: id ?? this.id,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
       status: status ?? this.status,
       aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       notes: notes ?? this.notes,
@@ -3656,6 +3830,9 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -3682,6 +3859,7 @@ class OrderRecordsCompanion extends UpdateCompanion<OrderRecord> {
   String toString() {
     return (StringBuffer('OrderRecordsCompanion(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('status: $status, ')
           ..write('aggregateStatus: $aggregateStatus, ')
           ..write('notes: $notes, ')
@@ -6105,6 +6283,17 @@ class $SyncOperationsTable extends SyncOperations
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _entityTypeMeta = const VerificationMeta(
     'entityType',
   );
@@ -6208,6 +6397,7 @@ class $SyncOperationsTable extends SyncOperations
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    ownerUserId,
     entityType,
     entityId,
     operation,
@@ -6234,6 +6424,15 @@ class $SyncOperationsTable extends SyncOperations
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
     }
     if (data.containsKey('entity_type')) {
       context.handle(
@@ -6318,6 +6517,10 @@ class $SyncOperationsTable extends SyncOperations
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      ),
       entityType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}entity_type'],
@@ -6365,6 +6568,9 @@ class $SyncOperationsTable extends SyncOperations
 
 class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   final String id;
+
+  /// Null is reserved for legacy records with unknown ownership.
+  final String? ownerUserId;
   final String entityType;
   final String entityId;
   final String operation;
@@ -6381,6 +6587,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   final DateTime createdAt;
   const SyncOperation({
     required this.id,
+    this.ownerUserId,
     required this.entityType,
     required this.entityId,
     required this.operation,
@@ -6395,6 +6602,9 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || ownerUserId != null) {
+      map['owner_user_id'] = Variable<String>(ownerUserId);
+    }
     map['entity_type'] = Variable<String>(entityType);
     map['entity_id'] = Variable<String>(entityId);
     map['operation'] = Variable<String>(operation);
@@ -6414,6 +6624,9 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   SyncOperationsCompanion toCompanion(bool nullToAbsent) {
     return SyncOperationsCompanion(
       id: Value(id),
+      ownerUserId: ownerUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUserId),
       entityType: Value(entityType),
       entityId: Value(entityId),
       operation: Value(operation),
@@ -6437,6 +6650,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SyncOperation(
       id: serializer.fromJson<String>(json['id']),
+      ownerUserId: serializer.fromJson<String?>(json['ownerUserId']),
       entityType: serializer.fromJson<String>(json['entityType']),
       entityId: serializer.fromJson<String>(json['entityId']),
       operation: serializer.fromJson<String>(json['operation']),
@@ -6453,6 +6667,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'ownerUserId': serializer.toJson<String?>(ownerUserId),
       'entityType': serializer.toJson<String>(entityType),
       'entityId': serializer.toJson<String>(entityId),
       'operation': serializer.toJson<String>(operation),
@@ -6467,6 +6682,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
 
   SyncOperation copyWith({
     String? id,
+    Value<String?> ownerUserId = const Value.absent(),
     String? entityType,
     String? entityId,
     String? operation,
@@ -6478,6 +6694,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
     DateTime? createdAt,
   }) => SyncOperation(
     id: id ?? this.id,
+    ownerUserId: ownerUserId.present ? ownerUserId.value : this.ownerUserId,
     entityType: entityType ?? this.entityType,
     entityId: entityId ?? this.entityId,
     operation: operation ?? this.operation,
@@ -6493,6 +6710,9 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   SyncOperation copyWithCompanion(SyncOperationsCompanion data) {
     return SyncOperation(
       id: data.id.present ? data.id.value : this.id,
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
       entityType: data.entityType.present
           ? data.entityType.value
           : this.entityType,
@@ -6515,6 +6735,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   String toString() {
     return (StringBuffer('SyncOperation(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
@@ -6531,6 +6752,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
   @override
   int get hashCode => Object.hash(
     id,
+    ownerUserId,
     entityType,
     entityId,
     operation,
@@ -6546,6 +6768,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
       identical(this, other) ||
       (other is SyncOperation &&
           other.id == this.id &&
+          other.ownerUserId == this.ownerUserId &&
           other.entityType == this.entityType &&
           other.entityId == this.entityId &&
           other.operation == this.operation &&
@@ -6559,6 +6782,7 @@ class SyncOperation extends DataClass implements Insertable<SyncOperation> {
 
 class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   final Value<String> id;
+  final Value<String?> ownerUserId;
   final Value<String> entityType;
   final Value<String> entityId;
   final Value<String> operation;
@@ -6571,6 +6795,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   final Value<int> rowid;
   const SyncOperationsCompanion({
     this.id = const Value.absent(),
+    this.ownerUserId = const Value.absent(),
     this.entityType = const Value.absent(),
     this.entityId = const Value.absent(),
     this.operation = const Value.absent(),
@@ -6584,6 +6809,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   });
   SyncOperationsCompanion.insert({
     required String id,
+    this.ownerUserId = const Value.absent(),
     required String entityType,
     required String entityId,
     required String operation,
@@ -6602,6 +6828,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
        createdAt = Value(createdAt);
   static Insertable<SyncOperation> custom({
     Expression<String>? id,
+    Expression<String>? ownerUserId,
     Expression<String>? entityType,
     Expression<String>? entityId,
     Expression<String>? operation,
@@ -6615,6 +6842,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
       if (entityType != null) 'entity_type': entityType,
       if (entityId != null) 'entity_id': entityId,
       if (operation != null) 'operation': operation,
@@ -6630,6 +6858,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
 
   SyncOperationsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? ownerUserId,
     Value<String>? entityType,
     Value<String>? entityId,
     Value<String>? operation,
@@ -6643,6 +6872,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   }) {
     return SyncOperationsCompanion(
       id: id ?? this.id,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
       entityType: entityType ?? this.entityType,
       entityId: entityId ?? this.entityId,
       operation: operation ?? this.operation,
@@ -6661,6 +6891,9 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
     }
     if (entityType.present) {
       map['entity_type'] = Variable<String>(entityType.value);
@@ -6699,6 +6932,7 @@ class SyncOperationsCompanion extends UpdateCompanion<SyncOperation> {
   String toString() {
     return (StringBuffer('SyncOperationsCompanion(')
           ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
@@ -6761,6 +6995,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$ProductRecordsTableCreateCompanionBuilder =
     ProductRecordsCompanion Function({
       required String id,
+      Value<String?> ownerUserId,
       required String supplierId,
       required String supplierName,
       required String name,
@@ -6787,6 +7022,7 @@ typedef $$ProductRecordsTableCreateCompanionBuilder =
 typedef $$ProductRecordsTableUpdateCompanionBuilder =
     ProductRecordsCompanion Function({
       Value<String> id,
+      Value<String?> ownerUserId,
       Value<String> supplierId,
       Value<String> supplierName,
       Value<String> name,
@@ -6822,6 +7058,11 @@ class $$ProductRecordsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6945,6 +7186,11 @@ class $$ProductRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
     builder: (column) => ColumnOrderings(column),
@@ -7062,6 +7308,11 @@ class $$ProductRecordsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
@@ -7181,6 +7432,7 @@ class $$ProductRecordsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> ownerUserId = const Value.absent(),
                 Value<String> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -7205,6 +7457,7 @@ class $$ProductRecordsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProductRecordsCompanion(
                 id: id,
+                ownerUserId: ownerUserId,
                 supplierId: supplierId,
                 supplierName: supplierName,
                 name: name,
@@ -7231,6 +7484,7 @@ class $$ProductRecordsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> ownerUserId = const Value.absent(),
                 required String supplierId,
                 required String supplierName,
                 required String name,
@@ -7255,6 +7509,7 @@ class $$ProductRecordsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProductRecordsCompanion.insert(
                 id: id,
+                ownerUserId: ownerUserId,
                 supplierId: supplierId,
                 supplierName: supplierName,
                 name: name,
@@ -7307,6 +7562,7 @@ typedef $$ProductPublishAttemptRecordsTableCreateCompanionBuilder =
     ProductPublishAttemptRecordsCompanion Function({
       required String idempotencyKey,
       required String clientProductId,
+      Value<String?> ownerUserId,
       required String supplierId,
       required String supplierName,
       required String name,
@@ -7330,6 +7586,7 @@ typedef $$ProductPublishAttemptRecordsTableUpdateCompanionBuilder =
     ProductPublishAttemptRecordsCompanion Function({
       Value<String> idempotencyKey,
       Value<String> clientProductId,
+      Value<String?> ownerUserId,
       Value<String> supplierId,
       Value<String> supplierName,
       Value<String> name,
@@ -7366,6 +7623,11 @@ class $$ProductPublishAttemptRecordsTableFilterComposer
 
   ColumnFilters<String> get clientProductId => $composableBuilder(
     column: $table.clientProductId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7474,6 +7736,11 @@ class $$ProductPublishAttemptRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
     builder: (column) => ColumnOrderings(column),
@@ -7576,6 +7843,11 @@ class $$ProductPublishAttemptRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get clientProductId => $composableBuilder(
     column: $table.clientProductId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
     builder: (column) => column,
   );
 
@@ -7693,6 +7965,7 @@ class $$ProductPublishAttemptRecordsTableTableManager
               ({
                 Value<String> idempotencyKey = const Value.absent(),
                 Value<String> clientProductId = const Value.absent(),
+                Value<String?> ownerUserId = const Value.absent(),
                 Value<String> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -7714,6 +7987,7 @@ class $$ProductPublishAttemptRecordsTableTableManager
               }) => ProductPublishAttemptRecordsCompanion(
                 idempotencyKey: idempotencyKey,
                 clientProductId: clientProductId,
+                ownerUserId: ownerUserId,
                 supplierId: supplierId,
                 supplierName: supplierName,
                 name: name,
@@ -7737,6 +8011,7 @@ class $$ProductPublishAttemptRecordsTableTableManager
               ({
                 required String idempotencyKey,
                 required String clientProductId,
+                Value<String?> ownerUserId = const Value.absent(),
                 required String supplierId,
                 required String supplierName,
                 required String name,
@@ -7758,6 +8033,7 @@ class $$ProductPublishAttemptRecordsTableTableManager
               }) => ProductPublishAttemptRecordsCompanion.insert(
                 idempotencyKey: idempotencyKey,
                 clientProductId: clientProductId,
+                ownerUserId: ownerUserId,
                 supplierId: supplierId,
                 supplierName: supplierName,
                 name: name,
@@ -8270,6 +8546,7 @@ typedef $$ProductDiscoveryRecordsTableProcessedTableManager =
 typedef $$OrderRecordsTableCreateCompanionBuilder =
     OrderRecordsCompanion Function({
       required String id,
+      Value<String?> ownerUserId,
       Value<String> status,
       Value<String> aggregateStatus,
       Value<String> notes,
@@ -8280,6 +8557,7 @@ typedef $$OrderRecordsTableCreateCompanionBuilder =
 typedef $$OrderRecordsTableUpdateCompanionBuilder =
     OrderRecordsCompanion Function({
       Value<String> id,
+      Value<String?> ownerUserId,
       Value<String> status,
       Value<String> aggregateStatus,
       Value<String> notes,
@@ -8324,6 +8602,11 @@ class $$OrderRecordsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8392,6 +8675,11 @@ class $$OrderRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -8429,6 +8717,11 @@ class $$OrderRecordsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -8502,6 +8795,7 @@ class $$OrderRecordsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> ownerUserId = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String> aggregateStatus = const Value.absent(),
                 Value<String> notes = const Value.absent(),
@@ -8510,6 +8804,7 @@ class $$OrderRecordsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => OrderRecordsCompanion(
                 id: id,
+                ownerUserId: ownerUserId,
                 status: status,
                 aggregateStatus: aggregateStatus,
                 notes: notes,
@@ -8520,6 +8815,7 @@ class $$OrderRecordsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> ownerUserId = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String> aggregateStatus = const Value.absent(),
                 Value<String> notes = const Value.absent(),
@@ -8528,6 +8824,7 @@ class $$OrderRecordsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => OrderRecordsCompanion.insert(
                 id: id,
+                ownerUserId: ownerUserId,
                 status: status,
                 aggregateStatus: aggregateStatus,
                 notes: notes,
@@ -9868,6 +10165,7 @@ typedef $$NotificationRecordsTableProcessedTableManager =
 typedef $$SyncOperationsTableCreateCompanionBuilder =
     SyncOperationsCompanion Function({
       required String id,
+      Value<String?> ownerUserId,
       required String entityType,
       required String entityId,
       required String operation,
@@ -9882,6 +10180,7 @@ typedef $$SyncOperationsTableCreateCompanionBuilder =
 typedef $$SyncOperationsTableUpdateCompanionBuilder =
     SyncOperationsCompanion Function({
       Value<String> id,
+      Value<String?> ownerUserId,
       Value<String> entityType,
       Value<String> entityId,
       Value<String> operation,
@@ -9905,6 +10204,11 @@ class $$SyncOperationsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9968,6 +10272,11 @@ class $$SyncOperationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get entityType => $composableBuilder(
     column: $table.entityType,
     builder: (column) => ColumnOrderings(column),
@@ -10025,6 +10334,11 @@ class $$SyncOperationsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get entityType => $composableBuilder(
     column: $table.entityType,
@@ -10094,6 +10408,7 @@ class $$SyncOperationsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> ownerUserId = const Value.absent(),
                 Value<String> entityType = const Value.absent(),
                 Value<String> entityId = const Value.absent(),
                 Value<String> operation = const Value.absent(),
@@ -10106,6 +10421,7 @@ class $$SyncOperationsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SyncOperationsCompanion(
                 id: id,
+                ownerUserId: ownerUserId,
                 entityType: entityType,
                 entityId: entityId,
                 operation: operation,
@@ -10120,6 +10436,7 @@ class $$SyncOperationsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> ownerUserId = const Value.absent(),
                 required String entityType,
                 required String entityId,
                 required String operation,
@@ -10132,6 +10449,7 @@ class $$SyncOperationsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SyncOperationsCompanion.insert(
                 id: id,
+                ownerUserId: ownerUserId,
                 entityType: entityType,
                 entityId: entityId,
                 operation: operation,

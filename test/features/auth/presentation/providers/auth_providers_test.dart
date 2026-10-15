@@ -22,8 +22,10 @@ import 'package:talbatiyk/core/network/network_providers.dart';
 import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storage.dart';
 import 'package:talbatiyk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:talbatiyk/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
 import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
 import 'package:talbatiyk/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
 import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
 import 'package:talbatiyk/features/auth/presentation/states/auth_state.dart';
 
@@ -92,6 +94,90 @@ void main() {
       expect(controller.state.isAuthenticated, isFalse);
 
       expect(secureStorage.readCalled, isTrue);
+    },
+  );
+  test(
+    'session fence uses authenticated state and rejects signing out',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          generatedApiClientProvider.overrideWithValue(
+            GeneratedApiClient.create(baseUrl: 'http://127.0.0.1:8000/api/v1'),
+          ),
+          secureKeyValueStoreProvider.overrideWithValue(
+            FakeSecureKeyValueStore(),
+          ),
+        ],
+      );
+
+      addTearDown(container.dispose);
+
+      final controller = container.read(authProvider);
+
+      // No stored token: no network request is performed.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.state.isAuthenticated, isFalse);
+
+      final fence = container.read(accountSessionFenceProvider);
+
+      expect(fence.capture, throwsStateError);
+
+      const sessionA = AuthSessionEntity(
+        user: AuthUserEntity(
+          id: 'account-A',
+          username: 'user-a',
+          displayName: 'Account A',
+          status: 'active',
+          lastLoginAt: null,
+          contacts: <AuthContactEntity>[],
+        ),
+      );
+
+      // Inject a controlled authenticated state for this integration test.
+      controller.state = const AuthState(
+        status: AuthStatus.authenticated,
+        session: sessionA,
+      );
+
+      final leaseA = fence.capture();
+
+      expect(leaseA.ownerUserId, 'account-A');
+      expect(leaseA.isCurrent, isTrue);
+
+      // AuthController retains the session object temporarily
+      // when sign-out begins. It must already be considered invalid.
+      controller.state = const AuthState(
+        status: AuthStatus.signingOut,
+        session: sessionA,
+      );
+
+      expect(leaseA.isCurrent, isFalse);
+      expect(leaseA.ensureCurrent, throwsStateError);
+      expect(fence.capture, throwsStateError);
+
+      const sessionB = AuthSessionEntity(
+        user: AuthUserEntity(
+          id: 'account-B',
+          username: 'user-b',
+          displayName: 'Account B',
+          status: 'active',
+          lastLoginAt: null,
+          contacts: <AuthContactEntity>[],
+        ),
+      );
+
+      controller.state = const AuthState(
+        status: AuthStatus.authenticated,
+        session: sessionB,
+      );
+
+      expect(leaseA.isCurrent, isFalse);
+
+      final leaseB = fence.capture();
+
+      expect(leaseB.ownerUserId, 'account-B');
+      expect(leaseB.isCurrent, isTrue);
     },
   );
 }

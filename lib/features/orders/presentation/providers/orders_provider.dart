@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/database_provider.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/account_session_fence_provider.dart';
 import '../../../auth/presentation/states/auth_state.dart';
 import '../../data/datasources/local/orders_local_datasource.dart';
 import '../../data/datasources/orders_datasource.dart';
@@ -14,21 +15,22 @@ import '../../domain/usecases/orders_usecase.dart';
 import '../../data/sync/orders_sync_coordinator.dart';
 import '../controllers/orders_controller.dart';
 
-final orderIdTransitionRegistryProvider =
-    Provider<OrderIdTransitionRegistry>((ref) {
+final orderIdTransitionRegistryProvider = Provider<OrderIdTransitionRegistry>((
+  ref,
+) {
   final registry = OrderIdTransitionRegistry();
 
-  ref.listen<AuthState>(
-    authProvider.select((controller) => controller.state),
-    (previous, current) {
-      if ((previous?.isAuthenticated == true && !current.isAuthenticated) ||
-          (previous?.user?.id != null &&
-              current.user?.id != null &&
-              previous!.user!.id != current.user!.id)) {
-        registry.clear();
-      }
-    },
-  );
+  ref.listen<AuthState>(authProvider.select((controller) => controller.state), (
+    previous,
+    current,
+  ) {
+    if ((previous?.isAuthenticated == true && !current.isAuthenticated) ||
+        (previous?.user?.id != null &&
+            current.user?.id != null &&
+            previous!.user!.id != current.user!.id)) {
+      registry.clear();
+    }
+  });
 
   ref.onDispose(registry.clear);
 
@@ -36,7 +38,10 @@ final orderIdTransitionRegistryProvider =
 });
 
 final ordersLocalDataSourceProvider = Provider<OrdersLocalDataSource>((ref) {
-  return OrdersLocalDataSource(ref.watch(appDatabaseProvider));
+  return OrdersLocalDataSource(
+    ref.watch(appDatabaseProvider),
+    sessionFence: ref.watch(accountSessionFenceProvider),
+  );
 });
 
 /// Local orders remain the source of truth for reads.
@@ -46,6 +51,7 @@ final ordersDataSourceProvider = Provider<OrdersDataSource>((ref) {
 
 final ordersSyncCoordinatorProvider = Provider<OrdersSyncCoordinator>((ref) {
   return OrdersSyncCoordinator(
+    sessionFence: ref.watch(accountSessionFenceProvider),
     database: ref.watch(appDatabaseProvider),
     localDataSource: ref.watch(ordersLocalDataSourceProvider),
     remoteDataSource: ref.watch(ordersRemoteDataSourceProvider),
@@ -66,6 +72,7 @@ final ordersRemoteDataSourceProvider = Provider<OrdersDataSource>((ref) {
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepositoryImpl(
     ref.watch(ordersLocalDataSourceProvider),
+    sessionFence: ref.watch(accountSessionFenceProvider),
     remoteDataSource: ref.watch(ordersRemoteDataSourceProvider),
   );
 });

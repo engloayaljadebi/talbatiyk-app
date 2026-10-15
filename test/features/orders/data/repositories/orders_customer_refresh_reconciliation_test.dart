@@ -8,6 +8,7 @@ import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_da
 import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dart';
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
 import 'package:talbatiyk/features/orders/data/repositories/orders_repository_impl.dart';
+import '../../../../support/legacy_order_test_fence.dart';
 
 void main() {
   group('customer orders authoritative refresh', () {
@@ -17,7 +18,10 @@ void main() {
         final database = AppDatabase.forTesting(NativeDatabase.memory());
         addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
+        final local = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         await local.saveOrder(
           _serverOrder(
@@ -64,6 +68,7 @@ void main() {
 
         final repository = OrdersRepositoryImpl(
           local,
+          sessionFence: createLegacyOrderTestFence(),
           remoteDataSource: remote,
         );
 
@@ -104,7 +109,10 @@ void main() {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
       addTearDown(database.close);
 
-      final local = OrdersLocalDataSource(database);
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: createLegacyOrderTestFence(),
+      );
 
       await local.saveOrder(
         _serverOrder(
@@ -124,6 +132,7 @@ void main() {
 
       final repository = OrdersRepositoryImpl(
         local,
+        sessionFence: createLegacyOrderTestFence(),
         remoteDataSource: _FakeRemoteOrdersDataSource(getError: remoteError),
       );
 
@@ -139,7 +148,10 @@ void main() {
         final database = AppDatabase.forTesting(NativeDatabase.memory());
         addTearDown(database.close);
 
-        final local = OrdersLocalDataSource(database);
+        final local = OrdersLocalDataSource(
+          database,
+          sessionFence: createLegacyOrderTestFence(),
+        );
 
         await local.saveOrder(
           _serverOrder(
@@ -162,6 +174,7 @@ void main() {
 
         final repository = OrdersRepositoryImpl(
           local,
+          sessionFence: createLegacyOrderTestFence(),
           remoteDataSource: _FakeRemoteOrdersDataSource(getError: remoteError),
         );
 

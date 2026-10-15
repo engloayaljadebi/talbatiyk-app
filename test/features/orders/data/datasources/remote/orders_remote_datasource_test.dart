@@ -20,6 +20,7 @@ void main() {
           baseUrl: 'http://localhost/api/v1',
         );
 
+        generatedApiClient.setAccessToken('test-only-order-token');
         generatedApiClient.client.dio.httpClientAdapter = adapter;
 
         final dataSource = OrdersRemoteDataSource(
@@ -61,6 +62,7 @@ void main() {
           baseUrl: 'http://localhost/api/v1',
         );
 
+        generatedApiClient.setAccessToken('test-only-order-token');
         generatedApiClient.client.dio.httpClientAdapter = adapter;
 
         final dataSource = OrdersRemoteDataSource(

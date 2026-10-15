@@ -3,11 +3,12 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
+import 'legacy_ownership_schema_fixture.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test('migrates persisted data from v6 through v12 without loss', () async {
+    test('migrates persisted data from v6 through v14 without loss', () async {
       final tempDirectory = await Directory.systemTemp.createTemp(
         'talbatiyk-drift-v6-v7-',
       );
@@ -42,7 +43,7 @@ void main() {
         await database.select(database.orderItemRecords).get();
         await database.select(database.cartItemRecords).get();
 
-        expect(database.schemaVersion, 12);
+        expect(database.schemaVersion, 14);
 
         // v7 table was created by MigrationStrategy and starts empty.
         expect(notifications, isEmpty);
@@ -105,7 +106,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(databaseFile), 12);
+      expect(_readUserVersion(databaseFile), 14);
     });
   });
 }
@@ -131,9 +132,9 @@ Future<void> _createExactV6Fixture(File file) async {
   try {
     final currentVersion = _userVersion(rawDatabase);
 
-    if (currentVersion != 12) {
+    if (currentVersion != 14) {
       throw StateError(
-        'Fixture precondition failed: expected current schema v12, '
+        'Fixture precondition failed: expected current schema v14, '
         'found v$currentVersion.',
       );
     }
@@ -190,6 +191,7 @@ Future<void> _createExactV6Fixture(File file) async {
       ],
     );
 
+    removeV13OwnershipColumnsFromLegacyFixture(rawDatabase);
     rawDatabase.execute('PRAGMA user_version = 6;');
 
     final remainingNotificationTables = rawDatabase.select('''

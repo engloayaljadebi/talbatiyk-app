@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
+import 'legacy_ownership_schema_fixture.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
@@ -67,6 +68,7 @@ void main() {
         );
       }
 
+      removeV13OwnershipColumnsFromLegacyFixture(raw);
       raw.execute('PRAGMA user_version = 9');
       raw.close();
 
@@ -74,7 +76,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 12);
+      expect(upgraded.schemaVersion, 14);
 
       final upgradedColumns = await upgraded
           .customSelect("PRAGMA table_info('product_discovery_records')")
