@@ -179,6 +179,10 @@ class BusinessOnboardingService
             $capabilityAssignments = [];
 
             foreach ($data['capabilities'] as $capabilityCode) {
+                // Supplier capability is granted only after admin approval.
+                if ($capabilityCode === 'supplier') {
+                    continue;
+                }
                 $capabilityAssignments[$capabilityCode] = [
                     /*
                      * المالك الأول هو من فعّل قدرات نشاطه.
@@ -190,6 +194,16 @@ class BusinessOnboardingService
             }
 
             $business->capabilities()->attach($capabilityAssignments);
+
+            // Keep the approval request in the same transaction.
+            if (in_array('supplier', $data['capabilities'], true)) {
+                $business->verifications()->create([
+                    'verification_type_code' => 'supplier_approval',
+                    'requested_by_user_id' => $user->id,
+                    'status' => 'pending',
+                    'requested_at' => now(),
+                ]);
+            }
 
             /*
              * ------------------------------------------------------------
@@ -208,6 +222,7 @@ class BusinessOnboardingService
                 'locations',
                 'contacts',
                 'capabilities',
+                'latestSupplierApproval',
                 'memberships.roles',
             ]);
         });

@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -133,6 +134,14 @@ class Business extends Model
             OrderRecipient::class,
             'supplier_id',
         );
+    }
+
+    public function latestSupplierApproval(): HasOne
+    {
+        return $this->hasOne(Verification::class)
+            ->where('verification_type_code', 'supplier_approval')
+            ->orderByDesc('requested_at')
+            ->orderByDesc('id');
     }
 
     protected function casts(): array

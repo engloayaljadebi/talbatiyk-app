@@ -51,6 +51,13 @@ class BusinessResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status,
 
+            'supplier_approval' => $this->whenLoaded(
+                'latestSupplierApproval',
+                fn (): ?SupplierApprovalResource => $this->latestSupplierApproval === null
+                    ? null
+                    : new SupplierApprovalResource($this->latestSupplierApproval),
+            ),
+
             /*
              * قدرات النشاط:
              *
