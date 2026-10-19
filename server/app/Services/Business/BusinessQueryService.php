@@ -43,6 +43,7 @@ class BusinessQueryService
                     ->where('is_primary', true),
 
                 'capabilities',
+                'latestSupplierApproval',
 
                 /*
                  * نحمل عضوية المستخدم الحالي فقط.
@@ -81,6 +82,7 @@ class BusinessQueryService
                 'locations',
                 'contacts',
                 'capabilities',
+                'latestSupplierApproval',
 
                 'memberships' => fn ($query) => $query
                     ->where('user_id', $user->id)

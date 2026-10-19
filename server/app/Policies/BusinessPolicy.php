@@ -25,9 +25,30 @@ class BusinessPolicy
             ->where('status', 'active')
             ->exists();
 
-        return $hasActiveMembership
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        if (! $hasActiveMembership) {
+            return Response::denyAsNotFound();
+        }
+
+        // Active membership alone never grants supplier permissions.
+        $supplierIsEnabled = $this->hasCurrentSupplierCapability($business);
+
+        if ($supplierIsEnabled) {
+            return Response::allow();
+        }
+
+        // A previously enabled supplier may read existing historical orders.
+        // A never-approved supplier has no previous enabled assignment.
+        $wasPreviouslyEnabled = $business->capabilities()
+            ->where('business_capabilities.code', 'supplier')
+            ->wherePivotNotNull('enabled_at')
+            ->wherePivotNotNull('disabled_at')
+            ->exists();
+
+        if ($wasPreviouslyEnabled && $business->orderRecipients()->exists()) {
+            return Response::allow();
+        }
+
+        return Response::deny('Supplier approval is required.');
     }
 
     /**
@@ -37,7 +58,16 @@ class BusinessPolicy
         User $user,
         Business $business,
     ): Response {
-        return $this->viewReceivedOrders($user, $business);
+        $readAccess = $this->viewReceivedOrders($user, $business);
+
+        if ($readAccess->denied()) {
+            return $readAccess;
+        }
+
+        // Historical read access never restores mutation permission.
+        return $this->hasCurrentSupplierCapability($business)
+            ? Response::allow()
+            : Response::deny('Supplier approval is required.');
     }
 
     /**
@@ -47,6 +77,28 @@ class BusinessPolicy
         User $user,
         Business $business,
     ): Response {
-        return $this->viewReceivedOrders($user, $business);
+        $readAccess = $this->viewReceivedOrders($user, $business);
+
+        if ($readAccess->denied()) {
+            return $readAccess;
+        }
+
+        // Historical read access never restores mutation permission.
+        return $this->hasCurrentSupplierCapability($business)
+            ? Response::allow()
+            : Response::deny('Supplier approval is required.');
+    }
+
+    /**
+     * Current supplier capability, independent of historical inbox access.
+     */
+    private function hasCurrentSupplierCapability(Business $business): bool
+    {
+        return $business->capabilities()
+            ->where('business_capabilities.code', 'supplier')
+            ->whereNull('business_capabilities.retired_at')
+            ->wherePivotNotNull('enabled_at')
+            ->wherePivotNull('disabled_at')
+            ->exists();
     }
 }

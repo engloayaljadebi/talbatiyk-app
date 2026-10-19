@@ -18,8 +18,8 @@ final class ProductsSyncCoordinator {
   ProductsSyncCoordinator({
     required this._localDataSource,
     required this._remoteDataSource,
-    required AccountSessionFence sessionFence,
-  }) : _sessionFence = sessionFence;
+    required this._sessionFence,
+  });
 
   final ProductsLocalDataSource _localDataSource;
   final ProductsMutationRemoteDataSource _remoteDataSource;

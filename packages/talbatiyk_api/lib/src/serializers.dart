@@ -75,6 +75,16 @@ import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request.
 import 'package:talbatiyk_api/src/model/select_order_supplier_responses_request_selections_inner.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request_items_inner.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_approve200_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_approve200_response_data.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_approve_request.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_index200_response.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_index200_response_data_inner.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_index200_response_data_inner_business.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_index200_response_data_inner_requested_by.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_index200_response_meta.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_admin_reject_request.dart';
+import 'package:talbatiyk_api/src/model/supplier_approval_resource.dart';
 import 'package:talbatiyk_api/src/model/supplier_discovery_index200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response.dart';
 import 'package:talbatiyk_api/src/model/supplier_follow_show200_response_data.dart';
@@ -157,6 +167,16 @@ part 'serializers.g.dart';
   SelectOrderSupplierResponsesRequestSelectionsInner,
   SubmitSupplierOrderResponseRequest,
   SubmitSupplierOrderResponseRequestItemsInner,
+  SupplierApprovalAdminApprove200Response,
+  SupplierApprovalAdminApprove200ResponseData,
+  SupplierApprovalAdminApproveRequest,
+  SupplierApprovalAdminIndex200Response,
+  SupplierApprovalAdminIndex200ResponseDataInner,
+  SupplierApprovalAdminIndex200ResponseDataInnerBusiness,
+  SupplierApprovalAdminIndex200ResponseDataInnerRequestedBy,
+  SupplierApprovalAdminIndex200ResponseMeta,
+  SupplierApprovalAdminRejectRequest,
+  SupplierApprovalResource,
   SupplierDiscoveryIndex200Response,
   SupplierFollowShow200Response,
   SupplierFollowShow200ResponseData,

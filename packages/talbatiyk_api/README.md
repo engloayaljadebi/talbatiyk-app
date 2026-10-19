@@ -130,6 +130,9 @@ Class | Method | HTTP request | Description
 [*ProductApi*](doc/ProductApi.md) | [**productStore**](doc/ProductApi.md#productstore) | **POST** /businesses/{business}/products | 
 [*ProductApi*](doc/ProductApi.md) | [**productUpdate**](doc/ProductApi.md#productupdate) | **PUT** /businesses/{business}/products/{product} | 
 [*ProductApi*](doc/ProductApi.md) | [**productUpdateImage**](doc/ProductApi.md#productupdateimage) | **POST** /businesses/{business}/products/{product}/image | 
+[*SupplierApprovalAdminApi*](doc/SupplierApprovalAdminApi.md) | [**supplierApprovalAdminApprove**](doc/SupplierApprovalAdminApi.md#supplierapprovaladminapprove) | **POST** /platform/supplier-approvals/{verification}/approve | Approve exactly one pending supplier application
+[*SupplierApprovalAdminApi*](doc/SupplierApprovalAdminApi.md) | [**supplierApprovalAdminIndex**](doc/SupplierApprovalAdminApi.md#supplierapprovaladminindex) | **GET** /platform/supplier-approvals | List pending supplier applications for authorized platform staff
+[*SupplierApprovalAdminApi*](doc/SupplierApprovalAdminApi.md) | [**supplierApprovalAdminReject**](doc/SupplierApprovalAdminApi.md#supplierapprovaladminreject) | **POST** /platform/supplier-approvals/{verification}/reject | Reject exactly one pending supplier application. A meaningful reason is mandatory
 [*SupplierDiscoveryApi*](doc/SupplierDiscoveryApi.md) | [**supplierDiscoveryIndex**](doc/SupplierDiscoveryApi.md#supplierdiscoveryindex) | **GET** /suppliers | 
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowDestroy**](doc/SupplierFollowApi.md#supplierfollowdestroy) | **DELETE** /businesses/{business}/follow | إلغاء متابعة المورد
 [*SupplierFollowApi*](doc/SupplierFollowApi.md) | [**supplierFollowShow**](doc/SupplierFollowApi.md#supplierfollowshow) | **GET** /businesses/{business}/follow | حالة متابعة المستخدم الحالي للمورد
@@ -202,6 +205,16 @@ Class | Method | HTTP request | Description
  - [SelectOrderSupplierResponsesRequestSelectionsInner](doc/SelectOrderSupplierResponsesRequestSelectionsInner.md)
  - [SubmitSupplierOrderResponseRequest](doc/SubmitSupplierOrderResponseRequest.md)
  - [SubmitSupplierOrderResponseRequestItemsInner](doc/SubmitSupplierOrderResponseRequestItemsInner.md)
+ - [SupplierApprovalAdminApprove200Response](doc/SupplierApprovalAdminApprove200Response.md)
+ - [SupplierApprovalAdminApprove200ResponseData](doc/SupplierApprovalAdminApprove200ResponseData.md)
+ - [SupplierApprovalAdminApproveRequest](doc/SupplierApprovalAdminApproveRequest.md)
+ - [SupplierApprovalAdminIndex200Response](doc/SupplierApprovalAdminIndex200Response.md)
+ - [SupplierApprovalAdminIndex200ResponseDataInner](doc/SupplierApprovalAdminIndex200ResponseDataInner.md)
+ - [SupplierApprovalAdminIndex200ResponseDataInnerBusiness](doc/SupplierApprovalAdminIndex200ResponseDataInnerBusiness.md)
+ - [SupplierApprovalAdminIndex200ResponseDataInnerRequestedBy](doc/SupplierApprovalAdminIndex200ResponseDataInnerRequestedBy.md)
+ - [SupplierApprovalAdminIndex200ResponseMeta](doc/SupplierApprovalAdminIndex200ResponseMeta.md)
+ - [SupplierApprovalAdminRejectRequest](doc/SupplierApprovalAdminRejectRequest.md)
+ - [SupplierApprovalResource](doc/SupplierApprovalResource.md)
  - [SupplierDiscoveryIndex200Response](doc/SupplierDiscoveryIndex200Response.md)
  - [SupplierFollowShow200Response](doc/SupplierFollowShow200Response.md)
  - [SupplierFollowShow200ResponseData](doc/SupplierFollowShow200ResponseData.md)

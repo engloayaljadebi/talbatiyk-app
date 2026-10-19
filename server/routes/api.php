@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\Order\OrderResponseComparisonController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderFulfillmentController;
 use App\Http\Controllers\Api\V1\Order\SupplierOrderResponseController;
+use App\Http\Controllers\Api\V1\Platform\SupplierApprovalAdminController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -101,6 +102,42 @@ Route::prefix('v1')->group(function (): void {
         'throttle:120,1',
         'active.user',
     ])->group(function (): void {
+        /*
+        |--------------------------------------------------------------------------
+        | Platform Supplier Approvals
+        |--------------------------------------------------------------------------
+        |
+        | These actions require:
+        | - Authenticated Sanctum user
+        | - Active user account
+        | - Active, non-revoked platform administrator role
+        |
+        | Business owner/manager roles do not grant this permission.
+        |
+        */
+
+        Route::prefix('platform')
+            ->middleware('can:reviewSupplierApprovals')
+            ->group(function (): void {
+                Route::get(
+                    '/supplier-approvals',
+                    [SupplierApprovalAdminController::class, 'index'],
+                )->middleware('throttle:60,1');
+
+                Route::post(
+                    '/supplier-approvals/{verification}/approve',
+                    [SupplierApprovalAdminController::class, 'approve'],
+                )
+                    ->whereUuid('verification')
+                    ->middleware('throttle:30,1');
+
+                Route::post(
+                    '/supplier-approvals/{verification}/reject',
+                    [SupplierApprovalAdminController::class, 'reject'],
+                )
+                    ->whereUuid('verification')
+                    ->middleware('throttle:30,1');
+            });
         /*
         |--------------------------------------------------------------------------
         | Notifications

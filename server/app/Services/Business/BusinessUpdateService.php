@@ -102,6 +102,7 @@ class BusinessUpdateService
             'locations',
             'contacts',
             'capabilities',
+            'latestSupplierApproval',
 
             'memberships' => fn ($query) => $query
                 ->where('user_id', $user->id)

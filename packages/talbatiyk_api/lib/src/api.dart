@@ -17,6 +17,7 @@ import 'package:talbatiyk_api/src/api/notification_api.dart';
 import 'package:talbatiyk_api/src/api/order_api.dart';
 import 'package:talbatiyk_api/src/api/order_response_comparison_api.dart';
 import 'package:talbatiyk_api/src/api/product_api.dart';
+import 'package:talbatiyk_api/src/api/supplier_approval_admin_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_discovery_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_follow_api.dart';
 import 'package:talbatiyk_api/src/api/supplier_order_api.dart';
@@ -163,6 +164,12 @@ class TalbatiykApi {
   /// by doing that all interceptors will not be executed
   ProductApi getProductApi() {
     return ProductApi(dio, serializers);
+  }
+
+  /// Get SupplierApprovalAdminApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SupplierApprovalAdminApi getSupplierApprovalAdminApi() {
+    return SupplierApprovalAdminApi(dio, serializers);
   }
 
   /// Get SupplierDiscoveryApi instance, base route and serializer can be overridden by a given but be careful,

@@ -30,11 +30,10 @@ final class AccountSessionFence {
 /// user signs back into the same account later.
 final class AccountSessionLease {
   AccountSessionLease._({
-    required AccountSessionFence fence,
-    required AuthSessionEntity session,
+    required this._fence,
+    required this._session,
     required this.ownerUserId,
-  }) : _fence = fence,
-       _session = session;
+  });
 
   final AccountSessionFence _fence;
   final AuthSessionEntity _session;

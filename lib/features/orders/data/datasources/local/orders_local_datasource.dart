@@ -11,8 +11,8 @@ import '../orders_datasource.dart';
 class OrdersLocalDataSource implements OrdersDataSource {
   OrdersLocalDataSource(
     this._database, {
-    required AccountSessionFence sessionFence,
-  }) : _sessionFence = sessionFence;
+    required this._sessionFence,
+  });
 
   final AppDatabase _database;
   final AccountSessionFence _sessionFence;

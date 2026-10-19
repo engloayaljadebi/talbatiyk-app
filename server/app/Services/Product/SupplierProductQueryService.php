@@ -2,9 +2,11 @@
 
 namespace App\Services\Product;
 
+use App\Models\Business;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Business\BusinessAccessService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class SupplierProductQueryService
@@ -31,6 +33,35 @@ class SupplierProductQueryService
             $user,
             $businessId,
         );
+
+        // A business owner or manager must also have supplier
+        // eligibility before accessing supplier product management.
+        $business = Business::query()
+            ->whereKey($businessId)
+            ->where('status', 'active')
+            ->firstOrFail();
+
+        $activeSupplier = $business->capabilities()
+            ->where('business_capabilities.code', 'supplier')
+            ->whereNull('business_capabilities.retired_at')
+            ->wherePivotNotNull('enabled_at')
+            ->wherePivotNull('disabled_at')
+            ->exists();
+
+        // Historical read-only exception. This does not permit
+        // product creation, updates, or deletion.
+        $historicalSupplier = $business->capabilities()
+            ->where('business_capabilities.code', 'supplier')
+            ->wherePivotNotNull('enabled_at')
+            ->wherePivotNotNull('disabled_at')
+            ->exists()
+            && $business->suppliedProducts()->exists();
+
+        if (! $activeSupplier && ! $historicalSupplier) {
+            throw new AuthorizationException(
+                'Supplier approval is required.',
+            );
+        }
 
         $perPage = max(
             1,

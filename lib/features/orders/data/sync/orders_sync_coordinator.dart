@@ -16,8 +16,8 @@ final class OrdersSyncCoordinator {
     required this._localDataSource,
     required this._remoteDataSource,
     this._transitionRegistry,
-    required AccountSessionFence sessionFence,
-  }) : _sessionFence = sessionFence;
+    required this._sessionFence,
+  });
 
   final AppDatabase _database;
   final AccountSessionFence _sessionFence;

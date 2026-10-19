@@ -167,15 +167,20 @@ class BusinessOnboardingApiTest extends TestCase
          *
          * العضوية المنشئة هي التي فعّلت القدرات.
          */
-        $this->assertDatabaseHas(
+        $this->assertDatabaseMissing(
             'business_capability_assignments',
             [
                 'business_id' => $business->id,
                 'capability_code' => 'supplier',
-                'enabled_by_membership_id' => $membership->id,
                 'disabled_at' => null,
             ],
         );
+        $this->assertDatabaseHas('verifications', [
+            'business_id' => $business->id,
+            'verification_type_code' => 'supplier_approval',
+            'requested_by_user_id' => $user->id,
+            'status' => 'pending',
+        ]);
 
         $this->assertDatabaseHas(
             'business_capability_assignments',
