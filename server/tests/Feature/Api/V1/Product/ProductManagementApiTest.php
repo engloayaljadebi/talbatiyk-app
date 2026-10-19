@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\BusinessMembership;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
@@ -51,6 +52,20 @@ class ProductManagementApiTest extends TestCase
             $otherBusiness,
             'Other Supplier Product',
         );
+
+        // Prepare an active supplier for this product management test.
+        $this->seed(BusinessCapabilitySeeder::class);
+
+        $ownerMembership = BusinessMembership::query()
+            ->where('business_id', $business->id)
+            ->where('user_id', $owner->id)
+            ->sole();
+
+        $business->capabilities()->attach('supplier', [
+            'enabled_by_membership_id' => $ownerMembership->id,
+            'enabled_at' => now(),
+            'disabled_at' => null,
+        ]);
 
         Sanctum::actingAs($owner);
 
