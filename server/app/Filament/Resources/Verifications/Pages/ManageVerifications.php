@@ -73,7 +73,7 @@ class ManageVerifications extends ManageRecords
                     $business = app(AdminSupplierCreationService::class)->create($admin, $data);
                     Notification::make()
                         ->title('تم إنشاء المورد وإرسال طلب الاعتماد')
-                        ->body('النشاط: ' . $business->name . ' — بانتظار المراجعة.')
+                        ->body('النشاط: '.$business->name.' — بانتظار المراجعة.')
                         ->success()
                         ->send();
                 }),

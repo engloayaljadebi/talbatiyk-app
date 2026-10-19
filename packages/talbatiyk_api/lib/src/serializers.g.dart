@@ -76,6 +76,17 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(SelectOrderSupplierResponsesRequestSelectionsInner.serializer)
       ..add(SubmitSupplierOrderResponseRequest.serializer)
       ..add(SubmitSupplierOrderResponseRequestItemsInner.serializer)
+      ..add(SupplierApprovalAdminApprove200Response.serializer)
+      ..add(SupplierApprovalAdminApprove200ResponseData.serializer)
+      ..add(SupplierApprovalAdminApproveRequest.serializer)
+      ..add(SupplierApprovalAdminIndex200Response.serializer)
+      ..add(SupplierApprovalAdminIndex200ResponseDataInner.serializer)
+      ..add(SupplierApprovalAdminIndex200ResponseDataInnerBusiness.serializer)
+      ..add(
+          SupplierApprovalAdminIndex200ResponseDataInnerRequestedBy.serializer)
+      ..add(SupplierApprovalAdminIndex200ResponseMeta.serializer)
+      ..add(SupplierApprovalAdminRejectRequest.serializer)
+      ..add(SupplierApprovalResource.serializer)
       ..add(SupplierDiscoveryIndex200Response.serializer)
       ..add(SupplierFollowShow200Response.serializer)
       ..add(SupplierFollowShow200ResponseData.serializer)
@@ -167,6 +178,11 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(SubmitSupplierOrderResponseRequestItemsInner)
           ]),
           () => ListBuilder<SubmitSupplierOrderResponseRequestItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(SupplierApprovalAdminIndex200ResponseDataInner)
+          ]),
+          () => ListBuilder<SupplierApprovalAdminIndex200ResponseDataInner>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(SupplierSummaryResource)]),

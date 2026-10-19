@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:talbatiyk_api/src/model/supplier_approval_resource.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:talbatiyk_api/src/model/business_resource_membership.dart';
 import 'package:talbatiyk_api/src/model/business_contact_resource.dart';
@@ -21,6 +22,7 @@ part 'business_resource.g.dart';
 /// * [legalName] 
 /// * [description] 
 /// * [status] 
+/// * [supplierApproval] 
 /// * [capabilities] - قدرات النشاط: supplier shop
 /// * [primaryLocation] - الموقع الرئيسي فقط في هذه الاستجابة. قائمة جميع الفروع سيكون لها Endpoint مستقل لاحقًا.
 /// * [primaryContact] - وسيلة الاتصال الرئيسية.
@@ -43,6 +45,9 @@ abstract class BusinessResource implements Built<BusinessResource, BusinessResou
 
   @BuiltValueField(wireName: r'status')
   String get status;
+
+  @BuiltValueField(wireName: r'supplier_approval')
+  SupplierApprovalResource? get supplierApproval;
 
   /// قدرات النشاط: supplier shop
   @BuiltValueField(wireName: r'capabilities')
@@ -113,6 +118,13 @@ class _$BusinessResourceSerializer implements PrimitiveSerializer<BusinessResour
       object.status,
       specifiedType: const FullType(String),
     );
+    if (object.supplierApproval != null) {
+      yield r'supplier_approval';
+      yield serializers.serialize(
+        object.supplierApproval,
+        specifiedType: const FullType.nullable(SupplierApprovalResource),
+      );
+    }
     if (object.capabilities != null) {
       yield r'capabilities';
       yield serializers.serialize(
@@ -206,6 +218,14 @@ class _$BusinessResourceSerializer implements PrimitiveSerializer<BusinessResour
             specifiedType: const FullType(String),
           ) as String;
           result.status = valueDes;
+          break;
+        case r'supplier_approval':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(SupplierApprovalResource),
+          ) as SupplierApprovalResource?;
+          if (valueDes == null) continue;
+          result.supplierApproval.replace(valueDes);
           break;
         case r'capabilities':
           final valueDes = serializers.deserialize(

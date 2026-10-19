@@ -14,9 +14,9 @@ import 'package:uuid/uuid.dart';
 class OrdersRepositoryImpl implements OrdersRepository {
   const OrdersRepositoryImpl(
     this.localDataSource, {
-    required AccountSessionFence sessionFence,
+    required this._sessionFence,
     this.remoteDataSource,
-  }) : _sessionFence = sessionFence;
+  });
 
   final OrdersLocalDataSource localDataSource;
   final OrdersDataSource? remoteDataSource;

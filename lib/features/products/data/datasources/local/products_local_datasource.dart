@@ -19,8 +19,8 @@ class ProductsLocalDataSource
         ProductsPublishAttemptDataSource {
   ProductsLocalDataSource(
     this.database, {
-    required AccountSessionFence sessionFence,
-  }) : _sessionFence = sessionFence;
+    required this._sessionFence,
+  });
 
   final AppDatabase database;
   final AccountSessionFence _sessionFence;

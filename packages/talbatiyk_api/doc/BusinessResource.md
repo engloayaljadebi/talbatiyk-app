@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **legalName** | **String** |  | 
 **description** | **String** |  | 
 **status** | **String** |  | 
+**supplierApproval** | [**SupplierApprovalResource**](SupplierApprovalResource.md) |  | [optional] 
 **capabilities** | [**BuiltList&lt;JsonObject&gt;**](JsonObject.md) | قدرات النشاط: supplier shop | [optional] 
 **primaryLocation** | [**BusinessLocationResource**](BusinessLocationResource.md) | الموقع الرئيسي فقط في هذه الاستجابة. قائمة جميع الفروع سيكون لها Endpoint مستقل لاحقًا. | 
 **primaryContact** | [**BusinessContactResource**](BusinessContactResource.md) | وسيلة الاتصال الرئيسية. | 

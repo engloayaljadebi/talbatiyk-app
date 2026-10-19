@@ -18,6 +18,8 @@ class _$BusinessResource extends BusinessResource {
   @override
   final String status;
   @override
+  final SupplierApprovalResource? supplierApproval;
+  @override
   final BuiltList<JsonObject?>? capabilities;
   @override
   final BusinessLocationResource? primaryLocation;
@@ -40,6 +42,7 @@ class _$BusinessResource extends BusinessResource {
       this.legalName,
       this.description,
       required this.status,
+      this.supplierApproval,
       this.capabilities,
       this.primaryLocation,
       this.primaryContact,
@@ -64,6 +67,7 @@ class _$BusinessResource extends BusinessResource {
         legalName == other.legalName &&
         description == other.description &&
         status == other.status &&
+        supplierApproval == other.supplierApproval &&
         capabilities == other.capabilities &&
         primaryLocation == other.primaryLocation &&
         primaryContact == other.primaryContact &&
@@ -80,6 +84,7 @@ class _$BusinessResource extends BusinessResource {
     _$hash = $jc(_$hash, legalName.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, supplierApproval.hashCode);
     _$hash = $jc(_$hash, capabilities.hashCode);
     _$hash = $jc(_$hash, primaryLocation.hashCode);
     _$hash = $jc(_$hash, primaryContact.hashCode);
@@ -98,6 +103,7 @@ class _$BusinessResource extends BusinessResource {
           ..add('legalName', legalName)
           ..add('description', description)
           ..add('status', status)
+          ..add('supplierApproval', supplierApproval)
           ..add('capabilities', capabilities)
           ..add('primaryLocation', primaryLocation)
           ..add('primaryContact', primaryContact)
@@ -131,6 +137,12 @@ class BusinessResourceBuilder
   String? _status;
   String? get status => _$this._status;
   set status(String? status) => _$this._status = status;
+
+  SupplierApprovalResourceBuilder? _supplierApproval;
+  SupplierApprovalResourceBuilder get supplierApproval =>
+      _$this._supplierApproval ??= SupplierApprovalResourceBuilder();
+  set supplierApproval(SupplierApprovalResourceBuilder? supplierApproval) =>
+      _$this._supplierApproval = supplierApproval;
 
   ListBuilder<JsonObject?>? _capabilities;
   ListBuilder<JsonObject?> get capabilities =>
@@ -176,6 +188,7 @@ class BusinessResourceBuilder
       _legalName = $v.legalName;
       _description = $v.description;
       _status = $v.status;
+      _supplierApproval = $v.supplierApproval?.toBuilder();
       _capabilities = $v.capabilities?.toBuilder();
       _primaryLocation = $v.primaryLocation?.toBuilder();
       _primaryContact = $v.primaryContact?.toBuilder();
@@ -213,6 +226,7 @@ class BusinessResourceBuilder
             description: description,
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'BusinessResource', 'status'),
+            supplierApproval: _supplierApproval?.build(),
             capabilities: _capabilities?.build(),
             primaryLocation: _primaryLocation?.build(),
             primaryContact: _primaryContact?.build(),
@@ -223,6 +237,8 @@ class BusinessResourceBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'supplierApproval';
+        _supplierApproval?.build();
         _$failedField = 'capabilities';
         _capabilities?.build();
         _$failedField = 'primaryLocation';

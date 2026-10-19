@@ -84,79 +84,79 @@ final class AdminSupplierCreationService
 
         try {
             return DB::transaction(function () use ($admin, $data): Business {
-            Gate::forUser($admin)->authorize('reviewSupplierApprovals');
+                Gate::forUser($admin)->authorize('reviewSupplierApprovals');
 
-            if (User::withTrashed()->whereRaw('LOWER(username) = ?', [$data['username']])->exists()) {
-                throw ValidationException::withMessages(['username' => 'اسم المستخدم مستخدم مسبقًا.']);
-            }
+                if (User::withTrashed()->whereRaw('LOWER(username) = ?', [$data['username']])->exists()) {
+                    throw ValidationException::withMessages(['username' => 'اسم المستخدم مستخدم مسبقًا.']);
+                }
 
-            $contactQuery = UserContact::withTrashed()->where('type', $data['contact_type']);
-            if ($data['contact_type'] === 'email') {
-                $contactQuery->whereRaw('LOWER(value) = ?', [$data['contact_value']]);
-            } else {
-                $contactQuery->where('value', $data['contact_value']);
-            }
-            if ($contactQuery->exists()) {
-                throw ValidationException::withMessages(['contact_value' => 'وسيلة الاتصال مستخدمة مسبقًا.']);
-            }
+                $contactQuery = UserContact::withTrashed()->where('type', $data['contact_type']);
+                if ($data['contact_type'] === 'email') {
+                    $contactQuery->whereRaw('LOWER(value) = ?', [$data['contact_value']]);
+                } else {
+                    $contactQuery->where('value', $data['contact_value']);
+                }
+                if ($contactQuery->exists()) {
+                    throw ValidationException::withMessages(['contact_value' => 'وسيلة الاتصال مستخدمة مسبقًا.']);
+                }
 
-            if (! BusinessRole::query()->where('code', 'owner')->where('is_active', true)->exists()) {
-                throw new RuntimeException('Active owner role is missing.');
-            }
-            if (! DB::table('business_capabilities')->where('code', 'supplier')->whereNull('retired_at')->exists()) {
-                throw new RuntimeException('Supplier capability is missing.');
-            }
-            if (! DB::table('verification_types')->where('code', 'supplier_approval')->exists()) {
-                throw new RuntimeException('Supplier approval type is missing.');
-            }
+                if (! BusinessRole::query()->where('code', 'owner')->where('is_active', true)->exists()) {
+                    throw new RuntimeException('Active owner role is missing.');
+                }
+                if (! DB::table('business_capabilities')->where('code', 'supplier')->whereNull('retired_at')->exists()) {
+                    throw new RuntimeException('Supplier capability is missing.');
+                }
+                if (! DB::table('verification_types')->where('code', 'supplier_approval')->exists()) {
+                    throw new RuntimeException('Supplier approval type is missing.');
+                }
 
-            $user = User::query()->create([
-                'username' => $data['username'],
-                'display_name' => $data['display_name'],
-                'password' => $data['password'], // Model cast: hashed
-                'status' => 'active',
-            ]);
-            $user->contacts()->create([
-                'type' => $data['contact_type'],
-                'value' => $data['contact_value'],
-                'is_primary' => true,
-                'verified_at' => null,
-            ]);
+                $user = User::query()->create([
+                    'username' => $data['username'],
+                    'display_name' => $data['display_name'],
+                    'password' => $data['password'], // Model cast: hashed
+                    'status' => 'active',
+                ]);
+                $user->contacts()->create([
+                    'type' => $data['contact_type'],
+                    'value' => $data['contact_value'],
+                    'is_primary' => true,
+                    'verified_at' => null,
+                ]);
 
-            $business = $this->onboarding->create($user, [
-                'name' => $data['name'],
-                'legal_name' => $data['legal_name'] ?? null,
-                'description' => $data['description'] ?? null,
-                'capabilities' => ['supplier'],
-                'location' => [
-                    'name' => $data['location_name'],
-                    'type' => $data['location_type'],
-                    'timezone' => $data['timezone'],
-                    'country_code' => $data['country_code'],
-                    'administrative_area' => $data['administrative_area'] ?? null,
-                    'locality' => $data['locality'] ?? null,
-                    'district' => $data['district'] ?? null,
-                    'street_address' => $data['street_address'] ?? null,
-                ],
-                'contact' => [
-                    'type' => $data['business_contact_type'],
-                    'value' => $data['business_contact_value'],
-                ],
-            ]);
+                $business = $this->onboarding->create($user, [
+                    'name' => $data['name'],
+                    'legal_name' => $data['legal_name'] ?? null,
+                    'description' => $data['description'] ?? null,
+                    'capabilities' => ['supplier'],
+                    'location' => [
+                        'name' => $data['location_name'],
+                        'type' => $data['location_type'],
+                        'timezone' => $data['timezone'],
+                        'country_code' => $data['country_code'],
+                        'administrative_area' => $data['administrative_area'] ?? null,
+                        'locality' => $data['locality'] ?? null,
+                        'district' => $data['district'] ?? null,
+                        'street_address' => $data['street_address'] ?? null,
+                    ],
+                    'contact' => [
+                        'type' => $data['business_contact_type'],
+                        'value' => $data['business_contact_value'],
+                    ],
+                ]);
 
-            if (! $business->memberships()->where('user_id', $user->id)
-                ->where('status', 'active')->whereHas('roles', fn ($query) => $query->where('business_roles.code', 'owner'))->exists()) {
-                throw new RuntimeException('Owner membership was not created.');
-            }
-            if (! $business->verifications()->where('verification_type_code', 'supplier_approval')
-                ->where('status', 'pending')->exists()) {
-                throw new RuntimeException('Pending supplier approval was not created.');
-            }
-            if ($business->capabilities()->where('business_capabilities.code', 'supplier')->exists()) {
-                throw new RuntimeException('Supplier capability enabled before approval.');
-            }
+                if (! $business->memberships()->where('user_id', $user->id)
+                    ->where('status', 'active')->whereHas('roles', fn ($query) => $query->where('business_roles.code', 'owner'))->exists()) {
+                    throw new RuntimeException('Owner membership was not created.');
+                }
+                if (! $business->verifications()->where('verification_type_code', 'supplier_approval')
+                    ->where('status', 'pending')->exists()) {
+                    throw new RuntimeException('Pending supplier approval was not created.');
+                }
+                if ($business->capabilities()->where('business_capabilities.code', 'supplier')->exists()) {
+                    throw new RuntimeException('Supplier capability enabled before approval.');
+                }
 
-            return $business;
+                return $business;
             }, 3);
         } catch (UniqueConstraintViolationException $exception) {
             $message = $exception->getMessage();
