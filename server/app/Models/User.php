@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -80,6 +81,11 @@ class User extends Authenticatable implements FilamentUser, HasName
      * - بريد.
      * - أكثر من وسيلة من النوع نفسه.
      */
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class, 'user_id', 'id');
+    }
+
     public function contacts(): HasMany
     {
         return $this->hasMany(UserContact::class);
@@ -127,8 +133,10 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin'
-            && Gate::forUser($this)
-                ->allows('reviewSupplierApprovals');
+            && (
+                Gate::forUser($this)->allows('reviewSupplierApprovals')
+                || Gate::forUser($this)->allows('manageUsers')
+            );
     }
 
     public function getFilamentName(): string

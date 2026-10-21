@@ -14,6 +14,8 @@ class _$CreateBusinessRequest extends CreateBusinessRequest {
   @override
   final String? description;
   @override
+  final BuiltList<String> categoryIds;
+  @override
   final BuiltList<String> capabilities;
   @override
   final CreateBusinessRequestLocation location;
@@ -28,6 +30,7 @@ class _$CreateBusinessRequest extends CreateBusinessRequest {
       {required this.name,
       this.legalName,
       this.description,
+      required this.categoryIds,
       required this.capabilities,
       required this.location,
       required this.contact})
@@ -48,6 +51,7 @@ class _$CreateBusinessRequest extends CreateBusinessRequest {
         name == other.name &&
         legalName == other.legalName &&
         description == other.description &&
+        categoryIds == other.categoryIds &&
         capabilities == other.capabilities &&
         location == other.location &&
         contact == other.contact;
@@ -59,6 +63,7 @@ class _$CreateBusinessRequest extends CreateBusinessRequest {
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, legalName.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
+    _$hash = $jc(_$hash, categoryIds.hashCode);
     _$hash = $jc(_$hash, capabilities.hashCode);
     _$hash = $jc(_$hash, location.hashCode);
     _$hash = $jc(_$hash, contact.hashCode);
@@ -72,6 +77,7 @@ class _$CreateBusinessRequest extends CreateBusinessRequest {
           ..add('name', name)
           ..add('legalName', legalName)
           ..add('description', description)
+          ..add('categoryIds', categoryIds)
           ..add('capabilities', capabilities)
           ..add('location', location)
           ..add('contact', contact))
@@ -94,6 +100,12 @@ class CreateBusinessRequestBuilder
   String? _description;
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
+
+  ListBuilder<String>? _categoryIds;
+  ListBuilder<String> get categoryIds =>
+      _$this._categoryIds ??= ListBuilder<String>();
+  set categoryIds(ListBuilder<String>? categoryIds) =>
+      _$this._categoryIds = categoryIds;
 
   ListBuilder<String>? _capabilities;
   ListBuilder<String> get capabilities =>
@@ -123,6 +135,7 @@ class CreateBusinessRequestBuilder
       _name = $v.name;
       _legalName = $v.legalName;
       _description = $v.description;
+      _categoryIds = $v.categoryIds.toBuilder();
       _capabilities = $v.capabilities.toBuilder();
       _location = $v.location.toBuilder();
       _contact = $v.contact.toBuilder();
@@ -153,6 +166,7 @@ class CreateBusinessRequestBuilder
                 name, r'CreateBusinessRequest', 'name'),
             legalName: legalName,
             description: description,
+            categoryIds: categoryIds.build(),
             capabilities: capabilities.build(),
             location: location.build(),
             contact: contact.build(),
@@ -160,6 +174,8 @@ class CreateBusinessRequestBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'categoryIds';
+        categoryIds.build();
         _$failedField = 'capabilities';
         capabilities.build();
         _$failedField = 'location';

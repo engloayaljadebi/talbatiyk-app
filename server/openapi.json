@@ -3754,9 +3754,18 @@
                         ],
                         "maxLength": 5000
                     },
-                    "capabilities": {
+                    "category_ids": {
                         "type": "array",
                         "description": "----------------------------------------------------------------\n\u0642\u062f\u0631\u0627\u062a \u0627\u0644\u0646\u0634\u0627\u0637\n---------------------------------------------------------------- \u0645\u062b\u0627\u0644:\n\ncapabilities:\n- supplier\n- shop\n\n\u0644\u0627 \u0646\u0642\u0628\u0644 \u0642\u062f\u0631\u0629 \u0645\u062a\u0648\u0642\u0641\u0629 retired_at.",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20
+                    },
+                    "capabilities": {
+                        "type": "array",
                         "items": {
                             "type": "string"
                         },
@@ -3885,6 +3894,7 @@
                 },
                 "required": [
                     "name",
+                    "category_ids",
                     "capabilities",
                     "location",
                     "contact"

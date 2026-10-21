@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Verifications\Pages;
 
 use App\Filament\Resources\Verifications\VerificationResource;
+use App\Models\BusinessCategory;
 use App\Models\User;
 use App\Services\Platform\AdminSupplierCreationService;
 use Filament\Actions\Action;
@@ -46,6 +47,23 @@ class ManageVerifications extends ManageRecords
                     Section::make('بيانات النشاط')->schema([
                         TextInput::make('name')->label('اسم النشاط')->required()->minLength(2)->maxLength(200),
                         TextInput::make('legal_name')->label('الاسم القانوني')->maxLength(250),
+                        Select::make('category_ids')
+                            ->label('فئات النشاط التجاري')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->options(fn (): array => BusinessCategory::query()
+                                ->where('is_active', true)
+                                ->whereDoesntHave('children')
+                                ->whereDoesntHave('parent', fn ($query) => $query->where('is_active', false))
+                                ->orderBy('sort_order')
+                                ->orderBy('name_ar')
+                                ->pluck('name_ar', 'id')
+                                ->all())
+                            ->required()
+                            ->minItems(1)
+                            ->helperText('اختر فئة نشاط واحدة على الأقل.')
+                            ->columnSpanFull(),
                         Textarea::make('description')->label('الوصف')->maxLength(5000)->columnSpanFull(),
                     ])->columns(2),
                     Section::make('الموقع الرئيسي')->schema([

@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\AdminLogin;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Resources\Verifications\VerificationResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([Dashboard::class])
             ->resources([
                 VerificationResource::class,
+                UserResource::class,
             ])
             ->middleware([
                 EncryptCookies::class,

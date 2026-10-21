@@ -19,6 +19,7 @@ namespace Tests\Feature\Api\V1\Business;
 
 use App\Models\Business;
 use App\Models\BusinessCapability;
+use App\Models\BusinessCategory;
 use App\Models\BusinessMembership;
 use App\Models\BusinessRole;
 use App\Models\User;
@@ -42,6 +43,15 @@ class BusinessOnboardingApiTest extends TestCase
 
         $this->seed(BusinessRoleSeeder::class);
         $this->seed(BusinessCapabilitySeeder::class);
+
+        BusinessCategory::query()->firstOrCreate(
+            ['code' => 'test_business_leaf'],
+            [
+                'name_ar' => 'Test activity category',
+                'is_active' => true,
+                'sort_order' => 0,
+            ],
+        );
     }
 
     /**
@@ -474,6 +484,12 @@ class BusinessOnboardingApiTest extends TestCase
             'legal_name' => null,
 
             'description' => 'تجارة وتوزيع الهواتف والإكسسوارات.',
+
+            'category_ids' => [
+                BusinessCategory::query()
+                    ->where('code', 'test_business_leaf')
+                    ->value('id'),
+            ],
 
             'capabilities' => [
                 'supplier',

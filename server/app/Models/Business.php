@@ -144,6 +144,23 @@ class Business extends Model
             ->orderByDesc('id');
     }
 
+    /**
+     * التصنيفات النهائية المرتبطة مباشرة بالنشاط.
+     *
+     * التصنيفات الرئيسية تستنتج من شجرة الفئات.
+     * لا تستخدم withTimestamps لأن جدول الربط
+     * يحتوي created_at فقط.
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            BusinessCategory::class,
+            'business_category_assignments',
+            'business_id',
+            'category_id',
+        )->withPivot('created_at');
+    }
+
     protected function casts(): array
     {
         return [

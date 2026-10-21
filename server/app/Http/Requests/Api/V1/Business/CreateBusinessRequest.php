@@ -110,6 +110,9 @@ class CreateBusinessRequest extends FormRequest
              *
              * لا نقبل قدرة متوقفة retired_at.
              */
+            'category_ids' => ['required', 'array', 'min:1', 'max:20'],
+            'category_ids.*' => ['required', 'uuid', 'distinct'],
+
             'capabilities' => [
                 'required',
                 'array',

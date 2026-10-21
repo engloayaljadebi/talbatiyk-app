@@ -43,9 +43,15 @@ class BusinessOnboardingService
      *
      * @param  array<string, mixed>  $data
      */
+    public function __construct(
+        private readonly BusinessCategorySelectionService $categorySelection,
+    ) {}
+
     public function create(User $user, array $data): Business
     {
         return DB::transaction(function () use ($user, $data): Business {
+            $categories = $this->categorySelection->validate($data['category_ids'] ?? []);
+
             /*
              * ------------------------------------------------------------
              * 1. إنشاء الهوية الأساسية للنشاط
@@ -70,6 +76,8 @@ class BusinessOnboardingService
              * 2. إنشاء الموقع الرئيسي
              * ------------------------------------------------------------
              */
+            $business->categories()->attach($categories->modelKeys());
+
             $locationData = $data['location'];
 
             $business->locations()->create([
@@ -222,6 +230,7 @@ class BusinessOnboardingService
                 'locations',
                 'contacts',
                 'capabilities',
+                'categories',
                 'latestSupplierApproval',
                 'memberships.roles',
             ]);

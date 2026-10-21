@@ -24,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('reviewSupplierApprovals', static function (User $user): bool {
-            // Fresh database check prevents stale in-memory user status.
+        $platformAdminAbility = static function (User $user): bool {
+            // Always check the current user status in the database.
             $isActive = User::query()
                 ->whereKey($user->getKey())
                 ->where('status', 'active')
@@ -35,13 +35,15 @@ class AppServiceProvider extends ServiceProvider
                 return false;
             }
 
-            // Business owner/manager roles do not grant platform access.
             return DB::table('platform_role_assignments')
                 ->where('user_id', $user->getKey())
                 ->where('role_code', 'platform_admin')
                 ->whereNull('revoked_at')
                 ->exists();
-        });
+        };
+
+        Gate::define('reviewSupplierApprovals', $platformAdminAbility);
+        Gate::define('manageUsers', $platformAdminAbility);
 
         Scramble::afterOpenApiGenerated(
             new ApplyCommercialInputBounds,

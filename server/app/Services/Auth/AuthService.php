@@ -20,6 +20,7 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Models\UserContact;
+use App\Services\User\UserIdentityCreationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,10 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthService
 {
+    public function __construct(
+        private readonly UserIdentityCreationService $identityCreation,
+    ) {}
+
     /**
      * إنشاء مستخدم ووسيلة اتصاله وإصدار Token.
      *
@@ -36,18 +41,7 @@ class AuthService
     public function register(array $data): array
     {
         return DB::transaction(function () use ($data): array {
-            $user = User::create([
-                'username' => $data['username'],
-                'display_name' => $data['display_name'],
-                'password' => $data['password'],
-                'status' => 'active',
-            ]);
-
-            $user->contacts()->create([
-                'type' => $data['contact_type'],
-                'value' => $data['contact_value'],
-                'is_primary' => true,
-            ]);
+            $user = $this->identityCreation->create($data);
 
             $token = $user
                 ->createToken($data['device_name'])

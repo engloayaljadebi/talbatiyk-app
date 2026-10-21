@@ -11,7 +11,8 @@ Name | Type | Description | Notes
 **name** | **String** | ---------------------------------------------------------------- بيانات النشاط الأساسية ---------------------------------------------------------------- | 
 **legalName** | **String** |  | [optional] 
 **description** | **String** |  | [optional] 
-**capabilities** | **BuiltList&lt;String&gt;** | ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at. | 
+**categoryIds** | **BuiltList&lt;String&gt;** | ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at. | 
+**capabilities** | **BuiltList&lt;String&gt;** |  | 
 **location** | [**CreateBusinessRequestLocation**](CreateBusinessRequestLocation.md) |  | 
 **contact** | [**CreateBusinessRequestContact**](CreateBusinessRequestContact.md) |  | 
 
