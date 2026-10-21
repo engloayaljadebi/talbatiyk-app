@@ -20,6 +20,15 @@ class SupplierApprovalGateTest extends TestCase
 
         $this->seed(BusinessRoleSeeder::class);
         $this->seed(BusinessCapabilitySeeder::class);
+
+        \App\Models\BusinessCategory::query()->firstOrCreate(
+            ['code' => 'test_business_leaf'],
+            [
+                'name_ar' => 'Test activity category',
+                'is_active' => true,
+                'sort_order' => 0,
+            ],
+        );
     }
 
     public function test_new_supplier_requires_pending_approval_and_has_no_active_supplier_capability(): void
@@ -93,6 +102,11 @@ class SupplierApprovalGateTest extends TestCase
 
         $this->postJson('/api/v1/businesses', [
             'name' => 'Supplier approval test business',
+            'category_ids' => [
+                \App\Models\BusinessCategory::query()
+                    ->where('code', 'test_business_leaf')
+                    ->value('id'),
+            ],
             'capabilities' => $capabilities,
             'location' => [
                 'name' => 'Main branch',

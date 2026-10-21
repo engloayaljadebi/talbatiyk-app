@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserContact;
 use App\Rules\MaxBytes;
 use App\Services\Business\BusinessOnboardingService;
+use App\Services\User\UserIdentityCreationService;
 use App\Support\ContactValueNormalizer;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,10 @@ use RuntimeException;
 
 final class AdminSupplierCreationService
 {
-    public function __construct(private readonly BusinessOnboardingService $onboarding) {}
+    public function __construct(
+        private readonly BusinessOnboardingService $onboarding,
+        private readonly UserIdentityCreationService $identityCreation,
+    ) {}
 
     /** @param array<string, mixed> $input */
     public function create(User $admin, array $input): Business
@@ -67,6 +71,8 @@ final class AdminSupplierCreationService
                 'required', 'string', 'max:320',
                 ...($input['contact_type'] === 'email' ? ['email:rfc'] : ['regex:/^\+[1-9]\d{7,14}$/']),
             ],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['required', 'uuid', 'distinct'],
             'name' => ['required', 'string', 'min:2', 'max:200'],
             'legal_name' => ['nullable', 'string', 'max:250'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -110,20 +116,16 @@ final class AdminSupplierCreationService
                     throw new RuntimeException('Supplier approval type is missing.');
                 }
 
-                $user = User::query()->create([
+                $user = $this->identityCreation->create([
                     'username' => $data['username'],
                     'display_name' => $data['display_name'],
-                    'password' => $data['password'], // Model cast: hashed
-                    'status' => 'active',
-                ]);
-                $user->contacts()->create([
-                    'type' => $data['contact_type'],
-                    'value' => $data['contact_value'],
-                    'is_primary' => true,
-                    'verified_at' => null,
+                    'password' => $data['password'],
+                    'contact_type' => $data['contact_type'],
+                    'contact_value' => $data['contact_value'],
                 ]);
 
                 $business = $this->onboarding->create($user, [
+                    'category_ids' => $data['category_ids'],
                     'name' => $data['name'],
                     'legal_name' => $data['legal_name'] ?? null,
                     'description' => $data['description'] ?? null,

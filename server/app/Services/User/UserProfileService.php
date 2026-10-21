@@ -55,4 +55,51 @@ class UserProfileService
 
         return $user->load('contacts');
     }
+
+    /**
+     * Create or update a user's personal details without duplication.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function savePersonalDetails(
+        User $user,
+        array $data,
+    ): \App\Models\UserProfile {
+        $attributes = Arr::only($data, [
+            'nationality_country_code',
+            'birth_date',
+        ]);
+
+        $attributes = \Illuminate\Support\Facades\Validator::make(
+            $attributes,
+            [
+                'nationality_country_code' => [
+                    'sometimes',
+                    'nullable',
+                    'string',
+                    'size:2',
+                    'regex:/^[A-Z]{2}$/',
+                ],
+                'birth_date' => [
+                    'sometimes',
+                    'nullable',
+                    'date_format:Y-m-d',
+                    'before_or_equal:today',
+                ],
+            ]
+        )->validate();
+
+        return $user->getConnection()->transaction(
+            function () use ($user, $attributes): \App\Models\UserProfile {
+                $profile = $user->profile()->createOrFirst([]);
+
+                if ($attributes !== []) {
+                    $profile->fill($attributes);
+                    $profile->save();
+                }
+
+                return $profile->refresh();
+            }
+        );
+    }
 }

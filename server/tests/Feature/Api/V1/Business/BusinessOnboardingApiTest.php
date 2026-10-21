@@ -42,6 +42,15 @@ class BusinessOnboardingApiTest extends TestCase
 
         $this->seed(BusinessRoleSeeder::class);
         $this->seed(BusinessCapabilitySeeder::class);
+
+        \App\Models\BusinessCategory::query()->firstOrCreate(
+            ['code' => 'test_business_leaf'],
+            [
+                'name_ar' => 'Test activity category',
+                'is_active' => true,
+                'sort_order' => 0,
+            ],
+        );
     }
 
     /**
@@ -474,6 +483,12 @@ class BusinessOnboardingApiTest extends TestCase
             'legal_name' => null,
 
             'description' => 'تجارة وتوزيع الهواتف والإكسسوارات.',
+
+            'category_ids' => [
+                \App\Models\BusinessCategory::query()
+                    ->where('code', 'test_business_leaf')
+                    ->value('id'),
+            ],
 
             'capabilities' => [
                 'supplier',
