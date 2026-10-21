@@ -34,11 +34,11 @@ return new class extends Migration
             CHECK (code ~ '^[a-z][a-z0-9_]*$')
         ");
 
-        DB::statement("
+        DB::statement('
             ALTER TABLE business_categories
             ADD CONSTRAINT business_categories_not_self_parent
             CHECK (parent_id IS NULL OR parent_id <> id)
-        ");
+        ');
     }
 
     public function down(): void

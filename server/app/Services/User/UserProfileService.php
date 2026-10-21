@@ -3,8 +3,10 @@
 namespace App\Services\User;
 
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class UserProfileService
@@ -59,18 +61,18 @@ class UserProfileService
     /**
      * Create or update a user's personal details without duplication.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function savePersonalDetails(
         User $user,
         array $data,
-    ): \App\Models\UserProfile {
+    ): UserProfile {
         $attributes = Arr::only($data, [
             'nationality_country_code',
             'birth_date',
         ]);
 
-        $attributes = \Illuminate\Support\Facades\Validator::make(
+        $attributes = Validator::make(
             $attributes,
             [
                 'nationality_country_code' => [
@@ -90,7 +92,7 @@ class UserProfileService
         )->validate();
 
         return $user->getConnection()->transaction(
-            function () use ($user, $attributes): \App\Models\UserProfile {
+            function () use ($user, $attributes): UserProfile {
                 $profile = $user->profile()->createOrFirst([]);
 
                 if ($attributes !== []) {

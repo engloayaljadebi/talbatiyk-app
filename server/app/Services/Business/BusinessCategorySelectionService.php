@@ -3,6 +3,8 @@
 namespace App\Services\Business;
 
 use App\Models\BusinessCategory;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BusinessCategorySelectionService
@@ -10,8 +12,8 @@ class BusinessCategorySelectionService
     /**
      * Validate category IDs and return the selected category models.
      *
-     * @param array<int, string> $categoryIds
-     * @return \Illuminate\Database\Eloquent\Collection<int, BusinessCategory>
+     * @param  array<int, string>  $categoryIds
+     * @return Collection<int, BusinessCategory>
      */
     public function validate(array $categoryIds)
     {
@@ -28,7 +30,7 @@ class BusinessCategorySelectionService
         }
 
         foreach ($categoryIds as $id) {
-            if (! is_string($id) || ! \Illuminate\Support\Str::isUuid($id)) {
+            if (! is_string($id) || ! Str::isUuid($id)) {
                 throw ValidationException::withMessages([
                     'category_ids' => 'معرّفات الفئات غير صحيحة.',
                 ]);

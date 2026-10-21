@@ -160,6 +160,7 @@ class Business extends Model
             'category_id',
         )->withPivot('created_at');
     }
+
     protected function casts(): array
     {
         return [

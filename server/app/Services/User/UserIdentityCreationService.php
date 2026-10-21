@@ -15,7 +15,7 @@ final class UserIdentityCreationService
      * The caller must validate and normalize the input.
      * This service does not issue tokens or assign roles.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function create(array $data): User
     {

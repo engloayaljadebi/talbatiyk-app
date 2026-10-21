@@ -65,7 +65,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
 
         $this->assertDatabaseHas('businesses', [
             'id' => $business->id,
-            
+
             'name' => 'Integration Supplier',
         ]);
 
@@ -202,6 +202,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
             'value' => 'supplier-integration@example.com',
         ]);
     }
+
     private function admin(): User
     {
         $admin = User::factory()->create([

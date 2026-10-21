@@ -6,6 +6,7 @@ namespace App\Services\Platform;
 
 use App\Models\User;
 use App\Models\UserContact;
+use App\Rules\MaxBytes;
 use App\Services\User\UserIdentityCreationService;
 use App\Support\ContactValueNormalizer;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -51,7 +52,7 @@ final class AdminUserCreationService
             'password' => [
                 'required', 'confirmed',
                 Password::min(8), 'max:72',
-                new \App\Rules\MaxBytes(72),
+                new MaxBytes(72),
             ],
             'password_confirmation' => ['required', 'string'],
             'contact_type' => [

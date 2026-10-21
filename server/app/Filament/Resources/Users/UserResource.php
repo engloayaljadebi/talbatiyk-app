@@ -6,21 +6,22 @@ namespace App\Filament\Resources\Users;
 
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\User;
+use App\Services\Platform\AdminUserUpdateService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use App\Services\Platform\AdminUserUpdateService;
-use Filament\Facades\Filament;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
 final class UserResource extends Resource
@@ -47,12 +48,12 @@ final class UserResource extends Resource
         return false;
     }
 
-    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    public static function canEdit(Model $record): bool
     {
         return false;
     }
 
-    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    public static function canDelete(Model $record): bool
     {
         return false;
     }
@@ -64,7 +65,7 @@ final class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        abort_unless(static::canViewAny(), 403);
+        abort_unless(self::canViewAny(), 403);
 
         return parent::getEloquentQuery();
     }
@@ -113,8 +114,7 @@ final class UserResource extends Resource
                     ->label('تعديل البيانات')
                     ->color('gray')
                     ->authorize(
-                        fn (User $record): bool =>
-                            static::canView($record)
+                        fn (User $record): bool => self::canView($record)
                     )
                     ->modalHeading('تعديل بيانات المستخدم')
                     ->modalSubmitActionLabel('حفظ التعديلات')
@@ -122,10 +122,8 @@ final class UserResource extends Resource
                         fn (User $record): array => [
                             'username' => $record->username,
                             'display_name' => $record->display_name,
-                            'nationality_country_code' =>
-                                $record->profile?->nationality_country_code,
-                            'birth_date' =>
-                                $record->profile?->birth_date?->format('Y-m-d'),
+                            'nationality_country_code' => $record->profile?->nationality_country_code,
+                            'birth_date' => $record->profile?->birth_date?->format('Y-m-d'),
                         ]
                     )
                     ->schema([
@@ -179,17 +177,16 @@ final class UserResource extends Resource
                 ViewAction::make()
                     ->label('التفاصيل')
                     ->authorize(
-                        fn (User $record): bool =>
-                            static::canViewAny()
+                        fn (User $record): bool => self::canViewAny()
                     ),
             ])
             ->toolbarActions([]);
     }
 
     public static function canView(
-        \Illuminate\Database\Eloquent\Model $record
+        Model $record
     ): bool {
-        return $record instanceof User && static::canViewAny();
+        return $record instanceof User && self::canViewAny();
     }
 
     public static function infolist(Schema $schema): Schema
@@ -228,12 +225,11 @@ final class UserResource extends Resource
                             TextEntry::make('type')
                                 ->label('نوع الاتصال')
                                 ->formatStateUsing(
-                                    fn (?string $state): string =>
-                                        match ($state) {
-                                            'phone' => 'هاتف',
-                                            'email' => 'بريد إلكتروني',
-                                            default => $state ?? 'غير محدد',
-                                        }
+                                    fn (?string $state): string => match ($state) {
+                                        'phone' => 'هاتف',
+                                        'email' => 'بريد إلكتروني',
+                                        default => $state ?? 'غير محدد',
+                                    }
                                 ),
 
                             TextEntry::make('value')
@@ -242,8 +238,7 @@ final class UserResource extends Resource
                             TextEntry::make('is_primary')
                                 ->label('الاتصال الرئيسي')
                                 ->formatStateUsing(
-                                    fn (?bool $state): string =>
-                                        $state ? 'نعم' : 'لا'
+                                    fn (?bool $state): string => $state ? 'نعم' : 'لا'
                                 ),
 
                             TextEntry::make('verified_at')
@@ -272,20 +267,19 @@ final class UserResource extends Resource
                     TextEntry::make('memberships_count')
                         ->label('عدد العضويات')
                         ->state(
-                            fn (User $record): int =>
-                                $record->memberships()->count()
+                            fn (User $record): int => $record->memberships()->count()
                         ),
 
                     TextEntry::make('verifications_count')
                         ->label('عدد عمليات التوثيق')
                         ->state(
-                            fn (User $record): int =>
-                                $record->verifications()->count()
+                            fn (User $record): int => $record->verifications()->count()
                         ),
                 ])
                 ->columns(2),
         ]);
     }
+
     public static function getPages(): array
     {
         return [

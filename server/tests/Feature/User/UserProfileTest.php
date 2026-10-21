@@ -53,6 +53,7 @@ final class UserProfileTest extends TestCase
                 '23505',
                 $exception->errorInfo[0] ?? null
             );
+
             return;
         }
 

@@ -23,7 +23,7 @@ final class AdminUserUpdateService
      *
      * Does not update password, contacts, roles or status.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      */
     public function update(
         User $admin,
@@ -118,10 +118,8 @@ final class AdminUserUpdateService
             ]);
 
             $profileData = [
-                'nationality_country_code' =>
-                    $data['nationality_country_code'] ?? null,
-                'birth_date' =>
-                    $data['birth_date'] ?? null,
+                'nationality_country_code' => $data['nationality_country_code'] ?? null,
+                'birth_date' => $data['birth_date'] ?? null,
             ];
 
             $hasPersonalData = (

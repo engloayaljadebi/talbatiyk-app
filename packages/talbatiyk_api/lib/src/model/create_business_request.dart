@@ -17,7 +17,8 @@ part 'create_business_request.g.dart';
 /// * [name] - ---------------------------------------------------------------- بيانات النشاط الأساسية ----------------------------------------------------------------
 /// * [legalName] 
 /// * [description] 
-/// * [capabilities] - ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at.
+/// * [categoryIds] - ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at.
+/// * [capabilities] 
 /// * [location] 
 /// * [contact] 
 @BuiltValue()
@@ -33,6 +34,9 @@ abstract class CreateBusinessRequest implements Built<CreateBusinessRequest, Cre
   String? get description;
 
   /// ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at.
+  @BuiltValueField(wireName: r'category_ids')
+  BuiltList<String> get categoryIds;
+
   @BuiltValueField(wireName: r'capabilities')
   BuiltList<String> get capabilities;
 
@@ -84,6 +88,11 @@ class _$CreateBusinessRequestSerializer implements PrimitiveSerializer<CreateBus
         specifiedType: const FullType.nullable(String),
       );
     }
+    yield r'category_ids';
+    yield serializers.serialize(
+      object.categoryIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
     yield r'capabilities';
     yield serializers.serialize(
       object.capabilities,
@@ -144,6 +153,13 @@ class _$CreateBusinessRequestSerializer implements PrimitiveSerializer<CreateBus
           ) as String?;
           if (valueDes == null) continue;
           result.description = valueDes;
+          break;
+        case r'category_ids':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.categoryIds.replace(valueDes);
           break;
         case r'capabilities':
           final valueDes = serializers.deserialize(
