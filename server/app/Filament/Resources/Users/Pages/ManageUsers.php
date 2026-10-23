@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Platform\AdminUserCreationService;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -73,6 +74,17 @@ final class ManageUsers extends ManageRecords
                             ->label('رقم الهاتف أو البريد الإلكتروني')
                             ->helperText('مثال للهاتف: +967777123456')
                             ->required(),
+                    ])->columns(2),
+
+                    Section::make('البيانات الشخصية')->schema([
+                        TextInput::make('nationality_country_code')
+                            ->label('رمز دولة الجنسية')
+                            ->helperText('رمز الدولة من حرفين مثل YE أو SA')
+                            ->maxLength(2),
+
+                        DatePicker::make('birth_date')
+                            ->label('تاريخ الميلاد')
+                            ->maxDate(now()),
                     ])->columns(2),
                 ])
                 ->action(function (array $data): void {
