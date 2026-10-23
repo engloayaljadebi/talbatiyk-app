@@ -76,6 +76,50 @@ class BusinessCategorySelectionTest extends TestCase
             ->validate([$category->id, $category->id]);
     }
 
+    public function test_two_distinct_categories_are_rejected(): void
+    {
+        $first = $this->category('single_rule_first_test');
+        $second = $this->category('single_rule_second_test');
+
+        $this->expectException(ValidationException::class);
+
+        app(BusinessCategorySelectionService::class)
+            ->validate([$first->id, $second->id]);
+    }
+
+    public function test_selectable_options_respect_all_ancestors(): void
+    {
+        $inactiveRoot = $this->category('options_inactive_root');
+        $middle = $this->category('options_middle', $inactiveRoot->id);
+        $blockedLeaf = $this->category('options_blocked_leaf', $middle->id);
+
+        $inactiveRoot->update(['is_active' => false]);
+
+        $validRoot = $this->category('options_valid_root');
+        $validLeaf = $this->category('options_valid_leaf', $validRoot->id);
+
+        $standalone = $this->category('options_standalone');
+
+        $inactiveLeaf = $this->category('options_inactive_leaf');
+        $inactiveLeaf->update(['is_active' => false]);
+
+        $options = app(BusinessCategorySelectionService::class)
+            ->selectableLeafOptions();
+
+        $this->assertSame($validLeaf->name_ar, $options[$validLeaf->id] ?? null);
+        $this->assertSame($standalone->name_ar, $options[$standalone->id] ?? null);
+
+        foreach ([
+            $inactiveRoot->id,
+            $middle->id,
+            $blockedLeaf->id,
+            $validRoot->id,
+            $inactiveLeaf->id,
+        ] as $excludedId) {
+            $this->assertArrayNotHasKey($excludedId, $options);
+        }
+    }
+
     public function test_unknown_category_is_rejected(): void
     {
         $this->expectException(ValidationException::class);

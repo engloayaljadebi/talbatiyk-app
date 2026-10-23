@@ -98,21 +98,19 @@ class CreateBusinessRequest extends FormRequest
             ],
 
             /*
-             * ----------------------------------------------------------------
-             * قدرات النشاط
-             * ----------------------------------------------------------------
+             * فئة النشاط التجاري
              *
-             * مثال:
-             *
-             * capabilities:
-             * - supplier
-             * - shop
-             *
-             * لا نقبل قدرة متوقفة retired_at.
+             * يجب اختيار فئة نشاط نهائية ونشطة واحدة فقط.
              */
-            'category_ids' => ['required', 'array', 'min:1', 'max:20'],
+            'category_ids' => ['required', 'array', 'min:1', 'max:1'],
             'category_ids.*' => ['required', 'uuid', 'distinct'],
 
+            /*
+             * قدرات النشاط التجاري
+             *
+             * يمكن طلب supplier أو shop.
+             * لا نقبل قدرة متوقفة retired_at.
+             */
             'capabilities' => [
                 'required',
                 'array',

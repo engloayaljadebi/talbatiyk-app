@@ -105,7 +105,7 @@ class BusinessCategoryOnboardingApiTransactionTest extends TestCase
         ]);
     }
 
-    public function test_multiple_active_leaves_are_persisted(): void
+    public function test_multiple_active_leaves_are_rejected(): void
     {
         $first = $this->category('api_first');
         $second = $this->category('api_second');
@@ -115,16 +115,11 @@ class BusinessCategoryOnboardingApiTransactionTest extends TestCase
         $this->postJson(
             '/api/v1/businesses',
             $this->payload([$first->id, $second->id])
-        )->assertCreated();
+        )->assertStatus(422)
+            ->assertJsonValidationErrors(['category_ids']);
 
-        $business = Business::query()->sole();
-
-        $this->assertEqualsCanonicalizing(
-            [$first->id, $second->id],
-            $business->categories()->pluck('business_categories.id')->all()
-        );
-
-        $this->assertDatabaseCount('business_category_assignments', 2);
+        $this->assertDatabaseCount('businesses', 0);
+        $this->assertDatabaseCount('business_category_assignments', 0);
     }
 
     public function test_missing_categories_are_rejected(): void

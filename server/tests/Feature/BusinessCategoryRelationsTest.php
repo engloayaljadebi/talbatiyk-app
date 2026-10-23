@@ -12,7 +12,7 @@ class BusinessCategoryRelationsTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function test_business_can_have_multiple_leaf_categories(): void
+    public function test_business_has_one_selected_leaf_category(): void
     {
         $business = Business::create([
             'name' => 'نشاط اختبار التصنيفات',
@@ -41,12 +41,9 @@ class BusinessCategoryRelationsTest extends TestCase
             'sort_order' => 2,
         ]);
 
-        $business->categories()->attach([
-            $first->id,
-            $second->id,
-        ]);
+        $business->categories()->attach($first->id);
 
-        $this->assertSame(2, $business->categories()->count());
+        $this->assertSame(1, $business->categories()->count());
         $this->assertSame(2, $parent->children()->count());
         $this->assertSame($parent->id, $first->parent->id);
         $this->assertSame(1, $first->businesses()->count());

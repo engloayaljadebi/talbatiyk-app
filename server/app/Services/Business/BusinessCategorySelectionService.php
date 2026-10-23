@@ -10,6 +10,71 @@ use Illuminate\Validation\ValidationException;
 class BusinessCategorySelectionService
 {
     /**
+     * Get selectable leaf categories with active ancestor chains.
+     *
+     * @return array<string, string>
+     */
+    public function selectableLeafOptions(): array
+    {
+        $categories = BusinessCategory::query()
+            ->orderBy('sort_order')
+            ->orderBy('name_ar')
+            ->get(['id', 'parent_id', 'name_ar', 'is_active']);
+
+        $byId = $categories->keyBy('id');
+        $hasChildren = [];
+
+        foreach ($categories as $category) {
+            if ($category->parent_id !== null) {
+                $hasChildren[$category->parent_id] = true;
+            }
+        }
+
+        $validBranches = [];
+
+        $isActiveBranch = function (string $id) use (
+            $byId,
+            &$validBranches,
+            &$isActiveBranch
+        ): bool {
+            if (array_key_exists($id, $validBranches)) {
+                return $validBranches[$id];
+            }
+
+            // Mark before traversing to reject cyclic references.
+            $validBranches[$id] = false;
+
+            $category = $byId->get($id);
+
+            if ($category === null || ! $category->is_active) {
+                return false;
+            }
+
+            if (
+                $category->parent_id !== null
+                && ! $isActiveBranch($category->parent_id)
+            ) {
+                return false;
+            }
+
+            return $validBranches[$id] = true;
+        };
+
+        $options = [];
+
+        foreach ($categories as $category) {
+            if (
+                ! isset($hasChildren[$category->id])
+                && $isActiveBranch($category->id)
+            ) {
+                $options[$category->id] = $category->name_ar;
+            }
+        }
+
+        return $options;
+    }
+
+    /**
      * Validate category IDs and return the selected category models.
      *
      * @param  array<int, string>  $categoryIds
@@ -20,6 +85,12 @@ class BusinessCategorySelectionService
         if ($categoryIds === []) {
             throw ValidationException::withMessages([
                 'category_ids' => 'يجب اختيار فئة نشاط واحدة على الأقل.',
+            ]);
+        }
+
+        if (count($categoryIds) !== 1) {
+            throw ValidationException::withMessages([
+                'category_ids' => 'يجب اختيار فئة واحدة فقط لكل نشاط تجاري.',
             ]);
         }
 
