@@ -8,6 +8,7 @@ use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Services\Platform\AdminUserCreationService;
+use App\Services\User\UserProfileService;
 use Filament\Facades\Filament;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -137,19 +138,20 @@ final class AdminUserManagementTest extends TestCase
             'value' => 'general-user@example.com',
         ]);
     }
+
     public function test_profile_persistence_failure_rolls_back_user_and_contact(): void
     {
         $admin = $this->loginAdmin();
 
-        $usersBefore = \Illuminate\Support\Facades\DB::table('users')->count();
-        $contactsBefore = \Illuminate\Support\Facades\DB::table('user_contacts')->count();
-        $profilesBefore = \Illuminate\Support\Facades\DB::table('user_profiles')->count();
+        $usersBefore = DB::table('users')->count();
+        $contactsBefore = DB::table('user_contacts')->count();
+        $profilesBefore = DB::table('user_profiles')->count();
 
         $payload = $this->payload();
         $payload['nationality_country_code'] = 'YE';
         $payload['birth_date'] = '2000-01-15';
 
-        $this->mock(\App\Services\User\UserProfileService::class, function ($mock): void {
+        $this->mock(UserProfileService::class, function ($mock): void {
             $mock->shouldReceive('savePersonalDetails')
                 ->once()
                 ->andThrow(new \RuntimeException('Profile persistence failed.'));
@@ -167,19 +169,20 @@ final class AdminUserManagementTest extends TestCase
 
         $this->assertSame(
             $usersBefore,
-            \Illuminate\Support\Facades\DB::table('users')->count()
+            DB::table('users')->count()
         );
 
         $this->assertSame(
             $contactsBefore,
-            \Illuminate\Support\Facades\DB::table('user_contacts')->count()
+            DB::table('user_contacts')->count()
         );
 
         $this->assertSame(
             $profilesBefore,
-            \Illuminate\Support\Facades\DB::table('user_profiles')->count()
+            DB::table('user_profiles')->count()
         );
     }
+
     public function test_regular_user_cannot_open_user_management(): void
     {
         $user = User::factory()->create([
