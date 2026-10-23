@@ -17,8 +17,8 @@ part 'create_business_request.g.dart';
 /// * [name] - ---------------------------------------------------------------- بيانات النشاط الأساسية ----------------------------------------------------------------
 /// * [legalName] 
 /// * [description] 
-/// * [categoryIds] - ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at.
-/// * [capabilities] 
+/// * [categoryIds] - فئة النشاط التجاري يجب اختيار فئة نشاط نهائية ونشطة واحدة فقط.
+/// * [capabilities] - قدرات النشاط التجاري يمكن طلب supplier أو shop. لا نقبل قدرة متوقفة retired_at.
 /// * [location] 
 /// * [contact] 
 @BuiltValue()
@@ -33,10 +33,11 @@ abstract class CreateBusinessRequest implements Built<CreateBusinessRequest, Cre
   @BuiltValueField(wireName: r'description')
   String? get description;
 
-  /// ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at.
+  /// فئة النشاط التجاري يجب اختيار فئة نشاط نهائية ونشطة واحدة فقط.
   @BuiltValueField(wireName: r'category_ids')
   BuiltList<String> get categoryIds;
 
+  /// قدرات النشاط التجاري يمكن طلب supplier أو shop. لا نقبل قدرة متوقفة retired_at.
   @BuiltValueField(wireName: r'capabilities')
   BuiltList<String> get capabilities;
 

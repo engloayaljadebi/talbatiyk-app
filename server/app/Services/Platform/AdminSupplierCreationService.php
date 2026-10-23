@@ -71,7 +71,7 @@ final class AdminSupplierCreationService
                 'required', 'string', 'max:320',
                 ...($input['contact_type'] === 'email' ? ['email:rfc'] : ['regex:/^\+[1-9]\d{7,14}$/']),
             ],
-            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids' => ['required', 'array', 'size:1'],
             'category_ids.*' => ['required', 'uuid', 'distinct'],
             'name' => ['required', 'string', 'min:2', 'max:200'],
             'legal_name' => ['nullable', 'string', 'max:250'],

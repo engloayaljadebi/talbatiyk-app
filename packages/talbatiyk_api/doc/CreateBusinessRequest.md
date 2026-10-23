@@ -11,8 +11,8 @@ Name | Type | Description | Notes
 **name** | **String** | ---------------------------------------------------------------- بيانات النشاط الأساسية ---------------------------------------------------------------- | 
 **legalName** | **String** |  | [optional] 
 **description** | **String** |  | [optional] 
-**categoryIds** | **BuiltList&lt;String&gt;** | ---------------------------------------------------------------- قدرات النشاط ---------------------------------------------------------------- مثال:  capabilities: - supplier - shop  لا نقبل قدرة متوقفة retired_at. | 
-**capabilities** | **BuiltList&lt;String&gt;** |  | 
+**categoryIds** | **BuiltList&lt;String&gt;** | فئة النشاط التجاري يجب اختيار فئة نشاط نهائية ونشطة واحدة فقط. | 
+**capabilities** | **BuiltList&lt;String&gt;** | قدرات النشاط التجاري يمكن طلب supplier أو shop. لا نقبل قدرة متوقفة retired_at. | 
 **location** | [**CreateBusinessRequestLocation**](CreateBusinessRequestLocation.md) |  | 
 **contact** | [**CreateBusinessRequestContact**](CreateBusinessRequestContact.md) |  | 
 
