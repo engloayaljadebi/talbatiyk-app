@@ -44,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('reviewSupplierApprovals', $platformAdminAbility);
         Gate::define('manageUsers', $platformAdminAbility);
+        Gate::define('manageBusinessCategories', $platformAdminAbility);
 
         Scramble::afterOpenApiGenerated(
             new ApplyCommercialInputBounds,
