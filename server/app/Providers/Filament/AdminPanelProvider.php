@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\AdminLogin;
+use App\Filament\Resources\BusinessCategories\BusinessCategoryResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Resources\Verifications\VerificationResource;
 use Filament\Http\Middleware\Authenticate;
@@ -34,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->resources([
                 VerificationResource::class,
                 UserResource::class,
+                BusinessCategoryResource::class,
             ])
             ->middleware([
                 EncryptCookies::class,

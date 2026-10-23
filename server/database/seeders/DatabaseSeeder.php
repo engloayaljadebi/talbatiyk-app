@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BusinessRoleSeeder::class,
             BusinessCapabilitySeeder::class,
+            BusinessCategorySeeder::class,
         ]);
     }
 }
