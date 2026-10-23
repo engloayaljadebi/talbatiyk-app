@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserContact;
 use App\Rules\MaxBytes;
 use App\Services\User\UserIdentityCreationService;
+use App\Services\User\UserProfileService;
 use App\Support\ContactValueNormalizer;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ final class AdminUserCreationService
 {
     public function __construct(
         private readonly UserIdentityCreationService $identityCreation,
+        private readonly UserProfileService $profiles,
     ) {}
 
     /** @param array<string, mixed> $input */
@@ -40,6 +42,18 @@ final class AdminUserCreationService
             $input['contact_type'],
             $input['contact_value'] ?? null
         );
+
+        $country = $input['nationality_country_code'] ?? null;
+
+        if (is_string($country)) {
+            $country = strtoupper(trim($country));
+            $country = $country === '' ? null : $country;
+        }
+
+        $input['nationality_country_code'] = $country;
+
+        $birthDate = $input['birth_date'] ?? null;
+        $input['birth_date'] = $birthDate === '' ? null : $birthDate;
 
         $data = Validator::make($input, [
             'username' => [
@@ -63,6 +77,12 @@ final class AdminUserCreationService
                 ...($input['contact_type'] === 'email'
                     ? ['email:rfc']
                     : ['regex:/^\+[1-9]\d{7,14}$/']),
+            ],
+            'nationality_country_code' => [
+                'nullable', 'string', 'size:2', 'regex:/^[A-Z]{2}$/',
+            ],
+            'birth_date' => [
+                'nullable', 'date_format:Y-m-d', 'before_or_equal:today',
             ],
         ])->validate();
 
@@ -101,7 +121,21 @@ final class AdminUserCreationService
                     ]);
                 }
 
-                return $this->identityCreation->create($data);
+                $user = $this->identityCreation->create($data);
+
+                $profileData = [
+                    'nationality_country_code' => $data['nationality_country_code'] ?? null,
+                    'birth_date' => $data['birth_date'] ?? null,
+                ];
+
+                if (
+                    $profileData['nationality_country_code'] !== null
+                    || $profileData['birth_date'] !== null
+                ) {
+                    $this->profiles->savePersonalDetails($user, $profileData);
+                }
+
+                return $user;
             }, 3);
         } catch (UniqueConstraintViolationException $exception) {
             $message = $exception->getMessage();

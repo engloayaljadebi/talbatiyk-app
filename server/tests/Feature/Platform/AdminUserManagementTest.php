@@ -8,6 +8,7 @@ use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Services\Platform\AdminUserCreationService;
+use App\Services\User\UserProfileService;
 use Filament\Facades\Filament;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -71,6 +72,10 @@ final class AdminUserManagementTest extends TestCase
             'is_primary' => true,
         ]);
 
+        $this->assertDatabaseMissing('user_profiles', [
+            'user_id' => $created->id,
+        ]);
+
         $this->assertDatabaseMissing('platform_role_assignments', [
             'user_id' => $created->id,
         ]);
@@ -82,6 +87,100 @@ final class AdminUserManagementTest extends TestCase
         $this->assertDatabaseMissing('verifications', [
             'requested_by_user_id' => $created->id,
         ]);
+    }
+
+    public function test_admin_can_create_general_user_with_personal_profile(): void
+    {
+        $this->loginAdmin();
+
+        $payload = $this->payload();
+        $payload['nationality_country_code'] = 'YE';
+        $payload['birth_date'] = '2000-01-15';
+
+        Livewire::test(ManageUsers::class)
+            ->assertSuccessful()
+            ->callAction('createUser', data: $payload)
+            ->assertHasNoActionErrors();
+
+        $created = User::query()
+            ->where('username', 'general_user_test')
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('user_profiles', [
+            'user_id' => $created->id,
+            'nationality_country_code' => 'YE',
+            'birth_date' => '2000-01-15',
+        ]);
+    }
+
+    public function test_future_birth_date_is_rejected_without_creating_user_or_contact(): void
+    {
+        $admin = $this->loginAdmin();
+
+        $payload = $this->payload();
+        $payload['birth_date'] = now()->addDays(2)->format('Y-m-d');
+
+        try {
+            app(AdminUserCreationService::class)->create($admin, $payload);
+            $this->fail('A future birth date was accepted.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey(
+                'birth_date',
+                $exception->errors()
+            );
+        }
+
+        $this->assertDatabaseMissing('users', [
+            'username' => 'general_user_test',
+        ]);
+
+        $this->assertDatabaseMissing('user_contacts', [
+            'value' => 'general-user@example.com',
+        ]);
+    }
+
+    public function test_profile_persistence_failure_rolls_back_user_and_contact(): void
+    {
+        $admin = $this->loginAdmin();
+
+        $usersBefore = DB::table('users')->count();
+        $contactsBefore = DB::table('user_contacts')->count();
+        $profilesBefore = DB::table('user_profiles')->count();
+
+        $payload = $this->payload();
+        $payload['nationality_country_code'] = 'YE';
+        $payload['birth_date'] = '2000-01-15';
+
+        $this->mock(UserProfileService::class, function ($mock): void {
+            $mock->shouldReceive('savePersonalDetails')
+                ->once()
+                ->andThrow(new \RuntimeException('Profile persistence failed.'));
+        });
+
+        try {
+            app(AdminUserCreationService::class)->create($admin, $payload);
+            $this->fail('Expected profile persistence failure.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame(
+                'Profile persistence failed.',
+                $exception->getMessage()
+            );
+        }
+
+        $this->assertSame(
+            $usersBefore,
+            DB::table('users')->count()
+        );
+
+        $this->assertSame(
+            $contactsBefore,
+            DB::table('user_contacts')->count()
+        );
+
+        $this->assertSame(
+            $profilesBefore,
+            DB::table('user_profiles')->count()
+        );
     }
 
     public function test_regular_user_cannot_open_user_management(): void
