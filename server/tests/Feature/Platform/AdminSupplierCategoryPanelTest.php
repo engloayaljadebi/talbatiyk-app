@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Platform;
 
-use App\Filament\Resources\Verifications\Pages\ManageVerifications;
+use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\Business;
 use App\Models\BusinessCategory;
 use App\Models\User;
@@ -42,10 +42,10 @@ class AdminSupplierCategoryPanelTest extends TestCase
         $parent = $this->category('panel_parent');
         $leaf = $this->category('panel_leaf', $parent->id);
 
-        Livewire::test(ManageVerifications::class)
-            ->assertActionExists('createSupplierUser')
+        Livewire::test(ManageUsers::class)
+            ->assertActionExists('createUser')
             ->callAction(
-                'createSupplierUser',
+                'createUser',
                 data: $this->payload($leaf->id)
             )
             ->assertHasNoActionErrors();
@@ -82,9 +82,9 @@ class AdminSupplierCategoryPanelTest extends TestCase
     {
         $this->loginAdmin();
 
-        Livewire::test(ManageVerifications::class)
+        Livewire::test(ManageUsers::class)
             ->callAction(
-                'createSupplierUser',
+                'createUser',
                 data: $this->payload(null)
             )
             ->assertHasActionErrors(['category_id']);
@@ -131,22 +131,38 @@ class AdminSupplierCategoryPanelTest extends TestCase
     private function payload(?string $categoryId): array
     {
         return [
+            'account_type' => 'supplier',
             'username' => 'panel_category_supplier',
             'display_name' => 'Panel Category User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',
-            'contact_type' => 'email',
-            'contact_value' => 'panel-category@example.com',
-            'category_id' => $categoryId,
+            'contact_type' => 'phone',
+            'contact_value' => '7'.random_int(10000000, 99999999),
+            'additional_contact_type' => 'email',
+            'additional_contact_value' => 'panel-secondary@example.com',
+            'nationality_country_code' => 'YE',
+            'birth_date' => '2000-01-15',
             'name' => 'Panel Category Supplier',
             'legal_name' => null,
-            'description' => null,
+            'description' => 'Panel category integration test',
+            'category_id' => $categoryId,
             'location_name' => 'Main Branch',
-            'location_type' => 'office',
+            'location_type' => 'warehouse',
             'timezone' => 'Asia/Aden',
             'country_code' => 'YE',
-            'business_contact_type' => 'email',
-            'business_contact_value' => 'panel-business@example.com',
+            'administrative_area' => 'Amanat Al Asimah',
+            'locality' => 'Sanaa',
+            'district' => 'Test District',
+            'street_address' => 'Test Street',
+            'address_notes' => 'Test address',
+            'latitude' => '15.3694',
+            'longitude' => '44.1910',
+            'business_contact_type' => 'whatsapp',
+            'business_contact_value' => '+9677'.random_int(10000000, 99999999),
+            'business_contact_label' => 'Main WhatsApp',
+            'additional_business_contact_type' => 'email',
+            'additional_business_contact_value' => 'panel-business@example.com',
+            'additional_business_contact_label' => 'Business email',
         ];
     }
 }

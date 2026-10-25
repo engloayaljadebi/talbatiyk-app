@@ -14,8 +14,6 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 final class SupplierApprovalReviewService
 {
-    private const VERIFICATION_TYPE = 'supplier_approval';
-
     /**
      * Approve a pending application and activate supplier capability.
      */
@@ -74,9 +72,9 @@ final class SupplierApprovalReviewService
             // independently approve the same pending request.
             $verification = Verification::query()
                 ->whereKey($verificationId)
-                ->where(
+                ->whereIn(
                     'verification_type_code',
-                    self::VERIFICATION_TYPE,
+                    ['supplier_approval', 'shop_approval'],
                 )
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -118,7 +116,15 @@ final class SupplierApprovalReviewService
             }
 
             if ($decision === 'approved') {
-                $this->activateSupplier($business);
+                $capabilityCode = match ($verification->verification_type_code) {
+                    'supplier_approval' => 'supplier',
+                    'shop_approval' => 'shop',
+                    default => throw new ConflictHttpException(
+                        'Unsupported business approval type.'
+                    ),
+                };
+
+                $this->activateCapability($business, $capabilityCode);
             }
 
             $verification->update([
@@ -156,37 +162,34 @@ final class SupplierApprovalReviewService
     }
 
     /**
-     * Activate only the supplier capability.
-     * Existing shop capability is never changed.
+     * Activate the capability associated with the approved request.
      */
-    private function activateSupplier(Business $business): void
-    {
+    private function activateCapability(
+        Business $business,
+        string $capabilityCode,
+    ): void {
         $isAvailable = BusinessCapability::query()
-            ->where('code', 'supplier')
+            ->where('code', $capabilityCode)
             ->whereNull('retired_at')
             ->exists();
 
         if (! $isAvailable) {
             throw new ConflictHttpException(
-                'Supplier capability is unavailable.',
+                'Business capability is unavailable.',
             );
         }
 
         $alreadyAssigned = $business->capabilities()
-            ->where('business_capabilities.code', 'supplier')
+            ->where('business_capabilities.code', $capabilityCode)
             ->exists();
 
         if ($alreadyAssigned) {
-            // Existing or formerly disabled supplier capabilities
-            // must be handled by a separate, explicit workflow.
             throw new ConflictHttpException(
-                'Supplier capability is already assigned.',
+                'Business capability is already assigned.',
             );
         }
 
-        $business->capabilities()->attach('supplier', [
-            // The platform activates this capability, rather
-            // than a business owner or business manager.
+        $business->capabilities()->attach($capabilityCode, [
             'enabled_by_membership_id' => null,
             'enabled_at' => now(),
             'disabled_at' => null,

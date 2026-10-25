@@ -114,6 +114,44 @@ class SupplierApprovalReviewServiceTest extends TestCase
         ]);
     }
 
+    public function test_authorized_shop_approval_activates_shop_and_records_reviewer(): void
+    {
+        $request = $this->pendingRequest(verificationType: 'shop_approval');
+
+        $this->service()->approve(
+            $request->id,
+            $this->reviewer,
+            'Shop details verified',
+        );
+
+        $request->refresh();
+
+        $this->assertSame('approved', $request->status);
+        $this->assertSame($this->reviewer->id, $request->reviewed_by_user_id);
+        $this->assertDatabaseHas('business_capability_assignments', [
+            'business_id' => $request->business_id,
+            'capability_code' => 'shop',
+            'disabled_at' => null,
+        ]);
+    }
+
+    public function test_rejected_shop_request_does_not_activate_shop(): void
+    {
+        $request = $this->pendingRequest(verificationType: 'shop_approval');
+
+        $this->service()->reject(
+            $request->id,
+            $this->reviewer,
+            'Shop application rejected',
+        );
+
+        $this->assertSame('rejected', $request->fresh()->status);
+        $this->assertDatabaseMissing('business_capability_assignments', [
+            'business_id' => $request->business_id,
+            'capability_code' => 'shop',
+        ]);
+    }
+
     public function test_business_owner_cannot_approve_own_request(): void
     {
         $owner = User::factory()->create();
@@ -189,6 +227,7 @@ class SupplierApprovalReviewServiceTest extends TestCase
     private function pendingRequest(
         ?User $owner = null,
         bool $withShop = false,
+        string $verificationType = 'supplier_approval',
     ): Verification {
         $owner ??= User::factory()->create();
 
@@ -205,7 +244,7 @@ class SupplierApprovalReviewServiceTest extends TestCase
         }
 
         return $business->verifications()->create([
-            'verification_type_code' => 'supplier_approval',
+            'verification_type_code' => $verificationType,
             'requested_by_user_id' => $owner->id,
             'status' => 'pending',
             'requested_at' => now(),

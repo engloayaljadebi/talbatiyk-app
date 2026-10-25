@@ -112,20 +112,20 @@ class BusinessOnboardingService
              * لا نربطها بالموقع الرئيسي لأن هذه الوسيلة
              * تمثل النشاط التجاري كاملًا.
              */
-            $contactData = $data['contact'];
+            $contactData = $data['contact'] ?? null;
 
-            $business->contacts()->create([
-                'type' => $contactData['type'],
-                'value' => $contactData['value'],
-                'label' => $contactData['label'] ?? null,
-                'is_primary' => true,
-
-                /*
-                 * لا نعتبر الوسيلة موثقة تلقائيًا.
-                 * عملية التوثيق ستكون مستقلة لاحقًا.
-                 */
-                'verified_at' => null,
-            ]);
+            if (
+                is_array($contactData)
+                && isset($contactData['type'], $contactData['value'])
+            ) {
+                $business->contacts()->create([
+                    'type' => $contactData['type'],
+                    'value' => $contactData['value'],
+                    'label' => $contactData['label'] ?? null,
+                    'is_primary' => true,
+                    'verified_at' => null,
+                ]);
+            }
 
             /*
              * ------------------------------------------------------------
@@ -184,29 +184,52 @@ class BusinessOnboardingService
              * تم التحقق من وجود الأكواد مسبقًا
              * داخل CreateBusinessRequest.
              */
+            $approvalTypes = [
+                'supplier' => 'supplier_approval',
+                'shop' => 'shop_approval',
+            ];
+
             $capabilityAssignments = [];
 
             foreach ($data['capabilities'] as $capabilityCode) {
-                // Supplier capability is granted only after admin approval.
-                if ($capabilityCode === 'supplier') {
+                // Commercial capabilities are granted only after approval.
+                if (isset($approvalTypes[$capabilityCode])) {
                     continue;
                 }
+
                 $capabilityAssignments[$capabilityCode] = [
-                    /*
-                     * المالك الأول هو من فعّل قدرات نشاطه.
-                     */
                     'enabled_by_membership_id' => $membership->id,
                     'enabled_at' => now(),
                     'disabled_at' => null,
                 ];
             }
 
-            $business->capabilities()->attach($capabilityAssignments);
+            if ($capabilityAssignments !== []) {
+                $business->capabilities()->attach($capabilityAssignments);
+            }
 
-            // Keep the approval request in the same transaction.
-            if (in_array('supplier', $data['capabilities'], true)) {
+            // Create one pending request for each requested commercial capability.
+            foreach ($data['capabilities'] as $capabilityCode) {
+                $verificationType = $approvalTypes[$capabilityCode] ?? null;
+
+                if ($verificationType === null) {
+                    continue;
+                }
+
+                $typeIsAvailable = DB::table('verification_types')
+                    ->where('code', $verificationType)
+                    ->where('subject_kind', 'business')
+                    ->whereNull('retired_at')
+                    ->exists();
+
+                if (! $typeIsAvailable) {
+                    throw new RuntimeException(
+                        "Required business approval type is unavailable: {$verificationType}"
+                    );
+                }
+
                 $business->verifications()->create([
-                    'verification_type_code' => 'supplier_approval',
+                    'verification_type_code' => $verificationType,
                     'requested_by_user_id' => $user->id,
                     'status' => 'pending',
                     'requested_at' => now(),

@@ -48,7 +48,13 @@ class SupplierApprovalGateTest extends TestCase
             'disabled_at' => null,
         ]);
 
-        $this->assertDatabaseHas('business_capability_assignments', [
+        $this->assertDatabaseHas('verifications', [
+            'business_id' => $business->id,
+            'verification_type_code' => 'shop_approval',
+            'status' => 'pending',
+        ]);
+
+        $this->assertDatabaseMissing('business_capability_assignments', [
             'business_id' => $business->id,
             'capability_code' => 'shop',
             'disabled_at' => null,
@@ -83,13 +89,19 @@ class SupplierApprovalGateTest extends TestCase
         )->assertForbidden();
     }
 
-    public function test_shop_only_registration_keeps_existing_active_behavior(): void
+    public function test_shop_only_registration_requires_pending_approval(): void
     {
         $business = $this->createBusiness(['shop']);
 
         $this->assertSame('active', $business->status);
 
-        $this->assertDatabaseHas('business_capability_assignments', [
+        $this->assertDatabaseHas('verifications', [
+            'business_id' => $business->id,
+            'verification_type_code' => 'shop_approval',
+            'status' => 'pending',
+        ]);
+
+        $this->assertDatabaseMissing('business_capability_assignments', [
             'business_id' => $business->id,
             'capability_code' => 'shop',
             'disabled_at' => null,
