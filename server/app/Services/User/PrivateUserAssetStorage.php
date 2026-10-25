@@ -19,7 +19,7 @@ final class PrivateUserAssetStorage
     private const STAGING_PREFIX = 'staging/admin-user-creation/';
 
     /** @param array<string, mixed> $input
-     *  @return list<string>
+     * @return list<string>
      */
     public function store(User $user, Business $business, array $input): array
     {

@@ -20,6 +20,7 @@ use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\Intl\Countries;
 
 final class ManageUsers extends ManageRecords
 {
@@ -96,8 +97,8 @@ final class ManageUsers extends ManageRecords
                         ->schema([
                             Select::make('nationality_country_code')
                                 ->label('الجنسية')
-                                ->options(fn (): array => class_exists(\Symfony\Component\Intl\Countries::class)
-                                    ? \Symfony\Component\Intl\Countries::getNames('ar')
+                                ->options(fn (): array => class_exists(Countries::class)
+                                    ? Countries::getNames('ar')
                                     : ['YE' => 'اليمن', 'SA' => 'السعودية'])
                                 ->searchable()
                                 ->preload(),

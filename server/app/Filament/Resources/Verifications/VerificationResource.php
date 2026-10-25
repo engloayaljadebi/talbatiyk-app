@@ -46,7 +46,7 @@ final class VerificationResource extends Resource
 
     public static function canView(Model $record): bool
     {
-        return static::canViewAny()
+        return self::canViewAny()
             && $record instanceof Verification
             && in_array(
                 $record->verification_type_code,
@@ -77,7 +77,7 @@ final class VerificationResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        abort_unless(static::canViewAny(), 403);
+        abort_unless(self::canViewAny(), 403);
 
         return parent::getEloquentQuery()
             ->whereIn('verification_type_code', ['supplier_approval', 'shop_approval'])
@@ -94,7 +94,7 @@ final class VerificationResource extends Resource
         return $schema->components([
             TextEntry::make('verification_type_code')
                 ->label('نوع الاعتماد')
-                ->formatStateUsing(fn (string $state): string => static::typeLabel($state)),
+                ->formatStateUsing(fn (string $state): string => self::typeLabel($state)),
             TextEntry::make('business.name')->label('النشاط'),
             TextEntry::make('business.legal_name')->label('الاسم القانوني'),
             TextEntry::make('business.description')->label('الوصف'),
@@ -102,7 +102,7 @@ final class VerificationResource extends Resource
             TextEntry::make('requestedBy.username')->label('اسم المستخدم'),
             TextEntry::make('status')
                 ->label('الحالة')
-                ->formatStateUsing(fn (string $state): string => static::statusLabel($state)),
+                ->formatStateUsing(fn (string $state): string => self::statusLabel($state)),
             TextEntry::make('requested_at')->label('تاريخ التقديم')->dateTime(),
             RepeatableEntry::make('business.contacts')
                 ->label('وسائل اتصال النشاط')
@@ -134,7 +134,7 @@ final class VerificationResource extends Resource
             ->columns([
                 TextColumn::make('verification_type_code')
                     ->label('نوع الاعتماد')
-                    ->formatStateUsing(fn (string $state): string => static::typeLabel($state)),
+                    ->formatStateUsing(fn (string $state): string => self::typeLabel($state)),
                 TextColumn::make('business.name')
                     ->label('النشاط')
                     ->searchable(),
@@ -144,7 +144,7 @@ final class VerificationResource extends Resource
                 TextColumn::make('status')
                     ->label('الحالة')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => static::statusLabel($state))
+                    ->formatStateUsing(fn (string $state): string => self::statusLabel($state))
                     ->color(fn (string $state): string => match ($state) {
                         'approved' => 'success',
                         'rejected' => 'danger',
@@ -169,8 +169,8 @@ final class VerificationResource extends Resource
             ])
             ->recordActions([
                 ViewAction::make()->label('التفاصيل'),
-                static::decisionAction('approve', 'موافقة', 'success'),
-                static::decisionAction('reject', 'رفض', 'danger'),
+                self::decisionAction('approve', 'موافقة', 'success'),
+                self::decisionAction('reject', 'رفض', 'danger'),
             ])
             ->toolbarActions([]);
     }
@@ -184,7 +184,7 @@ final class VerificationResource extends Resource
             ->label($label)
             ->color($color)
             ->requiresConfirmation()
-            ->authorize(fn (): bool => static::canViewAny())
+            ->authorize(fn (): bool => self::canViewAny())
             ->visible(fn (Verification $record): bool => $record->status === 'pending')
             ->schema([
                 Textarea::make('review_note')

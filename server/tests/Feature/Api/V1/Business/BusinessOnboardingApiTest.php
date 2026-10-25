@@ -192,7 +192,7 @@ class BusinessOnboardingApiTest extends TestCase
             'status' => 'pending',
         ]);
 
-                $this->assertDatabaseHas('verifications', [
+        $this->assertDatabaseHas('verifications', [
             'business_id' => $business->id,
             'verification_type_code' => 'shop_approval',
             'requested_by_user_id' => $user->id,

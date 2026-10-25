@@ -7,6 +7,7 @@ namespace App\Services\Platform;
 use App\Models\User;
 use App\Models\UserContact;
 use App\Rules\MaxBytes;
+use App\Services\User\PrivateUserAssetStorage;
 use App\Services\User\UserIdentityCreationService;
 use App\Services\User\UserProfileService;
 use App\Support\ContactValueNormalizer;
@@ -17,8 +18,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 
 final class AdminUserCreationService
 {
@@ -26,15 +25,14 @@ final class AdminUserCreationService
         private readonly UserIdentityCreationService $identityCreation,
         private readonly UserProfileService $profiles,
         private readonly AdminSupplierCreationService $businessCreation,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $input */
     public function create(User $admin, array $input): User
     {
         Gate::forUser($admin)->authorize('manageUsers');
 
-        $assetStorage = app(\App\Services\User\PrivateUserAssetStorage::class);
+        $assetStorage = app(PrivateUserAssetStorage::class);
 
         $input['username'] = ContactValueNormalizer::username(
             $input['username'] ?? null
@@ -188,8 +186,8 @@ final class AdminUserCreationService
 
                 if (
                     User::withTrashed()
-                    ->whereRaw('LOWER(username) = ?', [$data['username']])
-                    ->exists()
+                        ->whereRaw('LOWER(username) = ?', [$data['username']])
+                        ->exists()
                 ) {
                     throw ValidationException::withMessages([
                         'username' => 'اسم المستخدم مستخدم مسبقًا.',

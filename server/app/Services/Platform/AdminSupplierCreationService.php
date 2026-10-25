@@ -33,7 +33,7 @@ final class AdminSupplierCreationService
      * by AdminUserCreationService. The surrounding transaction rolls back
      * the identity if business onboarding or approval creation fails.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      */
     public function createForExistingUser(
         User $admin,
@@ -285,6 +285,7 @@ final class AdminSupplierCreationService
             return $business;
         }, 3);
     }
+
     /** @param array<string, mixed> $input */
     public function create(User $admin, array $input): Business
     {

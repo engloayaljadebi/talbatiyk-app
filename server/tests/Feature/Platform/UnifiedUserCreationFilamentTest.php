@@ -21,8 +21,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use RuntimeException;
@@ -96,14 +96,14 @@ final class UnifiedUserCreationFilamentTest extends TestCase
         }
 
         foreach ([
-            "additional_contact_type",
-            "legal_name",
-            "location_type",
-            "business_contact_type",
-            "additional_business_contact_type",
-            "street_address",
-            "latitude",
-            "longitude",
+            'additional_contact_type',
+            'legal_name',
+            'location_type',
+            'business_contact_type',
+            'additional_business_contact_type',
+            'street_address',
+            'latitude',
+            'longitude',
         ] as $forbiddenField) {
             $this->assertStringNotContainsString($forbiddenField, $source);
         }

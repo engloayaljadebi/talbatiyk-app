@@ -14,7 +14,6 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 final class SupplierApprovalReviewService
 {
-
     /**
      * Approve a pending application and activate supplier capability.
      */
