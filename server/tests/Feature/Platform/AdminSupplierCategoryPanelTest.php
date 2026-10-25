@@ -137,7 +137,7 @@ class AdminSupplierCategoryPanelTest extends TestCase
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',
             'contact_type' => 'phone',
-            'contact_value' => '+9677'.random_int(10000000, 99999999),
+            'contact_value' => '7'.random_int(10000000, 99999999),
             'additional_contact_type' => 'email',
             'additional_contact_value' => 'panel-secondary@example.com',
             'nationality_country_code' => 'YE',

@@ -370,7 +370,7 @@ final class UnifiedUserCreationFilamentTest extends TestCase
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',
             'contact_type' => 'phone',
-            'contact_value' => '+9677'.random_int(10000000, 99999999),
+            'contact_value' => '7'.random_int(10000000, 99999999),
             'nationality_country_code' => 'YE',
             'birth_date' => '2000-01-15',
             'name' => 'Unified '.ucfirst($accountType).' Business',
@@ -382,4 +382,3 @@ final class UnifiedUserCreationFilamentTest extends TestCase
         ];
     }
 }
-
