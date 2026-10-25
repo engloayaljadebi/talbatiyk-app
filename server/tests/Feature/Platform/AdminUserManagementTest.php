@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
-use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\BusinessCategory;
 use App\Models\User;
+use Database\Seeders\BusinessCapabilitySeeder;
+use Database\Seeders\BusinessRoleSeeder;
 use App\Services\Platform\AdminUserCreationService;
 use App\Services\User\UserProfileService;
 use Filament\Facades\Filament;
@@ -14,13 +16,16 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Livewire\Livewire;
 use Tests\TestCase;
 
 final class AdminUserManagementTest extends TestCase
 {
     use DatabaseTransactions;
+
+    private string $categoryId;
 
     protected function setUp(): void
     {
@@ -37,23 +42,32 @@ final class AdminUserManagementTest extends TestCase
             throw new \RuntimeException('Unsafe database.');
         }
 
+        Storage::fake('talbatiyk_private');
+
+        $this->seed(BusinessRoleSeeder::class);
+        $this->seed(BusinessCapabilitySeeder::class);
+
+        $category = BusinessCategory::query()->create([
+            'code' => 'admin_user_'.Str::lower(Str::random(10)),
+            'name_ar' => 'فئة اختبار إدارة المستخدم',
+            'parent_id' => null,
+            'is_active' => true,
+            'sort_order' => 999,
+        ]);
+
+        $this->categoryId = $category->id;
+
         Filament::setCurrentPanel(
             Filament::getPanel('admin')
         );
     }
 
-    public function test_admin_can_create_general_user(): void
+    public function test_admin_can_create_shop_account_with_business_and_pending_approval(): void
     {
-        $this->loginAdmin();
+        $admin = $this->loginAdmin();
 
-        Livewire::test(ManageUsers::class)
-            ->assertSuccessful()
-            ->assertActionExists('createUser')
-            ->callAction(
-                'createUser',
-                data: $this->payload()
-            )
-            ->assertHasNoActionErrors();
+        app(AdminUserCreationService::class)
+            ->create($admin, $this->payload());
 
         $created = User::query()
             ->where('username', 'general_user_test')
@@ -72,35 +86,62 @@ final class AdminUserManagementTest extends TestCase
             'is_primary' => true,
         ]);
 
-        $this->assertDatabaseMissing('user_profiles', [
+        $this->assertDatabaseHas('user_profiles', [
             'user_id' => $created->id,
+            'nationality_country_code' => 'YE',
+            'birth_date' => '2000-01-15',
         ]);
 
         $this->assertDatabaseMissing('platform_role_assignments', [
             'user_id' => $created->id,
         ]);
 
-        $this->assertDatabaseMissing('business_memberships', [
-            'user_id' => $created->id,
+        $membership = DB::table('business_memberships')
+            ->where('user_id', $created->id)
+            ->first();
+
+        $this->assertNotNull($membership);
+        $businessId = $membership->business_id;
+
+        $this->assertDatabaseHas('businesses', [
+            'id' => $businessId,
+            'name' => 'Test Business',
+            'status' => 'active',
         ]);
 
-        $this->assertDatabaseMissing('verifications', [
-            'requested_by_user_id' => $created->id,
+        $this->assertSame(
+            1,
+            DB::table('business_category_assignments')
+                ->where('business_id', $businessId)
+                ->count()
+        );
+
+        $this->assertDatabaseHas('business_locations', [
+            'business_id' => $businessId,
+            'name' => 'Main location',
+            'country_code' => 'YE',
+            'administrative_area' => 'Amanat Al Asimah',
+            'locality' => 'Sanaa',
+            'is_primary' => true,
+        ]);
+
+        $this->assertDatabaseHas('verifications', [
+            'business_id' => $businessId,
+            'verification_type_code' => 'shop_approval',
+            'status' => 'pending',
         ]);
     }
 
     public function test_admin_can_create_general_user_with_personal_profile(): void
     {
-        $this->loginAdmin();
+        $admin = $this->loginAdmin();
 
         $payload = $this->payload();
         $payload['nationality_country_code'] = 'YE';
         $payload['birth_date'] = '2000-01-15';
 
-        Livewire::test(ManageUsers::class)
-            ->assertSuccessful()
-            ->callAction('createUser', data: $payload)
-            ->assertHasNoActionErrors();
+        app(AdminUserCreationService::class)
+            ->create($admin, $payload);
 
         $created = User::query()
             ->where('username', 'general_user_test')
@@ -287,12 +328,21 @@ final class AdminUserManagementTest extends TestCase
     private function payload(): array
     {
         return [
+            'account_type' => 'shop',
             'username' => 'general_user_test',
             'display_name' => 'General Test User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',
             'contact_type' => 'email',
             'contact_value' => 'general-user@example.com',
+            'nationality_country_code' => 'YE',
+            'birth_date' => '2000-01-15',
+            'name' => 'Test Business',
+            'category_id' => $this->categoryId,
+            'description' => 'Admin user management test.',
+            'location_name' => 'Main location',
+            'administrative_area' => 'Amanat Al Asimah',
+            'locality' => 'Sanaa',
         ];
     }
 }

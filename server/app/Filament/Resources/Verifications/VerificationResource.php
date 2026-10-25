@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Verifications;
 
 use App\Filament\Resources\Verifications\Pages\ManageVerifications;
+use App\Models\User;
 use App\Models\Verification;
 use App\Services\Business\SupplierApprovalReviewService;
 use Filament\Actions\Action;
@@ -23,15 +26,15 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
-class VerificationResource extends Resource
+final class VerificationResource extends Resource
 {
     protected static ?string $model = Verification::class;
 
-    protected static ?string $navigationLabel = 'طلبات اعتماد الموردين';
+    protected static ?string $navigationLabel = 'طلبات اعتماد الأنشطة التجارية';
 
-    protected static ?string $modelLabel = 'طلب اعتماد مورد';
+    protected static ?string $modelLabel = 'طلب اعتماد نشاط';
 
-    protected static ?string $pluralModelLabel = 'طلبات اعتماد الموردين';
+    protected static ?string $pluralModelLabel = 'طلبات اعتماد الأنشطة';
 
     public static function canViewAny(): bool
     {
@@ -44,7 +47,12 @@ class VerificationResource extends Resource
     public static function canView(Model $record): bool
     {
         return static::canViewAny()
-            && $record->verification_type_code === 'supplier_approval';
+            && $record instanceof Verification
+            && in_array(
+                $record->verification_type_code,
+                ['supplier_approval', 'shop_approval'],
+                true,
+            );
     }
 
     public static function canCreate(): bool
@@ -72,7 +80,7 @@ class VerificationResource extends Resource
         abort_unless(static::canViewAny(), 403);
 
         return parent::getEloquentQuery()
-            ->where('verification_type_code', 'supplier_approval')
+            ->whereIn('verification_type_code', ['supplier_approval', 'shop_approval'])
             ->with([
                 'business.contacts',
                 'business.locations',
@@ -84,6 +92,9 @@ class VerificationResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
+            TextEntry::make('verification_type_code')
+                ->label('نوع الاعتماد')
+                ->formatStateUsing(fn (string $state): string => static::typeLabel($state)),
             TextEntry::make('business.name')->label('النشاط'),
             TextEntry::make('business.legal_name')->label('الاسم القانوني'),
             TextEntry::make('business.description')->label('الوصف'),
@@ -98,6 +109,7 @@ class VerificationResource extends Resource
                 ->schema([
                     TextEntry::make('type')->label('النوع'),
                     TextEntry::make('value')->label('القيمة'),
+                    TextEntry::make('label')->label('الوصف'),
                 ]),
             RepeatableEntry::make('business.locations')
                 ->label('مواقع النشاط')
@@ -106,7 +118,7 @@ class VerificationResource extends Resource
                     TextEntry::make('country_code')->label('الدولة'),
                     TextEntry::make('administrative_area')->label('المحافظة'),
                     TextEntry::make('locality')->label('المدينة'),
-                    TextEntry::make('district')->label('المنطقة'),
+                    TextEntry::make('district')->label('الحي'),
                     TextEntry::make('street_address')->label('العنوان'),
                 ]),
             TextEntry::make('reviewedBy.display_name')->label('المراجع'),
@@ -120,12 +132,18 @@ class VerificationResource extends Resource
         return $table
             ->defaultSort('requested_at', 'desc')
             ->columns([
+                TextColumn::make('verification_type_code')
+                    ->label('نوع الاعتماد')
+                    ->formatStateUsing(fn (string $state): string => static::typeLabel($state)),
                 TextColumn::make('business.name')
-                    ->label('النشاط')->searchable(),
+                    ->label('النشاط')
+                    ->searchable(),
                 TextColumn::make('requestedBy.display_name')
-                    ->label('مقدم الطلب')->searchable(),
+                    ->label('مقدم الطلب')
+                    ->searchable(),
                 TextColumn::make('status')
-                    ->label('الحالة')->badge()
+                    ->label('الحالة')
+                    ->badge()
                     ->formatStateUsing(fn (string $state): string => static::statusLabel($state))
                     ->color(fn (string $state): string => match ($state) {
                         'approved' => 'success',
@@ -134,7 +152,9 @@ class VerificationResource extends Resource
                         default => 'gray',
                     }),
                 TextColumn::make('requested_at')
-                    ->label('تاريخ التقديم')->dateTime()->sortable(),
+                    ->label('تاريخ التقديم')
+                    ->dateTime()
+                    ->sortable(),
                 TextColumn::make('reviewedBy.display_name')->label('المراجع'),
                 TextColumn::make('reviewed_at')->label('وقت القرار')->dateTime(),
             ])
@@ -176,6 +196,8 @@ class VerificationResource extends Resource
                 abort_unless(static::canView($record), 403);
 
                 $reviewer = Filament::auth()->user();
+                abort_unless($reviewer instanceof User, 403);
+
                 $service = app(SupplierApprovalReviewService::class);
                 $note = (string) ($data['review_note'] ?? '');
 
@@ -185,17 +207,30 @@ class VerificationResource extends Resource
                     } else {
                         $service->reject($record->id, $reviewer, $note);
                     }
-                } catch (ConflictHttpException $exception) {
+                } catch (ConflictHttpException) {
                     throw ValidationException::withMessages([
                         'review_note' => 'تعذر تنفيذ القرار لأن حالة الطلب أو النشاط تغيرت. أغلق النافذة وحدّث القائمة.',
                     ]);
                 }
 
+                $target = $record->verification_type_code === 'shop_approval'
+                    ? 'المتجر'
+                    : 'المورد';
+
                 Notification::make()
-                    ->title($name === 'approve' ? 'تم اعتماد المورد' : 'تم رفض الطلب')
+                    ->title($name === 'approve' ? 'تم اعتماد '.$target : 'تم رفض طلب '.$target)
                     ->success()
                     ->send();
             });
+    }
+
+    private static function typeLabel(string $state): string
+    {
+        return match ($state) {
+            'shop_approval' => 'اعتماد متجر / عميل',
+            'supplier_approval' => 'اعتماد مورد',
+            default => $state,
+        };
     }
 
     private static function statusLabel(string $state): string
