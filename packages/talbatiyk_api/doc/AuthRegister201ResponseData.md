@@ -9,6 +9,7 @@ import 'package:talbatiyk_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **user** | [**UserResource**](UserResource.md) |  | 
+**business** | [**BusinessResource**](BusinessResource.md) |  | 
 **accessToken** | **String** |  | 
 **tokenType** | **String** |  | 
 

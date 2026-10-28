@@ -7,12 +7,17 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add(AuthLogin200Response.serializer)
+      ..add(AuthLogin200ResponseData.serializer)
+      ..add(AuthLogin200ResponseDataTokenTypeEnum.serializer)
       ..add(AuthLogout200Response.serializer)
       ..add(AuthLogout200ResponseMessageEnum.serializer)
       ..add(AuthMe200Response.serializer)
       ..add(AuthRegister201Response.serializer)
       ..add(AuthRegister201ResponseData.serializer)
       ..add(AuthRegister201ResponseDataTokenTypeEnum.serializer)
+      ..add(AuthRegistrationCategories200Response.serializer)
+      ..add(AuthRegistrationCategories200ResponseDataInner.serializer)
       ..add(AvailabilityStatus.serializer)
       ..add(BusinessContactIndexBusiness200Response.serializer)
       ..add(BusinessContactResource.serializer)
@@ -70,8 +75,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ProductResource.serializer)
       ..add(ProductStore201Response.serializer)
       ..add(RegisterRequest.serializer)
+      ..add(RegisterRequestAccountTypeEnum.serializer)
+      ..add(RegisterRequestBusinessContactTypeEnum.serializer)
       ..add(RegisterRequestContactTypeEnum.serializer)
       ..add(RegisterRequestContactValue.serializer)
+      ..add(RegisterRequestLocationTypeEnum.serializer)
       ..add(SelectOrderSupplierResponsesRequest.serializer)
       ..add(SelectOrderSupplierResponsesRequestSelectionsInner.serializer)
       ..add(SubmitSupplierOrderResponseRequest.serializer)
@@ -107,6 +115,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(UpdateSupplierFulfillmentRequestStatusEnum.serializer)
       ..add(UserResource.serializer)
       ..add(UserResourceContactsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AuthRegistrationCategories200ResponseDataInner)
+          ]),
+          () => ListBuilder<AuthRegistrationCategories200ResponseDataInner>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(BusinessContactResource)]),

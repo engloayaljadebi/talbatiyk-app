@@ -152,6 +152,18 @@ void main() {
 /// Fake Repository لاختبار AuthUseCase دون أي اعتماد
 /// على الشبكة أو Secure Storage.
 final class FakeAuthRepository implements AuthRepository {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    throw UnimplementedError('Registration categories not used here.');
+  }
+
+  @override
+  Future<AuthSessionEntity> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    throw UnimplementedError('Registration not used here.');
+  }
+
   FakeAuthRepository({
     required this.loginResult,
     required this.restoreResult,

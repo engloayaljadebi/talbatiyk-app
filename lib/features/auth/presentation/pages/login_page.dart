@@ -17,6 +17,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:talbatiyk/core/router/route_names.dart';
 
 import '../providers/auth_providers.dart';
 import '../states/auth_state.dart';
@@ -188,6 +190,14 @@ final class _LoginPageState extends ConsumerState<LoginPage> {
                               )
                             : const Text('تسجيل الدخول'),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () => context.push(RouteNames.register),
+                      icon: const Icon(Icons.person_add_alt_1_outlined),
+                      label: const Text('إنشاء حساب جديد'),
                     ),
                   ],
                 ),

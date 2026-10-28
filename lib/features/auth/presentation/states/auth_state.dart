@@ -47,6 +47,9 @@ final class AuthState {
     this.status = AuthStatus.initial,
     this.session,
     this.errorMessage,
+    this.isRegistering = false,
+    this.registrationErrorMessage,
+    this.registrationFieldErrors = const <String, String>{},
   });
 
   /// المرحلة الحالية للمصادقة.
@@ -60,6 +63,10 @@ final class AuthState {
   /// رسالة مناسبة للواجهة عند حدوث خطأ.
   final String? errorMessage;
 
+  final bool isRegistering;
+  final String? registrationErrorMessage;
+  final Map<String, String> registrationFieldErrors;
+
   /// المستخدم الحالي إذا وجدت جلسة.
   AuthUserEntity? get user => session?.user;
 
@@ -72,7 +79,8 @@ final class AuthState {
   bool get isBusy {
     return status == AuthStatus.restoring ||
         status == AuthStatus.authenticating ||
-        status == AuthStatus.signingOut;
+        status == AuthStatus.signingOut ||
+        isRegistering;
   }
 
   /// إنشاء نسخة جديدة من الحالة مع تغيير القيم المطلوبة فقط.
@@ -82,6 +90,11 @@ final class AuthState {
     bool clearSession = false,
     String? errorMessage,
     bool clearErrorMessage = false,
+    bool? isRegistering,
+    String? registrationErrorMessage,
+    bool clearRegistrationErrorMessage = false,
+    Map<String, String>? registrationFieldErrors,
+    bool clearRegistrationFieldErrors = false,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -89,6 +102,13 @@ final class AuthState {
       errorMessage: clearErrorMessage
           ? null
           : errorMessage ?? this.errorMessage,
+      isRegistering: isRegistering ?? this.isRegistering,
+      registrationFieldErrors: clearRegistrationFieldErrors
+          ? const <String, String>{}
+          : registrationFieldErrors ?? this.registrationFieldErrors,
+      registrationErrorMessage: clearRegistrationErrorMessage
+          ? null
+          : registrationErrorMessage ?? this.registrationErrorMessage,
     );
   }
 }

@@ -19,8 +19,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Requests\Api\V1\Auth\UpdateProfileRequest;
+use App\Http\Resources\Api\V1\BusinessResource;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Services\Auth\AuthService;
+use App\Services\Business\BusinessCategorySelectionService;
 use App\Services\User\UserProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,10 +46,31 @@ class AuthController extends Controller
         return response()->json([
             'data' => [
                 'user' => new UserResource($result['user']),
+                'business' => $result['business'] === null
+                    ? null
+                    : new BusinessResource($result['business']),
                 'access_token' => $result['token'],
                 'token_type' => 'Bearer',
             ],
         ], 201);
+    }
+
+    /**
+     * Public list of selectable categories for mobile registration.
+     */
+    public function registrationCategories(
+        BusinessCategorySelectionService $categories,
+    ): JsonResponse {
+        $items = [];
+
+        foreach ($categories->selectableLeafOptions() as $id => $name) {
+            $items[] = [
+                'id' => $id,
+                'name' => $name,
+            ];
+        }
+
+        return response()->json(['data' => $items]);
     }
 
     /**

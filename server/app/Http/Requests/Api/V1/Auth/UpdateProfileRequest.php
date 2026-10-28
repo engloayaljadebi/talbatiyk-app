@@ -44,7 +44,7 @@ class UpdateProfileRequest extends FormRequest
                 'string',
                 'min:3',
                 'max:50',
-                'regex:/^[\pL\pN._-]+$/u',
+                ContactValueNormalizer::USERNAME_VALIDATION_RULE,
             ],
 
             'display_name' => [

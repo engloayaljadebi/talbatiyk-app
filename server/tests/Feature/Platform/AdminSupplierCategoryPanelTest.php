@@ -62,7 +62,7 @@ class AdminSupplierCategoryPanelTest extends TestCase
         );
 
         $this->assertDatabaseHas('users', [
-            'username' => 'panel_category_supplier',
+            'username' => 'panelcategorysupplier',
         ]);
 
         $this->assertDatabaseHas('verifications', [
@@ -90,7 +90,7 @@ class AdminSupplierCategoryPanelTest extends TestCase
             ->assertHasActionErrors(['category_id']);
 
         $this->assertDatabaseMissing('users', [
-            'username' => 'panel_category_supplier',
+            'username' => 'panelcategorysupplier',
         ]);
 
         $this->assertDatabaseMissing('businesses', [
@@ -132,7 +132,7 @@ class AdminSupplierCategoryPanelTest extends TestCase
     {
         return [
             'account_type' => 'supplier',
-            'username' => 'panel_category_supplier',
+            'username' => 'panelcategorysupplier',
             'display_name' => 'Panel Category User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',

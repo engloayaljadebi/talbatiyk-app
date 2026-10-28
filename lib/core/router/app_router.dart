@@ -31,6 +31,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/auth_session_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/states/auth_state.dart';
 import '../../features/navigation/presentation/pages/main_page.dart';
@@ -78,6 +79,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final isAuthPage = currentPath == RouteNames.auth;
       final isLoginPage = currentPath == RouteNames.login;
+      final isRegisterPage = currentPath == RouteNames.register;
 
       switch (status) {
         case AuthStatus.initial:
@@ -89,7 +91,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return RouteNames.auth;
 
         case AuthStatus.unauthenticated:
-          if (isLoginPage) {
+          // Guests may sign in or create a new account.
+          if (isLoginPage || isRegisterPage) {
             return null;
           }
 
@@ -103,7 +106,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return RouteNames.login;
 
         case AuthStatus.authenticated:
-          if (isAuthPage || isLoginPage) {
+          if (isAuthPage || isLoginPage || isRegisterPage) {
             return RouteNames.main;
           }
 
@@ -127,7 +130,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
            * وإذا حدث أثناء restoreSession نبقى في
            * AuthSessionPage لعرض زر إعادة المحاولة.
            */
-          if (isLoginPage || isAuthPage) {
+          if (isLoginPage || isAuthPage || isRegisterPage) {
             return null;
           }
 
@@ -146,6 +149,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.login,
         builder: (context, state) {
           return const LoginPage();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.register,
+        builder: (context, state) {
+          return const RegisterPage();
         },
       ),
       GoRoute(

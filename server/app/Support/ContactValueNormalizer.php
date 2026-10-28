@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
 
 class ContactValueNormalizer
 {
+    public const USERNAME_VALIDATION_RULE = 'regex:/^[A-Za-z0-9]+$/';
+
     /**
      * توحيد اسم المستخدم.
      */

@@ -365,7 +365,7 @@ final class UnifiedUserCreationFilamentTest extends TestCase
 
         return [
             'account_type' => $accountType,
-            'username' => 'unified_'.$accountType.'_'.$suffix,
+            'username' => 'unified'.$accountType.$suffix,
             'display_name' => 'Unified '.ucfirst($accountType).' User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',

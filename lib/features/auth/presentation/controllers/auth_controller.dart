@@ -20,6 +20,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/auth_entity.dart';
+import '../../domain/entities/registration_validation_exception.dart';
 import '../../domain/usecases/auth_usecase.dart';
 import '../states/auth_state.dart';
 
@@ -120,6 +121,60 @@ final class AuthController extends ChangeNotifier {
   }
 
   /// يسجل خروج المستخدم من الجهاز الحالي.
+  Future<List<({String id, String name})>> fetchRegistrationCategories() {
+    return _useCase.fetchRegistrationCategories();
+  }
+
+  Future<bool> registerFromMobile(Map<String, Object?> payload) async {
+    if (state.isRegistering) {
+      return false;
+    }
+
+    state = state.copyWith(
+      isRegistering: true,
+      clearRegistrationErrorMessage: true,
+      clearRegistrationFieldErrors: true,
+      clearErrorMessage: true,
+    );
+    notifyListeners();
+
+    try {
+      final session = await _useCase.registerFromMobile(payload);
+
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        session: session,
+        isRegistering: false,
+        clearRegistrationErrorMessage: true,
+        clearRegistrationFieldErrors: true,
+        clearErrorMessage: true,
+      );
+
+      notifyListeners();
+      return true;
+    } on RegistrationValidationException catch (error) {
+      state = state.copyWith(
+        isRegistering: false,
+        registrationFieldErrors: error.fieldErrors,
+        registrationErrorMessage:
+            'يرجى مراجعة البيانات وتصحيح الحقول التي تحتوي على أخطاء.',
+      );
+
+      notifyListeners();
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isRegistering: false,
+        clearRegistrationFieldErrors: true,
+        registrationErrorMessage:
+            'تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.',
+      );
+
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> refreshCurrentUser() async {
     if (!state.isAuthenticated) {
       return;

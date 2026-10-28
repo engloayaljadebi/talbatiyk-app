@@ -97,7 +97,7 @@ final class AdminUserCreationService
                 ],
                 'username' => [
                     'required', 'string', 'min:3', 'max:50',
-                    'regex:/^[\pL\pN._-]+$/u',
+                    ContactValueNormalizer::USERNAME_VALIDATION_RULE,
                 ],
                 'display_name' => [
                     'required', 'string', 'min:2', 'max:160',
@@ -130,7 +130,7 @@ final class AdminUserCreationService
                     ...(($input['additional_contact_type'] ?? null) === 'email'
                         ? ['email:rfc']
                         : ((($input['additional_contact_type'] ?? null) === 'phone')
-                            ? ['regex:/^\+[1-9]\d{7,14}$/']
+                            ? ['regex:/^[0-9]{9}$/']
                             : [])),
                 ],
                 'nationality_country_code' => [
@@ -252,6 +252,17 @@ final class AdminUserCreationService
                 }
 
                 $user = $this->identityCreation->create($data);
+
+                if (
+                    ($data['additional_contact_type'] ?? null) === 'phone'
+                    && ($data['additional_contact_value'] ?? null) !== null
+                ) {
+                    $this->identityCreation->assertUnambiguousLoginIdentifiers(
+                        $user->username,
+                        $data['additional_contact_value'],
+                        (string) $user->getKey(),
+                    );
+                }
 
                 if (($data['additional_contact_value'] ?? null) !== null) {
                     $user->contacts()->create([

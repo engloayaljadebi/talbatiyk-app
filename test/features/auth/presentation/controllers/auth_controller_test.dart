@@ -72,6 +72,84 @@ void main() {
       expect(controller.state.isBusy, isFalse);
     });
 
+    test('fetchRegistrationCategories returns available categories', () async {
+      repository.registrationCategories = [
+        (id: 'category-1', name: 'Category One'),
+      ];
+
+      final categories = await controller.fetchRegistrationCategories();
+
+      expect(repository.fetchRegistrationCategoriesCalled, isTrue);
+      expect(categories, hasLength(1));
+      expect(categories.single.id, 'category-1');
+      expect(categories.single.name, 'Category One');
+    });
+
+    test('registerFromMobile authenticates on success', () async {
+      final payload = <String, Object?>{
+        'account_type': 'shop',
+        'username': 'newshop01',
+      };
+
+      final registrationFuture = controller.registerFromMobile(payload);
+
+      expect(controller.state.isRegistering, isTrue);
+      expect(controller.state.isBusy, isTrue);
+
+      final result = await registrationFuture;
+
+      expect(result, isTrue);
+      expect(repository.registerCalled, isTrue);
+      expect(repository.receivedRegistrationPayload, payload);
+      expect(controller.state.status, AuthStatus.authenticated);
+      expect(controller.state.session, same(session));
+      expect(controller.state.isAuthenticated, isTrue);
+      expect(controller.state.isRegistering, isFalse);
+      expect(controller.state.registrationErrorMessage, isNull);
+    });
+
+    test('registerFromMobile reports failure', () async {
+      repository.registerError = Exception('registration failed');
+
+      final result = await controller.registerFromMobile({
+        'account_type': 'shop',
+      });
+
+      expect(result, isFalse);
+      expect(repository.registerCalled, isTrue);
+      expect(controller.state.isRegistering, isFalse);
+      expect(
+        controller.state.registrationErrorMessage,
+        'تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.',
+      );
+      expect(controller.state.isAuthenticated, isFalse);
+    });
+
+    test('registerFromMobile ignores duplicate submission', () async {
+      final completer = Completer<AuthSessionEntity>();
+      repository.registerCompleter = completer;
+
+      final firstRequest = controller.registerFromMobile({
+        'account_type': 'shop',
+      });
+
+      expect(controller.state.isRegistering, isTrue);
+      expect(repository.registerCallCount, 1);
+
+      final duplicateResult = await controller.registerFromMobile({
+        'account_type': 'shop',
+      });
+
+      expect(duplicateResult, isFalse);
+      expect(repository.registerCallCount, 1);
+
+      completer.complete(session);
+
+      expect(await firstRequest, isTrue);
+      expect(controller.state.isAuthenticated, isTrue);
+      expect(controller.state.isRegistering, isFalse);
+    });
+
     test('restoreSession becomes authenticated when session exists', () async {
       final result = controller.restoreSession();
 
@@ -253,6 +331,39 @@ void main() {
 
 /// Fake Repository لاختبار AuthController بدون شبكة أو تخزين حقيقي.
 final class FakeAuthRepository implements AuthRepository {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    fetchRegistrationCategoriesCalled = true;
+
+    final error = registrationCategoriesError;
+    if (error != null) {
+      throw error;
+    }
+
+    return registrationCategories;
+  }
+
+  @override
+  Future<AuthSessionEntity> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    registerCalled = true;
+    registerCallCount++;
+    receivedRegistrationPayload = Map<String, Object?>.of(payload);
+
+    final error = registerError;
+    if (error != null) {
+      throw error;
+    }
+
+    final completer = registerCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
+
+    return registerResult ?? loginResult;
+  }
+
   FakeAuthRepository({
     required this.loginResult,
     required this.restoreResult,
@@ -262,6 +373,19 @@ final class FakeAuthRepository implements AuthRepository {
   AuthSessionEntity loginResult;
   AuthSessionEntity? restoreResult;
   AuthUserEntity currentUserResult;
+
+  List<({String id, String name})> registrationCategories =
+      <({String id, String name})>[];
+  Map<String, Object?>? receivedRegistrationPayload;
+  AuthSessionEntity? registerResult;
+  Completer<AuthSessionEntity>? registerCompleter;
+
+  bool fetchRegistrationCategoriesCalled = false;
+  bool registerCalled = false;
+  int registerCallCount = 0;
+
+  Object? registrationCategoriesError;
+  Object? registerError;
 
   bool loginCalled = false;
   bool restoreSessionCalled = false;

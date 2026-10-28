@@ -26,6 +26,12 @@ import '../entities/auth_entity.dart';
 /// - Secure Token Storage.
 /// - Generated OpenAPI Client.
 abstract class AuthRepository {
+  /// Available categories before signing in.
+  Future<List<({String id, String name})>> fetchRegistrationCategories();
+
+  /// Register a user and their business, then establish a session.
+  Future<AuthSessionEntity> registerFromMobile(Map<String, Object?> payload);
+
   /// يسجل دخول المستخدم ويعيد الجلسة بعد نجاح المصادقة.
   Future<AuthSessionEntity> login({
     required String login,

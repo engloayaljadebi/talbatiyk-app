@@ -19,6 +19,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/auth_entity.dart';
+import '../../domain/entities/registration_validation_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/local/auth_session_storage.dart';
 import '../datasources/local/auth_token_storage.dart';
@@ -49,18 +50,89 @@ final class AuthRepositoryImpl implements AuthRepository {
       deviceName: deviceName,
     );
 
-    try {
-      final AuthSessionEntity session = remoteSession.toDomain();
+    return _saveAuthenticatedSession(
+      sessionFactory: () => remoteSession.toDomain(),
+      accessToken: remoteSession.accessToken,
+    );
+  }
 
-      await _tokenStorage.saveAccessToken(remoteSession.accessToken);
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() {
+    return _remoteDataSource.fetchRegistrationCategories();
+  }
+
+  @override
+  Future<AuthSessionEntity> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    try {
+      final remoteSession = await _remoteDataSource.registerFromMobile(payload);
+
+      return _saveAuthenticatedSession(
+        sessionFactory: () => remoteSession.toDomain(),
+        accessToken: remoteSession.accessToken,
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 422) {
+        rethrow;
+      }
+
+      final responseBody = error.response?.data;
+
+      if (responseBody is! Map) {
+        rethrow;
+      }
+
+      final errors = responseBody['errors'];
+
+      if (errors is! Map) {
+        rethrow;
+      }
+
+      final fieldErrors = <String, String>{};
+
+      for (final entry in errors.entries) {
+        if (entry.key is! String) {
+          continue;
+        }
+
+        final key = entry.key as String;
+        final value = entry.value;
+
+        if (value is String && value.trim().isNotEmpty) {
+          fieldErrors[key] = value;
+        } else if (value is List) {
+          for (final message in value) {
+            if (message is String && message.trim().isNotEmpty) {
+              fieldErrors[key] = message;
+              break;
+            }
+          }
+        }
+      }
+
+      if (fieldErrors.isEmpty) {
+        rethrow;
+      }
+
+      throw RegistrationValidationException(fieldErrors);
+    }
+  }
+
+  /// Shared by login and registration. Keeps secure storage behavior identical.
+  Future<AuthSessionEntity> _saveAuthenticatedSession({
+    required AuthSessionEntity Function() sessionFactory,
+    required String accessToken,
+  }) async {
+    try {
+      final session = sessionFactory();
+
+      await _tokenStorage.saveAccessToken(accessToken);
       await _verifiedSessionStorage.saveVerifiedSession(session);
 
       return session;
     } catch (error, stackTrace) {
-      // Laravel may already have created a token, so avoid leaving partial state.
       await _bestEffortCleanupAfterFailedLogin();
-
-      // Preserve the original login failure and its stack trace.
       Error.throwWithStackTrace(error, stackTrace);
     }
   }

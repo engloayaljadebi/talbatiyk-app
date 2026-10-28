@@ -70,7 +70,7 @@ final class AdminUserManagementTest extends TestCase
             ->create($admin, $this->payload());
 
         $created = User::query()
-            ->where('username', 'general_user_test')
+            ->where('username', 'generalusertest')
             ->firstOrFail();
 
         $this->assertSame('active', $created->status);
@@ -144,7 +144,7 @@ final class AdminUserManagementTest extends TestCase
             ->create($admin, $payload);
 
         $created = User::query()
-            ->where('username', 'general_user_test')
+            ->where('username', 'generalusertest')
             ->firstOrFail();
 
         $this->assertDatabaseHas('user_profiles', [
@@ -172,7 +172,7 @@ final class AdminUserManagementTest extends TestCase
         }
 
         $this->assertDatabaseMissing('users', [
-            'username' => 'general_user_test',
+            'username' => 'generalusertest',
         ]);
 
         $this->assertDatabaseMissing('user_contacts', [
@@ -240,7 +240,7 @@ final class AdminUserManagementTest extends TestCase
         $admin = $this->loginAdmin();
 
         User::factory()->create([
-            'username' => 'general_user_test',
+            'username' => 'generalusertest',
         ]);
 
         try {
@@ -283,7 +283,7 @@ final class AdminUserManagementTest extends TestCase
         }
 
         $this->assertDatabaseMissing('users', [
-            'username' => 'general_user_test',
+            'username' => 'generalusertest',
         ]);
     }
 
@@ -329,7 +329,7 @@ final class AdminUserManagementTest extends TestCase
     {
         return [
             'account_type' => 'shop',
-            'username' => 'general_user_test',
+            'username' => 'generalusertest',
             'display_name' => 'General Test User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',

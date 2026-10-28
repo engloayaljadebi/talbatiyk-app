@@ -42,6 +42,11 @@ Route::prefix('v1')->group(function (): void {
     */
 
     Route::prefix('auth')->group(function (): void {
+        Route::get(
+            '/registration-categories',
+            [AuthController::class, 'registrationCategories'],
+        )->middleware('throttle:60,1');
+
         /*
          * إنشاء حساب جديد.
          */

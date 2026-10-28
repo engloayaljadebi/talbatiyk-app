@@ -16,6 +16,7 @@ import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storag
 import 'package:talbatiyk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:talbatiyk/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbatiyk/features/auth/domain/entities/registration_validation_exception.dart';
 import 'package:talbatiyk_api/talbatiyk_api.dart';
 
 void main() {
@@ -32,14 +33,14 @@ void main() {
     );
   }
 
-  AuthRegister201ResponseData createRemoteSession({
+  AuthLogin200ResponseData createRemoteSession({
     String accessToken = 'server-access-token',
   }) {
-    return AuthRegister201ResponseData(
+    return AuthLogin200ResponseData(
       (builder) => builder
         ..user.replace(createUser())
         ..accessToken = accessToken
-        ..tokenType = AuthRegister201ResponseDataTokenTypeEnum.bearer,
+        ..tokenType = AuthLogin200ResponseDataTokenTypeEnum.bearer,
     );
   }
 
@@ -67,6 +68,93 @@ void main() {
         tokenStorage: tokenStorage,
         verifiedSessionStorage: verifiedSessionStorage,
       );
+    });
+
+    test('registration categories are loaded through repository', () async {
+      final categories = await repository.fetchRegistrationCategories();
+
+      expect(categories, hasLength(1));
+      expect(categories.single.name, 'فئة الاختبار');
+    });
+
+    test('registration saves access token and verified session', () async {
+      final session = await repository.registerFromMobile({
+        'account_type': 'shop',
+      });
+
+      expect(session.user.id, userId);
+      expect(tokenStorage.savedToken, 'registration-test-token');
+      expect(verifiedSessionStorage.session?.user.id, userId);
+    });
+
+    test('registration maps HTTP 422 field errors', () async {
+      final request = RequestOptions(path: '/auth/register');
+
+      remoteDataSource.registrationError = DioException(
+        requestOptions: request,
+        response: Response<Map<String, dynamic>>(
+          requestOptions: request,
+          statusCode: 422,
+          data: <String, dynamic>{
+            'message': 'The given data was invalid.',
+            'errors': <String, dynamic>{
+              'username': <String>['اسم المستخدم مستخدم مسبقًا.'],
+              'contact_value': <String>['رقم الهاتف مستخدم مسبقًا.'],
+            },
+          },
+        ),
+        type: DioExceptionType.badResponse,
+      );
+
+      await expectLater(
+        repository.registerFromMobile({'account_type': 'shop'}),
+        throwsA(
+          isA<RegistrationValidationException>()
+              .having(
+                (error) => error.fieldErrors['username'],
+                'username',
+                'اسم المستخدم مستخدم مسبقًا.',
+              )
+              .having(
+                (error) => error.fieldErrors['contact_value'],
+                'contact_value',
+                'رقم الهاتف مستخدم مسبقًا.',
+              ),
+        ),
+      );
+
+      expect(tokenStorage.savedToken, isNull);
+      expect(verifiedSessionStorage.session, isNull);
+    });
+
+    test('registration preserves non-validation HTTP errors', () async {
+      final request = RequestOptions(path: '/auth/register');
+
+      final failure = DioException(
+        requestOptions: request,
+        response: Response<void>(requestOptions: request, statusCode: 503),
+        type: DioExceptionType.badResponse,
+      );
+
+      remoteDataSource.registrationError = failure;
+
+      await expectLater(
+        repository.registerFromMobile({'account_type': 'supplier'}),
+        throwsA(same(failure)),
+      );
+    });
+    test('registration cleans up when secure token storage fails', () async {
+      tokenStorage.saveError = StateError('Storage unavailable');
+
+      await expectLater(
+        repository.registerFromMobile({'account_type': 'supplier'}),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(remoteDataSource.logoutCalled, isTrue);
+      expect(tokenStorage.deleteCalled, isTrue);
+      expect(verifiedSessionStorage.deleteCalled, isTrue);
+      expect(verifiedSessionStorage.session, isNull);
     });
 
     test('restoreSession deletes stored token when me returns 401', () async {
@@ -452,9 +540,31 @@ void main() {
 }
 
 final class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    return [(id: '11111111-1111-4111-8111-111111111111', name: 'فئة الاختبار')];
+  }
+
+  @override
+  Future<AuthRegister201ResponseData> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    final error = registrationError;
+    if (error != null) {
+      throw error;
+    }
+
+    return AuthRegister201ResponseData(
+      (builder) => builder
+        ..user.replace(meResult)
+        ..accessToken = 'registration-test-token'
+        ..tokenType = AuthRegister201ResponseDataTokenTypeEnum.bearer,
+    );
+  }
+
   FakeAuthRemoteDataSource({required this.loginResult, required this.meResult});
 
-  final AuthRegister201ResponseData loginResult;
+  final AuthLogin200ResponseData loginResult;
   final UserResource meResult;
 
   bool loginCalled = false;
@@ -468,11 +578,12 @@ final class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   String? receivedDeviceName;
   String? appliedAccessToken;
 
+  Object? registrationError;
   Object? meError;
   Object? logoutError;
 
   @override
-  Future<AuthRegister201ResponseData> login({
+  Future<AuthLogin200ResponseData> login({
     required String login,
     required String password,
     required String deviceName,

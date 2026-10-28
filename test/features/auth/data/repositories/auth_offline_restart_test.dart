@@ -20,12 +20,12 @@ void main() {
     );
   }
 
-  AuthRegister201ResponseData createRemoteSession() {
-    return AuthRegister201ResponseData(
+  AuthLogin200ResponseData createRemoteSession() {
+    return AuthLogin200ResponseData(
       (builder) => builder
         ..user.replace(createUser())
         ..accessToken = 'server-access-token'
-        ..tokenType = AuthRegister201ResponseDataTokenTypeEnum.bearer,
+        ..tokenType = AuthLogin200ResponseDataTokenTypeEnum.bearer,
     );
   }
 
@@ -113,12 +113,24 @@ final class _FakeSecureKeyValueStore implements SecureKeyValueStore {
 }
 
 final class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    throw UnimplementedError('Registration categories not used here.');
+  }
+
+  @override
+  Future<AuthRegister201ResponseData> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    throw UnimplementedError('Registration not used here.');
+  }
+
   _FakeAuthRemoteDataSource({
     required this.loginResult,
     required this.meResult,
   });
 
-  final AuthRegister201ResponseData loginResult;
+  final AuthLogin200ResponseData loginResult;
   final UserResource meResult;
 
   Object? meError;
@@ -127,7 +139,7 @@ final class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   String? appliedAccessToken;
 
   @override
-  Future<AuthRegister201ResponseData> login({
+  Future<AuthLogin200ResponseData> login({
     required String login,
     required String password,
     required String deviceName,
