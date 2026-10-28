@@ -17,13 +17,20 @@
 |
 */
 
+import 'package:dio/dio.dart';
 import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk_api/talbatiyk_api.dart';
 
 /// العقد المسؤول عن عمليات المصادقة البعيدة.
 abstract interface class AuthRemoteDataSource {
+  Future<List<({String id, String name})>> fetchRegistrationCategories();
+
+  Future<AuthRegister201ResponseData> registerFromMobile(
+    Map<String, Object?> payload,
+  );
+
   /// يسجل دخول المستخدم ويعيد بيانات جلسة الدخول.
-  Future<AuthRegister201ResponseData> login({
+  Future<AuthLogin200ResponseData> login({
     required String login,
     required String password,
     required String deviceName,
@@ -52,7 +59,7 @@ final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final GeneratedApiClient _apiClient;
 
   @override
-  Future<AuthRegister201ResponseData> login({
+  Future<AuthLogin200ResponseData> login({
     required String login,
     required String password,
     required String deviceName,
@@ -76,6 +83,52 @@ final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     // تسجيل الدخول الناجح يجعل العميل جاهزًا
     // مباشرة للطلبات المحمية التالية.
+    setAccessToken(session.accessToken);
+
+    return session;
+  }
+
+  /// Fetch active leaf categories without an authenticated session.
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    final response = await _apiClient.auth.authRegistrationCategories();
+    final body = response.data;
+
+    if (body == null) {
+      throw StateError('استجابة فئات التسجيل فارغة.');
+    }
+
+    return body.data
+        .map((item) => (id: item.id, name: item.name))
+        .toList(growable: false);
+  }
+
+  /// Submit mobile registration using the existing configured API client.
+  /// The generated contact_value union is sent as ordinary JSON.
+  @override
+  Future<AuthRegister201ResponseData> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    final response = await _apiClient.client.dio.post<Object?>(
+      '/auth/register',
+      data: payload,
+      options: Options(
+        contentType: Headers.jsonContentType,
+        headers: <String, String>{'Accept': 'application/json'},
+      ),
+    );
+
+    final parsed = _apiClient.client.serializers.deserializeWith(
+      AuthRegister201Response.serializer,
+      response.data,
+    );
+
+    if (parsed == null) {
+      throw StateError('استجابة إنشاء الحساب فارغة أو غير صالحة.');
+    }
+
+    final session = parsed.data;
+
     setAccessToken(session.accessToken);
 
     return session;

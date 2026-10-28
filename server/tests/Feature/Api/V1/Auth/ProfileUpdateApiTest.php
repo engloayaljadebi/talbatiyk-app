@@ -13,7 +13,7 @@ class ProfileUpdateApiTest extends TestCase
     public function test_authenticated_user_can_update_username_and_display_name(): void
     {
         $user = User::factory()->create([
-            'username' => 'old_username',
+            'username' => 'oldusername',
             'display_name' => 'Old Name',
             'status' => 'active',
         ]);
@@ -31,14 +31,14 @@ class ProfileUpdateApiTest extends TestCase
         $response = $this
             ->withToken($token)
             ->patchJson('/api/v1/auth/me', [
-                'username' => '  NEW_USERNAME  ',
+                'username' => '  NEWUSERNAME  ',
                 'display_name' => '  New Display Name  ',
             ]);
 
         $response
             ->assertOk()
             ->assertJsonPath('data.id', $user->id)
-            ->assertJsonPath('data.username', 'new_username')
+            ->assertJsonPath('data.username', 'newusername')
             ->assertJsonPath('data.display_name', 'New Display Name')
             ->assertJsonPath('data.contacts.0.id', $contact->id)
             ->assertJsonPath(
@@ -48,7 +48,7 @@ class ProfileUpdateApiTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'username' => 'new_username',
+            'username' => 'newusername',
             'display_name' => 'New Display Name',
         ]);
 
@@ -62,7 +62,7 @@ class ProfileUpdateApiTest extends TestCase
     public function test_profile_update_is_partial_and_preserves_omitted_fields(): void
     {
         $user = User::factory()->create([
-            'username' => 'keep_username',
+            'username' => 'keepusername',
             'display_name' => 'Old Display Name',
             'status' => 'active',
         ]);
@@ -77,12 +77,12 @@ class ProfileUpdateApiTest extends TestCase
                 'display_name' => 'Updated Name',
             ])
             ->assertOk()
-            ->assertJsonPath('data.username', 'keep_username')
+            ->assertJsonPath('data.username', 'keepusername')
             ->assertJsonPath('data.display_name', 'Updated Name');
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'username' => 'keep_username',
+            'username' => 'keepusername',
             'display_name' => 'Updated Name',
         ]);
     }
@@ -90,12 +90,12 @@ class ProfileUpdateApiTest extends TestCase
     public function test_profile_update_rejects_duplicate_username_case_insensitively(): void
     {
         User::factory()->create([
-            'username' => 'existing_user',
+            'username' => 'existinguser',
             'status' => 'active',
         ]);
 
         $user = User::factory()->create([
-            'username' => 'current_user',
+            'username' => 'currentuser',
             'display_name' => 'Current User',
             'status' => 'active',
         ]);
@@ -107,7 +107,7 @@ class ProfileUpdateApiTest extends TestCase
         $this
             ->withToken($token)
             ->patchJson('/api/v1/auth/me', [
-                'username' => 'EXISTING_USER',
+                'username' => 'EXISTINGUSER',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
@@ -116,14 +116,14 @@ class ProfileUpdateApiTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'username' => 'current_user',
+            'username' => 'currentuser',
         ]);
     }
 
     public function test_profile_update_allows_current_username(): void
     {
         $user = User::factory()->create([
-            'username' => 'same_username',
+            'username' => 'sameusername',
             'display_name' => 'Same User',
             'status' => 'active',
         ]);
@@ -135,16 +135,16 @@ class ProfileUpdateApiTest extends TestCase
         $this
             ->withToken($token)
             ->patchJson('/api/v1/auth/me', [
-                'username' => ' SAME_USERNAME ',
+                'username' => ' SAMEUSERNAME ',
             ])
             ->assertOk()
-            ->assertJsonPath('data.username', 'same_username');
+            ->assertJsonPath('data.username', 'sameusername');
     }
 
     public function test_profile_update_validates_identity_fields(): void
     {
         $user = User::factory()->create([
-            'username' => 'validation_user',
+            'username' => 'validationuser',
             'display_name' => 'Validation User',
             'status' => 'active',
         ]);
@@ -178,14 +178,14 @@ class ProfileUpdateApiTest extends TestCase
     public function test_profile_update_rejects_username_owned_by_soft_deleted_user(): void
     {
         $deletedUser = User::factory()->create([
-            'username' => 'reserved_username',
+            'username' => 'reservedusername',
             'status' => 'active',
         ]);
 
         $deletedUser->delete();
 
         $user = User::factory()->create([
-            'username' => 'current_username',
+            'username' => 'currentusername',
             'status' => 'active',
         ]);
 
@@ -194,7 +194,7 @@ class ProfileUpdateApiTest extends TestCase
         $this
             ->withToken($token)
             ->patchJson('/api/v1/auth/me', [
-                'username' => 'RESERVED_USERNAME',
+                'username' => 'RESERVEDUSERNAME',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
@@ -203,14 +203,14 @@ class ProfileUpdateApiTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'username' => 'current_username',
+            'username' => 'currentusername',
         ]);
     }
 
     public function test_profile_update_rejects_server_owned_fields(): void
     {
         $user = User::factory()->create([
-            'username' => 'protected_profile_user',
+            'username' => 'protectedprofileuser',
             'display_name' => 'Protected User',
             'status' => 'active',
         ]);
@@ -235,7 +235,7 @@ class ProfileUpdateApiTest extends TestCase
 
         $this->assertSame('active', $user->status);
         $this->assertSame(
-            'protected_profile_user',
+            'protectedprofileuser',
             $user->username,
         );
     }
@@ -243,7 +243,7 @@ class ProfileUpdateApiTest extends TestCase
     public function test_inactive_user_cannot_update_current_profile(): void
     {
         $user = User::factory()->create([
-            'username' => 'inactive_profile_user',
+            'username' => 'inactiveprofileuser',
             'status' => 'active',
         ]);
 

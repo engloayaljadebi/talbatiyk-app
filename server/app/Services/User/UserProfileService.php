@@ -11,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class UserProfileService
 {
+    public function __construct(
+        private readonly UserIdentityCreationService $identityCreation,
+    ) {}
+
     /**
      * Update the authenticated user's basic identity fields only.
      *
@@ -29,6 +33,14 @@ class UserProfileService
         );
 
         if ($attributes !== []) {
+            if (array_key_exists('username', $attributes)) {
+                $this->identityCreation->assertUnambiguousLoginIdentifiers(
+                    (string) $attributes['username'],
+                    null,
+                    (string) $user->getKey(),
+                );
+            }
+
             $user->fill($attributes);
 
             try {

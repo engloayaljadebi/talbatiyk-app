@@ -16,6 +16,51 @@
         }
     ],
     "paths": {
+        "/auth/registration-categories": {
+            "get": {
+                "operationId": "auth.registrationCategories",
+                "summary": "Public list of selectable categories for mobile registration",
+                "tags": [
+                    "Auth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "name"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/auth/register": {
             "post": {
                 "operationId": "auth.register",
@@ -47,6 +92,16 @@
                                                 "user": {
                                                     "$ref": "#/components/schemas/UserResource"
                                                 },
+                                                "business": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/BusinessResource"
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                },
                                                 "access_token": {
                                                     "type": "string"
                                                 },
@@ -57,6 +112,7 @@
                                             },
                                             "required": [
                                                 "user",
+                                                "business",
                                                 "access_token",
                                                 "token_type"
                                             ]
@@ -4700,7 +4756,7 @@
                 "properties": {
                     "username": {
                         "type": "string",
-                        "pattern": "^[\\pL\\pN._-]+$",
+                        "pattern": "^[A-Za-z0-9]+$",
                         "minLength": 3,
                         "maxLength": 50
                     },
@@ -4729,10 +4785,164 @@
                             },
                             {
                                 "type": "string",
-                                "pattern": "^\\+[1-9]\\d{7,14}$",
+                                "pattern": "^[0-9]{9}$",
                                 "maxLength": 320
                             }
                         ]
+                    },
+                    "account_type": {
+                        "type": "string",
+                        "enum": [
+                            "shop",
+                            "supplier"
+                        ]
+                    },
+                    "nationality_country_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[A-Z]{2}$",
+                        "minLength": 2,
+                        "maxLength": 2
+                    },
+                    "birth_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 200
+                    },
+                    "legal_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 250
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 5000
+                    },
+                    "category_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "location_name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 160
+                    },
+                    "location_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "branch",
+                            "office",
+                            "warehouse",
+                            "store",
+                            null
+                        ]
+                    },
+                    "timezone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 64
+                    },
+                    "country_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[A-Z]{2}$",
+                        "minLength": 2,
+                        "maxLength": 2
+                    },
+                    "administrative_area": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 160
+                    },
+                    "locality": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 160
+                    },
+                    "district": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 160
+                    },
+                    "street_address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 300
+                    },
+                    "address_notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    },
+                    "latitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "minimum": -90,
+                        "maximum": 90
+                    },
+                    "longitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "minimum": -180,
+                        "maximum": 180
+                    },
+                    "business_contact_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "phone",
+                            "whatsapp",
+                            "email",
+                            "website",
+                            null
+                        ]
+                    },
+                    "business_contact_value": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    },
+                    "business_contact_label": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 120
                     },
                     "device_name": {
                         "type": "string",
@@ -4749,6 +4959,7 @@
                     "password",
                     "contact_type",
                     "contact_value",
+                    "account_type",
                     "device_name",
                     "password_confirmation"
                 ],
@@ -5134,7 +5345,7 @@
                 "properties": {
                     "username": {
                         "type": "string",
-                        "pattern": "^[\\pL\\pN._-]+$",
+                        "pattern": "^[A-Za-z0-9]+$",
                         "minLength": 3,
                         "maxLength": 50
                     },

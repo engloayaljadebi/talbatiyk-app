@@ -93,6 +93,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**authLogout**](doc/AuthApi.md#authlogout) | **POST** /auth/logout | تسجيل خروج الجهاز الحالي فقط
 [*AuthApi*](doc/AuthApi.md) | [**authMe**](doc/AuthApi.md#authme) | **GET** /auth/me | بيانات المستخدم الحالي
 [*AuthApi*](doc/AuthApi.md) | [**authRegister**](doc/AuthApi.md#authregister) | **POST** /auth/register | إنشاء حساب جديد
+[*AuthApi*](doc/AuthApi.md) | [**authRegistrationCategories**](doc/AuthApi.md#authregistrationcategories) | **GET** /auth/registration-categories | Public list of selectable categories for mobile registration
 [*AuthApi*](doc/AuthApi.md) | [**authUpdateProfile**](doc/AuthApi.md#authupdateprofile) | **PATCH** /auth/me | Update the authenticated user&#39;s basic profile identity
 [*BusinessApi*](doc/BusinessApi.md) | [**businessIndex**](doc/BusinessApi.md#businessindex) | **GET** /businesses | إرجاع جميع الأنشطة التي لدى المستخدم الحالي عضوية نشطة فيها
 [*BusinessApi*](doc/BusinessApi.md) | [**businessShow**](doc/BusinessApi.md#businessshow) | **GET** /businesses/{business} | قراءة نشاط واحد بشرط أن تكون للمستخدم الحالي عضوية نشطة فيه
@@ -144,10 +145,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [AuthLogin200Response](doc/AuthLogin200Response.md)
+ - [AuthLogin200ResponseData](doc/AuthLogin200ResponseData.md)
  - [AuthLogout200Response](doc/AuthLogout200Response.md)
  - [AuthMe200Response](doc/AuthMe200Response.md)
  - [AuthRegister201Response](doc/AuthRegister201Response.md)
  - [AuthRegister201ResponseData](doc/AuthRegister201ResponseData.md)
+ - [AuthRegistrationCategories200Response](doc/AuthRegistrationCategories200Response.md)
+ - [AuthRegistrationCategories200ResponseDataInner](doc/AuthRegistrationCategories200ResponseDataInner.md)
  - [AvailabilityStatus](doc/AvailabilityStatus.md)
  - [BusinessContactIndexBusiness200Response](doc/BusinessContactIndexBusiness200Response.md)
  - [BusinessContactResource](doc/BusinessContactResource.md)

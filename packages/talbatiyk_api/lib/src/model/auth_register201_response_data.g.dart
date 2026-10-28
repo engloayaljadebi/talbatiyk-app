@@ -64,6 +64,8 @@ class _$AuthRegister201ResponseData extends AuthRegister201ResponseData {
   @override
   final UserResource user;
   @override
+  final BusinessResource? business;
+  @override
   final String accessToken;
   @override
   final AuthRegister201ResponseDataTokenTypeEnum tokenType;
@@ -73,7 +75,10 @@ class _$AuthRegister201ResponseData extends AuthRegister201ResponseData {
       (AuthRegister201ResponseDataBuilder()..update(updates))._build();
 
   _$AuthRegister201ResponseData._(
-      {required this.user, required this.accessToken, required this.tokenType})
+      {required this.user,
+      this.business,
+      required this.accessToken,
+      required this.tokenType})
       : super._();
   @override
   AuthRegister201ResponseData rebuild(
@@ -89,6 +94,7 @@ class _$AuthRegister201ResponseData extends AuthRegister201ResponseData {
     if (identical(other, this)) return true;
     return other is AuthRegister201ResponseData &&
         user == other.user &&
+        business == other.business &&
         accessToken == other.accessToken &&
         tokenType == other.tokenType;
   }
@@ -97,6 +103,7 @@ class _$AuthRegister201ResponseData extends AuthRegister201ResponseData {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, user.hashCode);
+    _$hash = $jc(_$hash, business.hashCode);
     _$hash = $jc(_$hash, accessToken.hashCode);
     _$hash = $jc(_$hash, tokenType.hashCode);
     _$hash = $jf(_$hash);
@@ -107,6 +114,7 @@ class _$AuthRegister201ResponseData extends AuthRegister201ResponseData {
   String toString() {
     return (newBuiltValueToStringHelper(r'AuthRegister201ResponseData')
           ..add('user', user)
+          ..add('business', business)
           ..add('accessToken', accessToken)
           ..add('tokenType', tokenType))
         .toString();
@@ -122,6 +130,12 @@ class AuthRegister201ResponseDataBuilder
   UserResourceBuilder? _user;
   UserResourceBuilder get user => _$this._user ??= UserResourceBuilder();
   set user(UserResourceBuilder? user) => _$this._user = user;
+
+  BusinessResourceBuilder? _business;
+  BusinessResourceBuilder get business =>
+      _$this._business ??= BusinessResourceBuilder();
+  set business(BusinessResourceBuilder? business) =>
+      _$this._business = business;
 
   String? _accessToken;
   String? get accessToken => _$this._accessToken;
@@ -140,6 +154,7 @@ class AuthRegister201ResponseDataBuilder
     final $v = _$v;
     if ($v != null) {
       _user = $v.user.toBuilder();
+      _business = $v.business?.toBuilder();
       _accessToken = $v.accessToken;
       _tokenType = $v.tokenType;
       _$v = null;
@@ -166,6 +181,7 @@ class AuthRegister201ResponseDataBuilder
       _$result = _$v ??
           _$AuthRegister201ResponseData._(
             user: user.build(),
+            business: _business?.build(),
             accessToken: BuiltValueNullFieldError.checkNotNull(
                 accessToken, r'AuthRegister201ResponseData', 'accessToken'),
             tokenType: BuiltValueNullFieldError.checkNotNull(
@@ -176,6 +192,8 @@ class AuthRegister201ResponseDataBuilder
       try {
         _$failedField = 'user';
         user.build();
+        _$failedField = 'business';
+        _business?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'AuthRegister201ResponseData', _$failedField, e.toString());

@@ -121,6 +121,18 @@ void main() {
 }
 
 final class _ProfileRemoteDataSource implements AuthRemoteDataSource {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    throw UnimplementedError('Registration categories not used here.');
+  }
+
+  @override
+  Future<AuthRegister201ResponseData> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    throw UnimplementedError('Registration not used here.');
+  }
+
   _ProfileRemoteDataSource({required this.result, this.error});
 
   final UserResource result;
@@ -150,7 +162,7 @@ final class _ProfileRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
-  Future<AuthRegister201ResponseData> login({
+  Future<AuthLogin200ResponseData> login({
     required String login,
     required String password,
     required String deviceName,

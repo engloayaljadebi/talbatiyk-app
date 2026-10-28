@@ -13,11 +13,12 @@ Method | HTTP request | Description
 [**authLogout**](AuthApi.md#authlogout) | **POST** /auth/logout | تسجيل خروج الجهاز الحالي فقط
 [**authMe**](AuthApi.md#authme) | **GET** /auth/me | بيانات المستخدم الحالي
 [**authRegister**](AuthApi.md#authregister) | **POST** /auth/register | إنشاء حساب جديد
+[**authRegistrationCategories**](AuthApi.md#authregistrationcategories) | **GET** /auth/registration-categories | Public list of selectable categories for mobile registration
 [**authUpdateProfile**](AuthApi.md#authupdateprofile) | **PATCH** /auth/me | Update the authenticated user&#39;s basic profile identity
 
 
 # **authLogin**
-> AuthRegister201Response authLogin(loginRequest)
+> AuthLogin200Response authLogin(loginRequest)
 
 تسجيل الدخول
 
@@ -44,7 +45,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AuthRegister201Response**](AuthRegister201Response.md)
+[**AuthLogin200Response**](AuthLogin200Response.md)
 
 ### Authorization
 
@@ -168,6 +169,43 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authRegistrationCategories**
+> AuthRegistrationCategories200Response authRegistrationCategories()
+
+Public list of selectable categories for mobile registration
+
+### Example
+```dart
+import 'package:talbatiyk_api/api.dart';
+
+final api = TalbatiykApi().getAuthApi();
+
+try {
+    final response = api.authRegistrationCategories();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authRegistrationCategories: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**AuthRegistrationCategories200Response**](AuthRegistrationCategories200Response.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

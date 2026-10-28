@@ -25,10 +25,14 @@ export 'package:talbatiyk_api/src/api/supplier_order_api.dart';
 export 'package:talbatiyk_api/src/api/supplier_order_fulfillment_api.dart';
 export 'package:talbatiyk_api/src/api/supplier_order_response_api.dart';
 
+export 'package:talbatiyk_api/src/model/auth_login200_response.dart';
+export 'package:talbatiyk_api/src/model/auth_login200_response_data.dart';
 export 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 export 'package:talbatiyk_api/src/model/auth_me200_response.dart';
 export 'package:talbatiyk_api/src/model/auth_register201_response.dart';
 export 'package:talbatiyk_api/src/model/auth_register201_response_data.dart';
+export 'package:talbatiyk_api/src/model/auth_registration_categories200_response.dart';
+export 'package:talbatiyk_api/src/model/auth_registration_categories200_response_data_inner.dart';
 export 'package:talbatiyk_api/src/model/availability_status.dart';
 export 'package:talbatiyk_api/src/model/business_contact_index_business200_response.dart';
 export 'package:talbatiyk_api/src/model/business_contact_resource.dart';

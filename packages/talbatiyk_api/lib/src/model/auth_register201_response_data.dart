@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:talbatiyk_api/src/model/business_resource.dart';
 import 'package:talbatiyk_api/src/model/user_resource.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -14,12 +15,16 @@ part 'auth_register201_response_data.g.dart';
 ///
 /// Properties:
 /// * [user] 
+/// * [business] 
 /// * [accessToken] 
 /// * [tokenType] 
 @BuiltValue()
 abstract class AuthRegister201ResponseData implements Built<AuthRegister201ResponseData, AuthRegister201ResponseDataBuilder> {
   @BuiltValueField(wireName: r'user')
   UserResource get user;
+
+  @BuiltValueField(wireName: r'business')
+  BusinessResource? get business;
 
   @BuiltValueField(wireName: r'access_token')
   String get accessToken;
@@ -55,6 +60,11 @@ class _$AuthRegister201ResponseDataSerializer implements PrimitiveSerializer<Aut
     yield serializers.serialize(
       object.user,
       specifiedType: const FullType(UserResource),
+    );
+    yield r'business';
+    yield object.business == null ? null : serializers.serialize(
+      object.business,
+      specifiedType: const FullType.nullable(BusinessResource),
     );
     yield r'access_token';
     yield serializers.serialize(
@@ -95,6 +105,14 @@ class _$AuthRegister201ResponseDataSerializer implements PrimitiveSerializer<Aut
             specifiedType: const FullType(UserResource),
           ) as UserResource;
           result.user.replace(valueDes);
+          break;
+        case r'business':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BusinessResource),
+          ) as BusinessResource?;
+          if (valueDes == null) continue;
+          result.business.replace(valueDes);
           break;
         case r'access_token':
           final valueDes = serializers.deserialize(

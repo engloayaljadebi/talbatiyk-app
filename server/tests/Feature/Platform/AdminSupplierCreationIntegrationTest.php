@@ -60,7 +60,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
             ->create($admin, $this->payload());
 
         $this->assertDatabaseHas('users', [
-            'username' => 'supplier_integration_user',
+            'username' => 'supplierintegrationuser',
         ]);
 
         $this->assertDatabaseHas('businesses', [
@@ -105,7 +105,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
         $admin = $this->admin();
 
         User::factory()->create([
-            'username' => 'supplier_integration_user',
+            'username' => 'supplierintegrationuser',
         ]);
 
         $this->expectException(ValidationException::class);
@@ -137,7 +137,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
         }
 
         $this->assertDatabaseMissing('users', [
-            'username' => 'supplier_integration_user',
+            'username' => 'supplierintegrationuser',
         ]);
 
         $this->assertDatabaseMissing('businesses', [
@@ -194,7 +194,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
         );
 
         $this->assertDatabaseMissing('users', [
-            'username' => 'supplier_integration_user',
+            'username' => 'supplierintegrationuser',
         ]);
 
         $this->assertDatabaseMissing('user_contacts', [
@@ -223,7 +223,7 @@ final class AdminSupplierCreationIntegrationTest extends TestCase
     private function payload(): array
     {
         return [
-            'username' => 'supplier_integration_user',
+            'username' => 'supplierintegrationuser',
             'display_name' => 'Integration Supplier User',
             'password' => 'StrongPass123!',
             'password_confirmation' => 'StrongPass123!',

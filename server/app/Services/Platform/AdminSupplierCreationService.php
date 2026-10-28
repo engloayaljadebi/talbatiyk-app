@@ -320,14 +320,14 @@ final class AdminSupplierCreationService
         };
 
         $data = Validator::make($input, [
-            'username' => ['required', 'string', 'min:3', 'max:50', 'regex:/^[\pL\pN._-]+$/u'],
+            'username' => ['required', 'string', 'min:3', 'max:50', ContactValueNormalizer::USERNAME_VALIDATION_RULE],
             'display_name' => ['required', 'string', 'min:2', 'max:160'],
             'password' => ['bail', 'required', 'confirmed', Password::min(8), 'max:72', new MaxBytes(72)],
             'password_confirmation' => ['required', 'string'],
             'contact_type' => ['required', Rule::in(['phone', 'email'])],
             'contact_value' => [
                 'required', 'string', 'max:320',
-                ...($input['contact_type'] === 'email' ? ['email:rfc'] : ['regex:/^\+[1-9]\d{7,14}$/']),
+                ...($input['contact_type'] === 'email' ? ['email:rfc'] : ['regex:/^[0-9]{9}$/']),
             ],
             'category_ids' => ['required', 'array', 'size:1'],
             'category_ids.*' => ['required', 'uuid', 'distinct'],

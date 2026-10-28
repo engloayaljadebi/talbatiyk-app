@@ -43,7 +43,7 @@ final class AdminUserUpdateTest extends TestCase
         $this->loginAdmin();
 
         $target = User::factory()->create([
-            'username' => 'old_edit_user',
+            'username' => 'oldedituser',
             'display_name' => 'Old Name',
             'status' => 'active',
         ]);
@@ -60,7 +60,7 @@ final class AdminUserUpdateTest extends TestCase
 
         $target->refresh();
 
-        $this->assertSame('new_edit_user', $target->username);
+        $this->assertSame('newedituser', $target->username);
         $this->assertSame('Updated Name', $target->display_name);
         $this->assertSame('active', $target->status);
         $this->assertSame($oldPassword, $target->password);
@@ -81,11 +81,11 @@ final class AdminUserUpdateTest extends TestCase
         $admin = $this->loginAdmin();
 
         User::factory()->create([
-            'username' => 'new_edit_user',
+            'username' => 'newedituser',
         ]);
 
         $target = User::factory()->create([
-            'username' => 'old_edit_user',
+            'username' => 'oldedituser',
         ]);
 
         try {
@@ -104,7 +104,7 @@ final class AdminUserUpdateTest extends TestCase
         }
 
         $this->assertSame(
-            'old_edit_user',
+            'oldedituser',
             $target->fresh()->username
         );
 
@@ -136,7 +136,7 @@ final class AdminUserUpdateTest extends TestCase
         $admin = $this->loginAdmin();
 
         $target = User::factory()->create([
-            'username' => 'old_edit_user',
+            'username' => 'oldedituser',
         ]);
 
         $input = $this->payload();
@@ -150,7 +150,7 @@ final class AdminUserUpdateTest extends TestCase
         );
 
         $this->assertSame(
-            'new_edit_user',
+            'newedituser',
             $target->fresh()->username
         );
 
@@ -181,7 +181,7 @@ final class AdminUserUpdateTest extends TestCase
     private function payload(): array
     {
         return [
-            'username' => 'new_edit_user',
+            'username' => 'newedituser',
             'display_name' => 'Updated Name',
             'nationality_country_code' => 'YE',
             'birth_date' => '2000-01-15',

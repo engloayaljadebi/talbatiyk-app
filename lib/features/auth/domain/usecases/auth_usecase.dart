@@ -25,6 +25,20 @@ final class AuthUseCase {
 
   final AuthRepository repository;
 
+  /// Categories displayed before mobile registration.
+  Future<List<({String id, String name})>> fetchRegistrationCategories() {
+    return repository.fetchRegistrationCategories();
+  }
+
+  /// Register a shop or supplier using the existing repository.
+  Future<AuthSessionEntity> registerFromMobile(Map<String, Object?> payload) {
+    if (!['shop', 'supplier'].contains(payload['account_type'])) {
+      throw ArgumentError('نوع الحساب غير صالح.');
+    }
+
+    return repository.registerFromMobile(payload);
+  }
+
   /// يسجل دخول المستخدم بعد التحقق من البيانات.
   Future<AuthSessionEntity> login({
     required String login,

@@ -39,6 +39,113 @@ void main() {
   }
 
   group('AuthRemoteDataSourceImpl', () {
+    test('registration categories can be loaded without a token', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() async => server.close(force: true));
+
+      final handled = server.first.then((request) async {
+        expect(request.method, 'GET');
+        expect(request.uri.path, '/api/v1/auth/registration-categories');
+        expect(request.headers.value(HttpHeaders.authorizationHeader), isNull);
+
+        request.response
+          ..statusCode = HttpStatus.ok
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'data': [
+                {
+                  'id': '11111111-1111-4111-8111-111111111111',
+                  'name': 'مواد غذائية',
+                },
+              ],
+            }),
+          );
+
+        await request.response.close();
+      });
+
+      final client = GeneratedApiClient.create(
+        baseUrl: 'http://127.0.0.1:${server.port}/api/v1',
+      );
+
+      final categories = await AuthRemoteDataSourceImpl(
+        client,
+      ).fetchRegistrationCategories();
+
+      await handled;
+
+      expect(categories, hasLength(1));
+      expect(categories.single.name, 'مواد غذائية');
+      expect(categories.single.id, '11111111-1111-4111-8111-111111111111');
+    });
+
+    test('mobile registration submits account and business data', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() async => server.close(force: true));
+
+      Map<String, dynamic>? received;
+
+      final handled = server.first.then((request) async {
+        expect(request.method, 'POST');
+        expect(request.uri.path, '/api/v1/auth/register');
+
+        received =
+            jsonDecode(await utf8.decoder.bind(request).join())
+                as Map<String, dynamic>;
+
+        request.response
+          ..statusCode = HttpStatus.created
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'data': {
+                'user': userJson(),
+                'business': null,
+                'access_token': 'registration-test-token',
+                'token_type': 'Bearer',
+              },
+            }),
+          );
+
+        await request.response.close();
+      });
+
+      final client = GeneratedApiClient.create(
+        baseUrl: 'http://127.0.0.1:${server.port}/api/v1',
+      );
+
+      final result = await AuthRemoteDataSourceImpl(client).registerFromMobile({
+        'account_type': 'supplier',
+        'username': 'supplier123',
+        'display_name': 'Test Supplier',
+        'password': 'StrongPass123!',
+        'password_confirmation': 'StrongPass123!',
+        'contact_type': 'phone',
+        'contact_value': '012345678',
+        'device_name': 'Android',
+        'name': 'Test Business',
+        'category_id': '11111111-1111-4111-8111-111111111111',
+        'location_name': 'Main Location',
+        'administrative_area': 'Sanaa',
+        'locality': 'Sanaa',
+      });
+
+      await handled;
+
+      expect(received?['account_type'], 'supplier');
+      expect(received?['username'], 'supplier123');
+      expect(received?['contact_value'], '012345678');
+      expect(received?['name'], 'Test Business');
+      expect(result.accessToken, 'registration-test-token');
+
+      final bearer = client.client.dio.interceptors
+          .whereType<BearerAuthInterceptor>()
+          .single;
+
+      expect(bearer.tokens['http'], 'registration-test-token');
+    });
+
     test(
       'login sends correct request, returns session, and sets bearer token',
       () async {

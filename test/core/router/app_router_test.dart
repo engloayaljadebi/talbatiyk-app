@@ -21,10 +21,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/router/app_router.dart';
+import 'package:talbatiyk/core/router/route_names.dart';
 import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
 import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
 import 'package:talbatiyk/features/auth/presentation/pages/auth_session_page.dart';
 import 'package:talbatiyk/features/auth/presentation/pages/login_page.dart';
+import 'package:talbatiyk/features/auth/presentation/pages/register_page.dart';
 import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
 import 'package:talbatiyk/features/navigation/presentation/pages/main_page.dart';
 
@@ -113,6 +115,150 @@ void main() {
   });
 
   group('App Router Auth Guard', () {
+    testWidgets('guest can open existing RegisterPage from login', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        restoreResult: null,
+        loginResult: session,
+        currentUserResult: user,
+      );
+
+      await pumpRouter(tester: tester, repository: repository);
+      expect(find.byType(LoginPage), findsOneWidget);
+
+      final link = find.text('إنشاء حساب جديد');
+      expect(link, findsOneWidget);
+      await tester.tap(link);
+      await pumpRouterFrames(tester);
+
+      expect(find.byType(RegisterPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
+    });
+
+    testWidgets('registration link works after login failure', (tester) async {
+      final repository = FakeAuthRepository(
+        restoreResult: null,
+        loginResult: session,
+        currentUserResult: user,
+      );
+      repository.loginError = StateError('invalid login');
+
+      final container = await pumpRouter(
+        tester: tester,
+        repository: repository,
+      );
+      final success = await container
+          .read(authProvider)
+          .login(
+            login: 'invalid_user',
+            password: 'wrong',
+            deviceName: 'flutter-test',
+          );
+      expect(success, isFalse);
+      await pumpRouterFrames(tester);
+
+      final link = find.text('إنشاء حساب جديد');
+      await tester.ensureVisible(link);
+      await tester.tap(link);
+      await pumpRouterFrames(tester);
+
+      expect(find.byType(RegisterPage), findsOneWidget);
+    });
+
+    testWidgets('authenticated user cannot open registration route', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        restoreResult: session,
+        loginResult: session,
+        currentUserResult: user,
+      );
+
+      final container = await pumpRouter(
+        tester: tester,
+        repository: repository,
+      );
+      container.read(appRouterProvider).go(RouteNames.register);
+      await pumpRouterFrames(tester);
+
+      expect(find.byType(_TestMainPage), findsOneWidget);
+      expect(find.byType(RegisterPage), findsNothing);
+    });
+
+    testWidgets('registration success redirects to main route', (tester) async {
+      final repository = FakeAuthRepository(
+        restoreResult: null,
+        loginResult: session,
+        currentUserResult: user,
+      );
+
+      final container = await pumpRouter(
+        tester: tester,
+        repository: repository,
+      );
+      container.read(appRouterProvider).go(RouteNames.register);
+      await pumpRouterFrames(tester);
+      expect(find.byType(RegisterPage), findsOneWidget);
+
+      final success = await container.read(authProvider).registerFromMobile({
+        'account_type': 'shop',
+      });
+      expect(success, isTrue);
+      await pumpRouterFrames(tester);
+
+      expect(find.byType(_TestMainPage), findsOneWidget);
+      expect(find.byType(RegisterPage), findsNothing);
+    });
+
+    testWidgets('registration failure remains on registration route', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        restoreResult: null,
+        loginResult: session,
+        currentUserResult: user,
+      );
+      repository.registrationError = StateError('test failure');
+
+      final container = await pumpRouter(
+        tester: tester,
+        repository: repository,
+      );
+      container.read(appRouterProvider).go(RouteNames.register);
+      await pumpRouterFrames(tester);
+      expect(find.byType(RegisterPage), findsOneWidget);
+
+      final success = await container.read(authProvider).registerFromMobile({
+        'account_type': 'supplier',
+      });
+      expect(success, isFalse);
+      await pumpRouterFrames(tester);
+
+      expect(find.byType(RegisterPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
+      expect(
+        container.read(authProvider).state.registrationErrorMessage,
+        'تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.',
+      );
+
+      await tester.scrollUntilVisible(
+        find.text('تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.'),
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(RegisterPage),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+        maxScrolls: 40,
+      );
+
+      expect(
+        find.text('تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.'),
+        findsOneWidget,
+      );
+    });
     testWidgets('redirects unauthenticated user to LoginPage', (tester) async {
       final repository = FakeAuthRepository(
         restoreResult: null,
@@ -229,6 +375,22 @@ final class _TestMainPage extends StatelessWidget {
 /// - Secure Storage
 /// - قاعدة البيانات الحقيقية
 final class FakeAuthRepository implements AuthRepository {
+  @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    return [(id: '11111111-1111-4111-8111-111111111111', name: 'فئة تجريبية')];
+  }
+
+  @override
+  Future<AuthSessionEntity> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    final error = registrationError;
+    if (error != null) {
+      throw error;
+    }
+    return loginResult;
+  }
+
   FakeAuthRepository({
     required this.restoreResult,
     required this.loginResult,
@@ -241,6 +403,7 @@ final class FakeAuthRepository implements AuthRepository {
 
   Object? restoreError;
   Object? loginError;
+  Object? registrationError;
   Object? logoutError;
 
   @override

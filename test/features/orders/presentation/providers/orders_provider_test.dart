@@ -122,6 +122,18 @@ void main() {
 
 final class _FakeAuthRepository implements AuthRepository {
   @override
+  Future<List<({String id, String name})>> fetchRegistrationCategories() async {
+    throw UnimplementedError('Registration categories not used here.');
+  }
+
+  @override
+  Future<AuthSessionEntity> registerFromMobile(
+    Map<String, Object?> payload,
+  ) async {
+    throw UnimplementedError('Registration not used here.');
+  }
+
+  @override
   Future<AuthUserEntity> getCurrentUser() {
     throw UnimplementedError();
   }

@@ -61,6 +61,13 @@ extension AuthRegister201ResponseDataAuthMapper on AuthRegister201ResponseData {
   }
 }
 
+/// Convert the login response without exposing its access token to Domain.
+extension AuthLogin200ResponseDataAuthMapper on AuthLogin200ResponseData {
+  AuthSessionEntity toDomain() {
+    return AuthSessionEntity(user: user.toDomain());
+  }
+}
+
 /// يحول تاريخ ISO-8601 القادم من Laravel إلى DateTime.
 ///
 /// null يبقى null.

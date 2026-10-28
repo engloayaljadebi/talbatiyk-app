@@ -14,10 +14,14 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:talbatiyk_api/src/date_serializer.dart';
 import 'package:talbatiyk_api/src/model/date.dart';
 
+import 'package:talbatiyk_api/src/model/auth_login200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_login200_response_data.dart';
 import 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_me200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response_data.dart';
+import 'package:talbatiyk_api/src/model/auth_registration_categories200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_registration_categories200_response_data_inner.dart';
 import 'package:talbatiyk_api/src/model/availability_status.dart';
 import 'package:talbatiyk_api/src/model/business_contact_index_business200_response.dart';
 import 'package:talbatiyk_api/src/model/business_contact_resource.dart';
@@ -106,10 +110,14 @@ import 'package:talbatiyk_api/src/model/user_resource_contacts_inner.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AuthLogin200Response,
+  AuthLogin200ResponseData,
   AuthLogout200Response,
   AuthMe200Response,
   AuthRegister201Response,
   AuthRegister201ResponseData,
+  AuthRegistrationCategories200Response,
+  AuthRegistrationCategories200ResponseDataInner,
   AvailabilityStatus,
   BusinessContactIndexBusiness200Response,
   BusinessContactResource,

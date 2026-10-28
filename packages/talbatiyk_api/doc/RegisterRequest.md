@@ -13,6 +13,27 @@ Name | Type | Description | Notes
 **password** | **String** |  | 
 **contactType** | **String** |  | 
 **contactValue** | [**RegisterRequestContactValue**](RegisterRequestContactValue.md) |  | 
+**accountType** | **String** |  | 
+**nationalityCountryCode** | **String** |  | [optional] 
+**birthDate** | [**Date**](Date.md) |  | [optional] 
+**name** | **String** |  | [optional] 
+**legalName** | **String** |  | [optional] 
+**description** | **String** |  | [optional] 
+**categoryId** | **String** |  | [optional] 
+**locationName** | **String** |  | [optional] 
+**locationType** | **String** |  | [optional] 
+**timezone** | **String** |  | [optional] 
+**countryCode** | **String** |  | [optional] 
+**administrativeArea** | **String** |  | [optional] 
+**locality** | **String** |  | [optional] 
+**district** | **String** |  | [optional] 
+**streetAddress** | **String** |  | [optional] 
+**addressNotes** | **String** |  | [optional] 
+**latitude** | **num** |  | [optional] 
+**longitude** | **num** |  | [optional] 
+**businessContactType** | **String** |  | [optional] 
+**businessContactValue** | **String** |  | [optional] 
+**businessContactLabel** | **String** |  | [optional] 
 **deviceName** | **String** |  | 
 **passwordConfirmation** | **String** |  | 
 

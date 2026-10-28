@@ -40,6 +40,41 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        if ($this->exists('account_type')) {
+            $this->merge([
+                'account_type' => strtolower(trim((string) $this->input('account_type'))),
+            ]);
+        }
+
+        if ($this->exists('business_contact_type')) {
+            $this->merge([
+                'business_contact_type' => strtolower(trim((string) $this->input('business_contact_type'))),
+            ]);
+        }
+
+        if ($this->exists('business_contact_value')) {
+            $this->merge([
+                'business_contact_value' => ContactValueNormalizer::contact(
+                    (string) $this->input('business_contact_type'),
+                    $this->input('business_contact_value'),
+                ),
+            ]);
+        }
+
+        foreach (['nationality_country_code', 'country_code'] as $field) {
+            if ($this->exists($field)) {
+                $this->merge([
+                    $field => strtoupper(trim((string) $this->input($field))),
+                ]);
+            }
+        }
+
+        if ($this->exists('location_type')) {
+            $this->merge([
+                'location_type' => strtolower(trim((string) $this->input('location_type'))),
+            ]);
+        }
+
         $contactType = strtolower(trim((string) $this->input('contact_type')));
 
         $this->merge([
@@ -66,7 +101,7 @@ class RegisterRequest extends FormRequest
                 'string',
                 'min:3',
                 'max:50',
-                'regex:/^[\pL\pN._-]+$/u',
+                ContactValueNormalizer::USERNAME_VALIDATION_RULE,
             ],
 
             'display_name' => [
@@ -98,8 +133,73 @@ class RegisterRequest extends FormRequest
                 Rule::when(
                     $this->input('contact_type') === 'email',
                     ['email:rfc'],
-                    ['regex:/^\+[1-9]\d{7,14}$/'],
+                    ['regex:/^[0-9]{9}$/'],
                 ),
+            ],
+
+            'account_type' => [
+                'required', Rule::in(['shop', 'supplier']),
+            ],
+            'nationality_country_code' => [
+                'nullable', 'string', 'size:2', 'regex:/^[A-Z]{2}$/',
+            ],
+            'birth_date' => [
+                'nullable', 'date_format:Y-m-d', 'before_or_equal:today',
+            ],
+            'name' => [
+                'required_with:account_type', 'string', 'min:2', 'max:200',
+            ],
+            'legal_name' => ['nullable', 'string', 'max:250'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'category_id' => [
+                'required_with:account_type', 'uuid',
+            ],
+            'location_name' => [
+                'required_with:account_type', 'string', 'min:2', 'max:160',
+            ],
+            'location_type' => [
+                'nullable', Rule::in(['branch', 'office', 'warehouse', 'store']),
+            ],
+            'timezone' => ['nullable', 'string', 'timezone', 'max:64'],
+            'country_code' => [
+                'nullable', 'string', 'size:2', 'regex:/^[A-Z]{2}$/',
+            ],
+            'administrative_area' => [
+                'required_with:account_type', 'string', 'min:2', 'max:160',
+            ],
+            'locality' => [
+                'required_with:account_type', 'string', 'min:2', 'max:160',
+            ],
+            'district' => ['nullable', 'string', 'max:160'],
+            'street_address' => ['nullable', 'string', 'max:300'],
+            'address_notes' => ['nullable', 'string', 'max:2000'],
+            'latitude' => [
+                'nullable', 'numeric', 'between:-90,90',
+                'required_with:longitude',
+            ],
+            'longitude' => [
+                'nullable', 'numeric', 'between:-180,180',
+                'required_with:latitude',
+            ],
+            'business_contact_type' => [
+                'nullable',
+                'required_with:business_contact_value',
+                Rule::in(['phone', 'whatsapp', 'email', 'website']),
+            ],
+            'business_contact_value' => [
+                'nullable',
+                'required_with:business_contact_type',
+                'string',
+                'max:500',
+                ...match ($this->input('business_contact_type')) {
+                    'email' => ['email:rfc'],
+                    'phone', 'whatsapp' => ['regex:/^\+[1-9]\d{7,14}$/'],
+                    'website' => ['url:http,https'],
+                    default => [],
+                },
+            ],
+            'business_contact_label' => [
+                'nullable', 'string', 'max:120',
             ],
 
             'device_name' => [
