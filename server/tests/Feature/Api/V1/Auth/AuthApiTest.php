@@ -22,8 +22,14 @@
 
 namespace Tests\Feature\Api\V1\Auth;
 
+use App\Models\Business;
+use App\Models\BusinessCategory;
+use App\Models\BusinessRole;
 use App\Models\User;
+use Database\Seeders\BusinessCapabilitySeeder;
+use Database\Seeders\BusinessRoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
@@ -497,10 +503,10 @@ class AuthApiTest extends TestCase
     ): array {
         // Every successful API registration must create a shop or supplier.
         // Seed only the reference data needed by commercial onboarding.
-        $this->seed(\Database\Seeders\BusinessRoleSeeder::class);
-        $this->seed(\Database\Seeders\BusinessCapabilitySeeder::class);
+        $this->seed(BusinessRoleSeeder::class);
+        $this->seed(BusinessCapabilitySeeder::class);
 
-        $category = \App\Models\BusinessCategory::query()->firstOrCreate(
+        $category = BusinessCategory::query()->firstOrCreate(
             ['code' => 'auth_registration_test_leaf'],
             [
                 'name_ar' => 'فئة اختبار التسجيل',
@@ -573,7 +579,7 @@ class AuthApiTest extends TestCase
 
     public function test_username_rejects_arabic_and_symbols(): void
     {
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
         foreach ([
             'احمد123',
             'Ahmed_123',
@@ -602,7 +608,6 @@ class AuthApiTest extends TestCase
         $this->assertDatabaseCount('users', 0);
     }
 
-
     public function test_mobile_phone_registration_and_login(): void
     {
         $response = $this->postJson('/api/v1/auth/register', $this->registrationPayload([
@@ -629,7 +634,7 @@ class AuthApiTest extends TestCase
             'password' => 'StrongPass123!',
             'device_name' => 'Android',
         ])->assertOk()
-          ->assertJsonPath('data.user.id', $userId);
+            ->assertJsonPath('data.user.id', $userId);
     }
 
     public function test_mobile_phone_may_equal_numeric_username(): void
@@ -678,13 +683,12 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['username']);
     }
 
-
     public function test_mobile_full_registration_creates_business_and_pending_approval(): void
     {
-        $this->seed(\Database\Seeders\BusinessRoleSeeder::class);
-        $this->seed(\Database\Seeders\BusinessCapabilitySeeder::class);
+        $this->seed(BusinessRoleSeeder::class);
+        $this->seed(BusinessCapabilitySeeder::class);
 
-        $category = \App\Models\BusinessCategory::query()->create([
+        $category = BusinessCategory::query()->create([
             'code' => 'mobile_full_registration_leaf',
             'name_ar' => 'فئة الاختبار',
             'is_active' => true,
@@ -692,9 +696,9 @@ class AuthApiTest extends TestCase
         ]);
 
         foreach (['shop', 'supplier'] as $type) {
-            $username = 'mobile' . $type;
+            $username = 'mobile'.$type;
             $phone = $type === 'shop' ? '077123456' : '077234567';
-            $businessName = 'Business ' . $type;
+            $businessName = 'Business '.$type;
 
             $response = $this->postJson('/api/v1/auth/register', [
                 'account_type' => $type,
@@ -713,7 +717,7 @@ class AuthApiTest extends TestCase
                 'administrative_area' => 'Sanaa',
                 'locality' => 'Sanaa',
                 'business_contact_type' => 'email',
-                'business_contact_value' => $username . '@example.com',
+                'business_contact_value' => $username.'@example.com',
             ]);
 
             $response->assertCreated()
@@ -729,7 +733,7 @@ class AuthApiTest extends TestCase
                 'birth_date' => '2000-01-15',
             ]);
 
-            $business = \App\Models\Business::query()
+            $business = Business::query()
                 ->where('name', $businessName)
                 ->sole();
 
@@ -752,7 +756,7 @@ class AuthApiTest extends TestCase
 
             $this->assertDatabaseHas('verifications', [
                 'business_id' => $business->id,
-                'verification_type_code' => $type . '_approval',
+                'verification_type_code' => $type.'_approval',
                 'status' => 'pending',
             ]);
 
@@ -766,10 +770,10 @@ class AuthApiTest extends TestCase
 
     public function test_mobile_full_registration_rejects_inactive_category_without_creating_user(): void
     {
-        $this->seed(\Database\Seeders\BusinessRoleSeeder::class);
-        $this->seed(\Database\Seeders\BusinessCapabilitySeeder::class);
+        $this->seed(BusinessRoleSeeder::class);
+        $this->seed(BusinessCapabilitySeeder::class);
 
-        $category = \App\Models\BusinessCategory::query()->create([
+        $category = BusinessCategory::query()->create([
             'code' => 'mobile_inactive_registration_leaf',
             'name_ar' => 'فئة غير نشطة',
             'is_active' => false,
@@ -801,17 +805,16 @@ class AuthApiTest extends TestCase
         ]);
     }
 
-
     public function test_registration_categories_are_public_and_only_active_leaves(): void
     {
-        $parent = \App\Models\BusinessCategory::query()->create([
+        $parent = BusinessCategory::query()->create([
             'code' => 'registration_parent',
             'name_ar' => 'القسم الرئيسي',
             'is_active' => true,
             'sort_order' => 0,
         ]);
 
-        $leaf = \App\Models\BusinessCategory::query()->create([
+        $leaf = BusinessCategory::query()->create([
             'code' => 'registration_active_leaf',
             'name_ar' => 'الفئة المتاحة',
             'parent_id' => $parent->id,
@@ -819,7 +822,7 @@ class AuthApiTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        \App\Models\BusinessCategory::query()->create([
+        BusinessCategory::query()->create([
             'code' => 'registration_inactive_leaf',
             'name_ar' => 'الفئة المعطلة',
             'parent_id' => $parent->id,
@@ -827,14 +830,14 @@ class AuthApiTest extends TestCase
             'sort_order' => 1,
         ]);
 
-        $inactiveParent = \App\Models\BusinessCategory::query()->create([
+        $inactiveParent = BusinessCategory::query()->create([
             'code' => 'registration_inactive_parent',
             'name_ar' => 'قسم معطل',
             'is_active' => false,
             'sort_order' => 2,
         ]);
 
-        \App\Models\BusinessCategory::query()->create([
+        BusinessCategory::query()->create([
             'code' => 'registration_hidden_leaf',
             'name_ar' => 'فئة تحت قسم معطل',
             'parent_id' => $inactiveParent->id,
@@ -851,17 +854,17 @@ class AuthApiTest extends TestCase
 
     public function test_full_registration_rolls_back_when_owner_role_is_missing(): void
     {
-        $this->seed(\Database\Seeders\BusinessRoleSeeder::class);
-        $this->seed(\Database\Seeders\BusinessCapabilitySeeder::class);
+        $this->seed(BusinessRoleSeeder::class);
+        $this->seed(BusinessCapabilitySeeder::class);
 
-        $category = \App\Models\BusinessCategory::query()->create([
+        $category = BusinessCategory::query()->create([
             'code' => 'registration_rollback_leaf',
             'name_ar' => 'فئة التراجع',
             'is_active' => true,
             'sort_order' => 0,
         ]);
 
-        \App\Models\BusinessRole::query()
+        BusinessRole::query()
             ->where('code', 'owner')
             ->delete();
 
@@ -903,5 +906,4 @@ class AuthApiTest extends TestCase
         $this->assertDatabaseCount('verifications', 0);
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
-
 }

@@ -68,7 +68,7 @@ final class AuthRepositoryImpl implements AuthRepository {
     try {
       final remoteSession = await _remoteDataSource.registerFromMobile(payload);
 
-      return _saveAuthenticatedSession(
+      return await _saveAuthenticatedSession(
         sessionFactory: () => remoteSession.toDomain(),
         accessToken: remoteSession.accessToken,
       );

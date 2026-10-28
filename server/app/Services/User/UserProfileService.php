@@ -14,6 +14,7 @@ class UserProfileService
     public function __construct(
         private readonly UserIdentityCreationService $identityCreation,
     ) {}
+
     /**
      * Update the authenticated user's basic identity fields only.
      *
