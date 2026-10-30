@@ -167,6 +167,23 @@ final class GeneratedApiClient {
   /// - value
   ///
   /// لا نكشف access token خارج هذه الطبقة.
+  /// Read-only JSON endpoint protected by the current Sanctum session.
+  /// Uses the same auth-generation fence as other protected requests.
+  Future<Response<Object?>> getJsonAuthenticated({required String path}) async {
+    final authExtra = captureProtectedRequestAuthExtra();
+
+    final response = await client.dio.get<Object?>(
+      path,
+      options: Options(
+        headers: <String, String>{'Accept': 'application/json'},
+        extra: authExtra,
+      ),
+    );
+
+    ensureProtectedRequestAuthCurrent(authExtra);
+    return response;
+  }
+
   Future<Response<T>> patchJsonAuthenticated<T>({
     required String path,
     required Object? data,

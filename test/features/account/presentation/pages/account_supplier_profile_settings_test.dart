@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
 import 'package:talbatiyk/features/account/presentation/pages/account_page.dart';
+import 'package:talbatiyk/features/account/presentation/providers/account_business_approvals_provider.dart';
 import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
 import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
 import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
@@ -40,10 +41,21 @@ void main() {
       BusinessUseCase(_FakeBusinessRepository()),
     )..state = BusinessState.loaded(<BusinessEntity>[business]);
 
-    final authController = AuthController(
-      AuthUseCase(_FakeAuthRepository()),
-      autoRestore: false,
-    )..state = const AuthState(status: AuthStatus.unauthenticated);
+    final authController =
+        AuthController(AuthUseCase(_FakeAuthRepository()), autoRestore: false)
+          ..state = const AuthState(
+            status: AuthStatus.authenticated,
+            session: AuthSessionEntity(
+              user: AuthUserEntity(
+                id: 'test-approval-user',
+                username: 'testaccount',
+                displayName: 'Test Account',
+                status: 'active',
+                lastLoginAt: null,
+                contacts: <AuthContactEntity>[],
+              ),
+            ),
+          );
 
     final ordersController = ReceivedOrdersController(
       business.id,
@@ -54,6 +66,16 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          accountBusinessApprovalsProvider.overrideWith(
+            (ref, userId) async => const <String, AccountBusinessApproval>{
+              'business-1': AccountBusinessApproval(
+                businessId: 'business-1',
+                shopStatus: null,
+                supplierStatus: 'approved',
+                supplierEnabled: true,
+              ),
+            },
+          ),
           generatedApiClientProvider.overrideWithValue(
             GeneratedApiClient.create(baseUrl: 'http://127.0.0.1:8000/api/v1'),
           ),

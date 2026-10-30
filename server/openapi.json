@@ -272,6 +272,67 @@
                 }
             }
         },
+        "/auth/business-approvals": {
+            "get": {
+                "operationId": "auth.businessApprovals",
+                "summary": "Review status for active business memberships of the authenticated user.\nThe user account itself remains active while its business is reviewed.\nThis endpoint never exposes reviewers, private notes, or other users' data",
+                "tags": [
+                    "Auth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "business_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "shop_status": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "supplier_status": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "supplier_enabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "business_id",
+                                                    "shop_status",
+                                                    "supplier_status",
+                                                    "supplier_enabled"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/auth/logout": {
             "post": {
                 "operationId": "auth.logout",

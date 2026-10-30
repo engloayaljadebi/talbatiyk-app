@@ -21,6 +21,42 @@ import 'package:dio/dio.dart';
 import 'package:talbatiyk/core/network/generated_api_client.dart';
 import 'package:talbatiyk_api/talbatiyk_api.dart';
 
+/// Approval state returned without exposing generated SDK models.
+typedef BusinessApprovalSnapshot = ({
+  String businessId,
+  String? shopStatus,
+  String? supplierStatus,
+  bool supplierEnabled,
+});
+
+/// Reads approval states through the generated authenticated API.
+Future<List<BusinessApprovalSnapshot>> fetchBusinessApprovals(
+  GeneratedApiClient apiClient,
+) async {
+  final authExtra = apiClient.captureProtectedRequestAuthExtra();
+
+  final response = await apiClient.auth.authBusinessApprovals(extra: authExtra);
+
+  apiClient.ensureProtectedRequestAuthCurrent(authExtra);
+
+  final body = response.data;
+
+  if (body == null) {
+    throw StateError('استجابة حالات اعتماد الأنشطة فارغة.');
+  }
+
+  return body.data
+      .map(
+        (item) => (
+          businessId: item.businessId,
+          shopStatus: item.shopStatus,
+          supplierStatus: item.supplierStatus,
+          supplierEnabled: item.supplierEnabled,
+        ),
+      )
+      .toList(growable: false);
+}
+
 /// العقد المسؤول عن عمليات المصادقة البعيدة.
 abstract interface class AuthRemoteDataSource {
   Future<List<({String id, String name})>> fetchRegistrationCategories();

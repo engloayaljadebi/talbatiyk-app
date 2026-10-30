@@ -73,6 +73,13 @@ Route::prefix('v1')->group(function (): void {
                     'throttle:120,1',
                     'active.user',
                 ]);
+            Route::get(
+                '/business-approvals',
+                [AuthController::class, 'businessApprovals'],
+            )->middleware([
+                'throttle:120,1',
+                'active.user',
+            ]);
             Route::patch(
                 '/me',
                 [AuthController::class, 'updateProfile'],

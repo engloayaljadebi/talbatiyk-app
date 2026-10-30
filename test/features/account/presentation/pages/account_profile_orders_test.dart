@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/features/account/presentation/pages/account_page.dart';
+import 'package:talbatiyk/features/account/presentation/providers/account_business_approvals_provider.dart';
 import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
 import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
 import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
@@ -140,12 +141,38 @@ void main() {
         autoRestore: false,
       );
       authController.state = const AuthState(
-        status: AuthStatus.unauthenticated,
+        status: AuthStatus.authenticated,
+        session: AuthSessionEntity(
+          user: AuthUserEntity(
+            id: 'test-approval-user',
+            username: 'testaccount',
+            displayName: 'Test Account',
+            status: 'active',
+            lastLoginAt: null,
+            contacts: <AuthContactEntity>[],
+          ),
+        ),
       );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            accountBusinessApprovalsProvider.overrideWith(
+              (ref, userId) async => const <String, AccountBusinessApproval>{
+                'business-a': AccountBusinessApproval(
+                  businessId: 'business-a',
+                  shopStatus: null,
+                  supplierStatus: 'approved',
+                  supplierEnabled: true,
+                ),
+                'business-b': AccountBusinessApproval(
+                  businessId: 'business-b',
+                  shopStatus: null,
+                  supplierStatus: 'approved',
+                  supplierEnabled: true,
+                ),
+              },
+            ),
             authProvider.overrideWith((ref) => authController),
             businessControllerProvider.overrideWith(
               (ref) => businessController,
@@ -165,17 +192,46 @@ void main() {
         ),
       );
 
+      // Wait until the asynchronous approval provider resolves.
+      // Supplier tools must remain hidden until approval is verified.
+      await tester.pumpAndSettle();
+
       expect(find.text('متجر أ'), findsWidgets);
       expect(find.text('الطلبات'), findsWidgets);
 
-      await tester.tap(find.text('الطلبات').last);
+      final ordersTab = find.text('الطلبات').last;
+      await tester.ensureVisible(ordersTab);
+      await tester.pumpAndSettle();
+      await tester.tap(ordersTab);
       await tester.pumpAndSettle();
 
       expect(find.textContaining('ABCDEF12'), findsOneWidget);
 
-      await tester.tap(find.byType(DropdownButton<String>));
+      // Return to the top: ListView may have disposed its off-screen child.
+      final mainScroll = tester.state<ScrollableState>(
+        find.byType(Scrollable).first,
+      );
+      mainScroll.position.jumpTo(mainScroll.position.minScrollExtent);
+      await tester.pumpAndSettle();
+
+      final businessSelector = find.byType(DropdownButton<String>);
+      expect(businessSelector, findsOneWidget);
+      await tester.tap(businessSelector);
       await tester.pumpAndSettle();
       await tester.tap(find.text('متجر ب').last);
+      await tester.pumpAndSettle();
+
+      // Scroll down again after changing the selected business.
+      final ordersTabAfterSwitch = find.text('الطلبات').last;
+
+      await tester.dragUntilVisible(
+        ordersTabAfterSwitch,
+        find.byType(Scrollable).first,
+        const Offset(0, -220),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(ordersTabAfterSwitch);
       await tester.pumpAndSettle();
 
       expect(find.textContaining('BCDEFG34'), findsOneWidget);

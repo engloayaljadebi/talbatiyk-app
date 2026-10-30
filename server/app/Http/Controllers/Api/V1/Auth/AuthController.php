@@ -26,6 +26,7 @@ use App\Services\Business\BusinessCategorySelectionService;
 use App\Services\User\UserProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -99,6 +100,72 @@ class AuthController extends Controller
         return new UserResource(
             $request->user()->load('contacts'),
         );
+    }
+
+    /**
+     * Review status for active business memberships of the authenticated user.
+     * The user account itself remains active while its business is reviewed.
+     * This endpoint never exposes reviewers, private notes, or other users' data.
+     *
+     * @response array{data: list<array{business_id: string, shop_status: string|null, supplier_status: string|null, supplier_enabled: bool}>}
+     */
+    public function businessApprovals(Request $request): JsonResponse
+    {
+        $businessIds = DB::table('business_memberships as memberships')
+            ->join('businesses', 'businesses.id', '=', 'memberships.business_id')
+            ->where('memberships.user_id', $request->user()->getKey())
+            ->where('memberships.status', 'active')
+            ->whereNull('businesses.deleted_at')
+            ->distinct()
+            ->orderBy('businesses.id')
+            ->pluck('businesses.id');
+
+        if ($businessIds->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $items = [];
+        foreach ($businessIds as $id) {
+            $items[$id] = [
+                'business_id' => $id,
+                'shop_status' => null,
+                'supplier_status' => null,
+                'supplier_enabled' => false,
+            ];
+        }
+
+        $verifications = DB::table('verifications')
+            ->whereIn('business_id', $businessIds)
+            ->whereIn('verification_type_code', ['shop_approval', 'supplier_approval'])
+            ->orderByDesc('requested_at')
+            ->orderByDesc('id')
+            ->get(['business_id', 'verification_type_code', 'status']);
+
+        // The first row for each type is its latest request.
+        foreach ($verifications as $verification) {
+            $type = $verification->verification_type_code === 'shop_approval'
+                ? 'shop_status'
+                : 'supplier_status';
+
+            if ($items[$verification->business_id][$type] === null) {
+                $items[$verification->business_id][$type] = $verification->status;
+            }
+        }
+
+        $enabledSuppliers = DB::table('business_capability_assignments as assignments')
+            ->join('business_capabilities as capabilities',
+                'capabilities.code', '=', 'assignments.capability_code')
+            ->whereIn('assignments.business_id', $businessIds)
+            ->where('assignments.capability_code', 'supplier')
+            ->whereNull('assignments.disabled_at')
+            ->whereNull('capabilities.retired_at')
+            ->pluck('assignments.business_id');
+
+        foreach ($enabledSuppliers as $businessId) {
+            $items[$businessId]['supplier_enabled'] = true;
+        }
+
+        return response()->json(['data' => array_values($items)]);
     }
 
     /**

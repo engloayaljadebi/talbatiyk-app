@@ -72,13 +72,12 @@ import 'package:talbatiyk_api/talbatiyk_api.dart';
 
 
 final api = TalbatiykApi().getAuthApi();
-final LoginRequest loginRequest = ; // LoginRequest | 
 
 try {
-    final response = await api.authLogin(loginRequest);
+    final response = await api.authBusinessApprovals();
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AuthApi->authLogin: $e\n");
+    print("Exception when calling AuthApi->authBusinessApprovals: $e\n");
 }
 
 ```
@@ -89,6 +88,7 @@ All URIs are relative to *http://localhost/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AuthApi*](doc/AuthApi.md) | [**authBusinessApprovals**](doc/AuthApi.md#authbusinessapprovals) | **GET** /auth/business-approvals | Review status for active business memberships of the authenticated user. The user account itself remains active while its business is reviewed. This endpoint never exposes reviewers, private notes, or other users&#39; data
 [*AuthApi*](doc/AuthApi.md) | [**authLogin**](doc/AuthApi.md#authlogin) | **POST** /auth/login | تسجيل الدخول
 [*AuthApi*](doc/AuthApi.md) | [**authLogout**](doc/AuthApi.md#authlogout) | **POST** /auth/logout | تسجيل خروج الجهاز الحالي فقط
 [*AuthApi*](doc/AuthApi.md) | [**authMe**](doc/AuthApi.md#authme) | **GET** /auth/me | بيانات المستخدم الحالي
@@ -145,6 +145,8 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [AuthBusinessApprovals200Response](doc/AuthBusinessApprovals200Response.md)
+ - [AuthBusinessApprovals200ResponseDataInner](doc/AuthBusinessApprovals200ResponseDataInner.md)
  - [AuthLogin200Response](doc/AuthLogin200Response.md)
  - [AuthLogin200ResponseData](doc/AuthLogin200ResponseData.md)
  - [AuthLogout200Response](doc/AuthLogout200Response.md)
