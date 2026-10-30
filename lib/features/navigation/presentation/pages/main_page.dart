@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../account/presentation/pages/account_page.dart';
+import '../../../account/presentation/providers/account_business_approvals_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../business/presentation/providers/business_provider.dart';
 import '../../../cart/presentation/pages/cart_page.dart';
@@ -58,6 +59,12 @@ class _MainPageState extends ConsumerState<MainPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      final userId = ref.read(authProvider).state.user?.id;
+
+      if (userId != null) {
+        ref.invalidate(accountBusinessApprovalsProvider(userId));
+      }
+
       unawaited(_syncPendingOrders());
       unawaited(_syncPendingProducts());
       unawaited(_refreshReceivedOrders());

@@ -17,14 +17,16 @@ import '../../../received_orders/presentation/providers/received_orders_provider
 import '../../../supplier_discovery/domain/entities/supplier_candidate_entity.dart';
 import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
 import '../../../products/presentation/widgets/product_grid.dart';
+import '../providers/account_business_approvals_provider.dart';
 
-enum AccountType { supplier, shopOwner }
+enum AccountType { supplier, shopOwner, unknown }
 
 extension AccountTypePresentation on AccountType {
   String get label {
     return switch (this) {
       AccountType.supplier => 'عضو نشاط تجاري',
       AccountType.shopOwner => 'عميل',
+      AccountType.unknown => 'جار التحقق من نوع الحساب',
     };
   }
 
@@ -32,6 +34,7 @@ extension AccountTypePresentation on AccountType {
     return switch (this) {
       AccountType.supplier => Icons.storefront_outlined,
       AccountType.shopOwner => Icons.person_outline_rounded,
+      AccountType.unknown => Icons.help_outline_rounded,
     };
   }
 }
@@ -100,17 +103,25 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     final businessState = businessController.state;
     final businesses = businessState.businesses;
     final selectedBusiness = _selectedBusiness(businesses);
-    final productsAsync = selectedBusiness == null
+    final user = ref.watch(authProvider).state.user;
+    final approvalsAsync = user == null || selectedBusiness == null
+        ? null
+        : ref.watch(accountBusinessApprovalsProvider(user.id));
+    final approval = selectedBusiness == null
+        ? null
+        : approvalsAsync?.valueOrNull?[selectedBusiness.id];
+    final canManageSupplier = approval?.mayUseSupplierTools == true;
+    // Never invoke protected supplier screens/queries for pending shops/suppliers.
+    final productsAsync = !canManageSupplier || selectedBusiness == null
         ? const AsyncValue<List<ProductEntity>>.data([])
         : ref.watch(supplierManagedProductsProvider(selectedBusiness.id));
     final productList = productsAsync.valueOrNull ?? const <ProductEntity>[];
-    final ordersState = selectedBusiness == null
+    final ordersState = !canManageSupplier || selectedBusiness == null
         ? null
         : ref
               .watch(receivedOrdersControllerProvider(selectedBusiness.id))
               .state;
     final orderList = ordersState?.orders ?? const <ReceivedOrderEntity>[];
-    final user = ref.watch(authProvider).state.user;
     final displayName = user?.displayName.trim().isNotEmpty == true
         ? user!.displayName.trim()
         : widget.displayName;
@@ -123,9 +134,15 @@ class _AccountPageState extends ConsumerState<AccountPage> {
             .trim() ??
         widget.phoneNumber;
 
-    final accountType = businesses.isNotEmpty
+    final accountType = selectedBusiness == null
+        ? widget.accountType
+        : approval == null
+        ? AccountType.unknown
+        : approval.requestedSupplier
         ? AccountType.supplier
-        : widget.accountType;
+        : approval.requestedShop
+        ? AccountType.shopOwner
+        : AccountType.unknown;
     final headerBusinessName = selectedBusiness?.name ?? widget.businessName;
 
     final colors = Theme.of(context).colorScheme;
@@ -149,7 +166,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         actions: [
-          if (selectedBusiness != null)
+          if (selectedBusiness != null && canManageSupplier)
             IconButton(
               tooltip: 'إضافة منتج',
               onPressed: () => _openAddProduct(selectedBusiness),
@@ -237,7 +254,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   ),
                 ),
               ),
-            if (selectedBusiness != null)
+            if (selectedBusiness != null && canManageSupplier)
               _SupplierProfileHeader(
                 business: selectedBusiness,
                 productCount: productList.length,
@@ -251,14 +268,47 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 displayName: displayName,
                 businessName: headerBusinessName,
                 accountType: accountType,
-                onEdit: () => _executeOrNotify(
-                  context,
-                  widget.onEditProfile,
-                  'تعديل البيانات',
-                ),
+                onEdit: () => selectedBusiness != null
+                    ? _openBusinessProfileSettings(selectedBusiness)
+                    : _executeOrNotify(
+                        context,
+                        widget.onEditProfile,
+                        'تعديل البيانات',
+                      ),
               ),
+            if (selectedBusiness != null) ...[
+              const SizedBox(height: 14),
+              _AccountSection(
+                title: 'حالة اعتماد النشاط',
+                children: [
+                  _AccountOptionTile(
+                    icon: Icons.verified_user_outlined,
+                    title: 'حالة المراجعة',
+                    subtitle: approvalsAsync?.isLoading == true
+                        ? 'جار جلب حالة النشاط من الخادم'
+                        : approvalsAsync?.hasError == true
+                        ? 'تعذر التحقق من حالة النشاط — لا توجد صلاحيات مفعّلة'
+                        : approval?.reviewDescription ??
+                              'لا يوجد طلب اعتماد مسجل',
+                    showArrow: false,
+                  ),
+                  _AccountOptionTile(
+                    icon: Icons.refresh_outlined,
+                    title: 'تحديث حالة المراجعة',
+                    subtitle: 'تحميل أحدث حالة من الخادم',
+                    onTap: () {
+                      if (user != null) {
+                        ref.invalidate(
+                          accountBusinessApprovalsProvider(user.id),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 18),
-            if (selectedBusiness != null)
+            if (selectedBusiness != null && canManageSupplier)
               _SupplierProfileActions(
                 onAddProduct: () async => _openAddProduct(selectedBusiness),
                 onOpenSettings: () =>
@@ -292,7 +342,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   ),
                 ],
               ),
-            if (selectedBusiness != null) ...[
+            if (selectedBusiness != null && canManageSupplier) ...[
               const SizedBox(height: 22),
               _SupplierQuickLinks(
                 onOrders: () => _openReceivedOrders(selectedBusiness),
@@ -306,7 +356,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
               ),
             ],
             const SizedBox(height: 22),
-            if (selectedBusiness != null)
+            if (selectedBusiness != null && canManageSupplier)
               _SupplierContentTabs(
                 products: productList,
                 orders: orderList,
@@ -1679,11 +1729,7 @@ class _PublicStoreAccountView extends ConsumerWidget {
       key: const ValueKey<String>('public-store-account-page'),
       backgroundColor: colors.surface,
       appBar: AppBar(
-        title: Text(
-          store.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: Text(store.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: colors.surface,
         foregroundColor: colors.onSurface,
         surfaceTintColor: Colors.transparent,
@@ -1697,10 +1743,7 @@ class _PublicStoreAccountView extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _SupplierProfileHeader(
-                    business: BusinessEntity(
-                      id: store.id,
-                      name: store.name,
-                    ),
+                    business: BusinessEntity(id: store.id, name: store.name),
                     productCount: products.length,
                     availableCount: products
                         .where((product) => product.isAvailable)
@@ -1717,9 +1760,9 @@ class _PublicStoreAccountView extends ConsumerWidget {
 
                             final error = follow.errorMessage;
                             if (error != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(error)),
-                              );
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(error)));
                             }
                           }
                         : null,
@@ -1766,18 +1809,18 @@ class _PublicStoreAccountView extends ConsumerWidget {
               child: discovery.state.isLoading && allProducts.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : products.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              discovery.state.errorMessage != null
-                                  ? 'تعذر تحميل منتجات الكتالوج.'
-                                  : 'لا توجد منتجات لهذا المتجر ضمن الكتالوج المحمل.',
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      : ProductGrid(products: products),
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          discovery.state.errorMessage != null
+                              ? 'تعذر تحميل منتجات الكتالوج.'
+                              : 'لا توجد منتجات لهذا المتجر ضمن الكتالوج المحمل.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : ProductGrid(products: products),
             ),
           ],
         ),

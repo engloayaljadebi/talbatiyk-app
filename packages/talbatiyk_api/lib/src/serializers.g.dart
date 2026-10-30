@@ -7,6 +7,8 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add(AuthBusinessApprovals200Response.serializer)
+      ..add(AuthBusinessApprovals200ResponseDataInner.serializer)
       ..add(AuthLogin200Response.serializer)
       ..add(AuthLogin200ResponseData.serializer)
       ..add(AuthLogin200ResponseDataTokenTypeEnum.serializer)
@@ -115,6 +117,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(UpdateSupplierFulfillmentRequestStatusEnum.serializer)
       ..add(UserResource.serializer)
       ..add(UserResourceContactsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AuthBusinessApprovals200ResponseDataInner)
+          ]),
+          () => ListBuilder<AuthBusinessApprovals200ResponseDataInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(AuthRegistrationCategories200ResponseDataInner)

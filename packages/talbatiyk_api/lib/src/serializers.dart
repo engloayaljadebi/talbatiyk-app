@@ -14,6 +14,8 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:talbatiyk_api/src/date_serializer.dart';
 import 'package:talbatiyk_api/src/model/date.dart';
 
+import 'package:talbatiyk_api/src/model/auth_business_approvals200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_business_approvals200_response_data_inner.dart';
 import 'package:talbatiyk_api/src/model/auth_login200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_login200_response_data.dart';
 import 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
@@ -110,6 +112,8 @@ import 'package:talbatiyk_api/src/model/user_resource_contacts_inner.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AuthBusinessApprovals200Response,
+  AuthBusinessApprovals200ResponseDataInner,
   AuthLogin200Response,
   AuthLogin200ResponseData,
   AuthLogout200Response,

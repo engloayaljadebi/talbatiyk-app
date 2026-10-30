@@ -2,6 +2,8 @@
 README.md
 analysis_options.yaml
 doc/AuthApi.md
+doc/AuthBusinessApprovals200Response.md
+doc/AuthBusinessApprovals200ResponseDataInner.md
 doc/AuthLogin200Response.md
 doc/AuthLogin200ResponseData.md
 doc/AuthLogout200Response.md
@@ -129,6 +131,8 @@ lib/src/auth/basic_auth.dart
 lib/src/auth/bearer_auth.dart
 lib/src/auth/oauth.dart
 lib/src/date_serializer.dart
+lib/src/model/auth_business_approvals200_response.dart
+lib/src/model/auth_business_approvals200_response_data_inner.dart
 lib/src/model/auth_login200_response.dart
 lib/src/model/auth_login200_response_data.dart
 lib/src/model/auth_logout200_response.dart
@@ -225,3 +229,5 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
+test/auth_business_approvals200_response_data_inner_test.dart
+test/auth_business_approvals200_response_test.dart
