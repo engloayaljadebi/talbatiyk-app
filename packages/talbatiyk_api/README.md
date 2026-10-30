@@ -82,24 +82,6 @@ try {
 
 ```
 
-### Login example
-
-```dart
-final client = TalbatiykApi();
-
-final request = LoginRequest(
-  (builder) => builder
-    ..login = 'your-username'
-    ..password = 'your-password'
-    ..deviceName = 'flutter',
-);
-
-final response = await client.getAuthApi().authLogin(
-  loginRequest: request,
-);
-
-print(response.statusCode);
-```
 
 ## Documentation for API Endpoints
 

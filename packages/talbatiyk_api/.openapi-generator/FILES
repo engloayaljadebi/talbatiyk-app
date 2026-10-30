@@ -229,5 +229,3 @@ lib/src/model/user_resource_contacts_inner.dart
 lib/src/serializers.dart
 lib/talbatiyk_api.dart
 pubspec.yaml
-test/auth_business_approvals200_response_data_inner_test.dart
-test/auth_business_approvals200_response_test.dart
