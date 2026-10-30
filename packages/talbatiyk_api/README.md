@@ -82,7 +82,6 @@ try {
 
 ```
 
-
 ## Documentation for API Endpoints
 
 All URIs are relative to *http://localhost/api/v1*
