@@ -7,7 +7,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
-  test('fresh database uses ownership schema version 14', () async {
+  test('fresh database uses ownership schema version 15', () async {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
 
@@ -19,7 +19,7 @@ void main() {
         .customSelect("PRAGMA table_info('product_publish_attempt_records')")
         .get();
 
-    expect(db.schemaVersion, 14);
+    expect(db.schemaVersion, 16);
 
     expect(
       productColumns.any((row) => row.data['name'] == 'owner_user_id'),
@@ -95,7 +95,7 @@ void main() {
           )
           .get();
 
-      expect(db.schemaVersion, 14);
+      expect(db.schemaVersion, 16);
 
       expect(
         productOwners.single.data['owner_user_id'],

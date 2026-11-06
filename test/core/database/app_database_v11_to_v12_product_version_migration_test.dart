@@ -82,7 +82,7 @@ void main() {
         (row) => row.id == 'pending-create',
       );
 
-      expect(upgraded.schemaVersion, 14);
+      expect(upgraded.schemaVersion, 16);
 
       // Existing server-backed rows receive the backend rollout baseline.
       expect(serverProduct.serverVersion, 1);

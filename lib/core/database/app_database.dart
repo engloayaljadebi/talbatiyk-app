@@ -150,8 +150,47 @@ class OrderItemRecords extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// A locally stored named cart.
+///
+/// NULL ownership is reserved for legacy carts whose owner
+/// cannot be established safely during migration.
+class CartRecords extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get ownerUserId => text().nullable()();
+
+  TextColumn get name => text()();
+
+  DateTimeColumn get createdAt => dateTime()();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// One locally selected cart per authenticated account.
+class CartActiveSelectionRecords extends Table {
+  TextColumn get ownerUserId => text()();
+
+  TextColumn get cartId =>
+      text().references(CartRecords, #id, onDelete: KeyAction.cascade)();
+
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {ownerUserId};
+}
+
 class CartItemRecords extends Table {
-  TextColumn get productId => text()();
+  TextColumn get id => text()();
+
+  TextColumn get cartId =>
+      text().references(CartRecords, #id, onDelete: KeyAction.cascade)();
+
+  TextColumn get kind => text().withDefault(const Constant('catalog'))();
+
+  TextColumn get productId => text().nullable()();
 
   TextColumn get supplierId => text().withDefault(const Constant(''))();
 
@@ -195,8 +234,17 @@ class CartItemRecords extends Table {
 
   DateTimeColumn get updatedAt => dateTime()();
 
+  TextColumn get unit => text().nullable()();
+
+  TextColumn get note => text().nullable()();
+
   @override
-  Set<Column<Object>> get primaryKey => {productId};
+  List<String> get customConstraints => [
+    "CHECK (kind IN ('catalog', 'manual'))",
+  ];
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
 
 /// الحالات الأساسية لدورة حياة عملية الـOutbox.
@@ -334,6 +382,8 @@ class NotificationRecords extends Table {
     ProductDiscoveryRecords,
     OrderRecords,
     OrderItemRecords,
+    CartRecords,
+    CartActiveSelectionRecords,
     CartItemRecords,
     NotificationRecords,
     SyncOperations,
@@ -346,7 +396,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -354,6 +404,17 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
         await _createSupplierDiscoveryCache();
+
+        await customStatement('''
+          CREATE UNIQUE INDEX cart_catalog_product_unique
+          ON cart_item_records(cart_id, product_id)
+          WHERE kind = 'catalog' AND product_id IS NOT NULL;
+        ''');
+
+        await customStatement('''
+          CREATE INDEX cart_items_sort_index
+          ON cart_item_records(cart_id, sort_order);
+        ''');
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
@@ -445,8 +506,216 @@ class AppDatabase extends _$AppDatabase {
             ),
           );
         }
+
+        if (from < 15 && to >= 15) {
+          await _migrateCartTablesToV15(m);
+        }
+        if (from < 16 && to >= 16) {
+          await _ensureCartActiveSelectionTable(m);
+        }
       },
     );
+  }
+
+  /// Converts the legacy single cart into the v15 multi-cart schema.
+  /// Existing orders and sync operations are not modified.
+  /// Creates the active-cart selection table when upgrading to v16.
+  /// Handles historical test fixtures that already have this table.
+  Future<void> _ensureCartActiveSelectionTable(Migrator m) async {
+    final existing = await customSelect(
+      "SELECT 1 FROM sqlite_master "
+      "WHERE type = 'table' "
+      "AND name = 'cart_active_selection_records' "
+      "LIMIT 1;",
+    ).get();
+
+    if (existing.isEmpty) {
+      await m.createTable(cartActiveSelectionRecords);
+    }
+  }
+
+  Future<void> _migrateCartTablesToV15(Migrator m) async {
+    final existingTables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' "
+      "AND name IN ('cart_records', 'cart_item_records');",
+    ).get();
+
+    final names = existingTables.map((row) => row.read<String>('name')).toSet();
+
+    final hasCarts = names.contains('cart_records');
+    final hasItems = names.contains('cart_item_records');
+
+    if (hasItems) {
+      final columns = await customSelect(
+        "PRAGMA table_info('cart_item_records');",
+      ).get();
+
+      final columnNames = columns
+          .map((row) => row.read<String>('name'))
+          .toSet();
+
+      final isV15 = columnNames.containsAll({
+        'id',
+        'cart_id',
+        'kind',
+        'product_id',
+        'unit',
+        'note',
+      });
+
+      if (isV15) {
+        if (!hasCarts) {
+          final count = await customSelect(
+            'SELECT COUNT(*) AS item_count FROM cart_item_records;',
+          ).getSingle();
+
+          if (count.read<int>('item_count') != 0) {
+            throw StateError(
+              'V15 cart items exist without their parent cart table.',
+            );
+          }
+
+          await m.createTable(cartRecords);
+        }
+
+        await _ensureV15CartIndexes();
+        return;
+      }
+
+      if (!columnNames.contains('product_id') ||
+          columnNames.contains('cart_id')) {
+        throw StateError('Unsupported historical cart schema.');
+      }
+    } else {
+      if (!hasCarts) {
+        await m.createTable(cartRecords);
+      }
+
+      await m.createTable(cartItemRecords);
+      await _ensureV15CartIndexes();
+      return;
+    }
+
+    if (hasCarts) {
+      throw StateError('Unexpected cart_records table with legacy cart items.');
+    }
+    await customStatement('''
+      CREATE TABLE cart_records (
+        id TEXT NOT NULL PRIMARY KEY,
+        owner_user_id TEXT,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    ''');
+
+    // Unknown legacy ownership must remain unclaimed.
+    // Create the historical cart only when legacy items exist.
+    await customStatement('''
+      INSERT INTO cart_records (
+        id, owner_user_id, name, created_at, updated_at
+      )
+      SELECT
+        'legacy-v14-unclaimed',
+        NULL,
+        'السلة السابقة',
+        MIN(updated_at),
+        MAX(updated_at)
+      FROM cart_item_records
+      HAVING COUNT(*) > 0;
+    ''');
+
+    await customStatement('''
+      CREATE TABLE cart_item_records_v15 (
+        id TEXT NOT NULL PRIMARY KEY,
+        cart_id TEXT NOT NULL REFERENCES cart_records(id)
+          ON DELETE CASCADE,
+        kind TEXT NOT NULL DEFAULT 'catalog',
+        product_id TEXT,
+        supplier_id TEXT NOT NULL DEFAULT '',
+        supplier_name TEXT NOT NULL DEFAULT '',
+        product_name TEXT NOT NULL,
+        price REAL NOT NULL,
+        image_url TEXT NOT NULL DEFAULT '',
+        local_image_path TEXT,
+        category TEXT NOT NULL DEFAULT '',
+        brand TEXT NOT NULL DEFAULT '',
+        is_available INTEGER NOT NULL DEFAULT 1,
+        description TEXT NOT NULL DEFAULT '',
+        colors_json TEXT NOT NULL DEFAULT '[]',
+        product_quantity INTEGER NOT NULL DEFAULT 0,
+        discount REAL NOT NULL DEFAULT 0,
+        rating REAL NOT NULL DEFAULT 0,
+        sync_status TEXT NOT NULL DEFAULT 'synced',
+        sync_error TEXT,
+        product_created_at INTEGER,
+        product_updated_at INTEGER,
+        cart_quantity INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        unit TEXT,
+        note TEXT,
+        CHECK (kind IN ('catalog', 'manual'))
+      );
+    ''');
+
+    // Preserve every existing column and its stored value.
+    await customStatement('''
+      INSERT INTO cart_item_records_v15 (
+        id, cart_id, kind, product_id,
+        supplier_id, supplier_name, product_name,
+        price, image_url, local_image_path,
+        category, brand, is_available, description,
+        colors_json, product_quantity, discount,
+        rating, sync_status, sync_error,
+        product_created_at, product_updated_at,
+        cart_quantity, sort_order, updated_at
+      )
+      SELECT
+        'legacy-catalog:' || product_id,
+        'legacy-v14-unclaimed',
+        'catalog',
+        product_id,
+        supplier_id, supplier_name, product_name,
+        price, image_url, local_image_path,
+        category, brand, is_available, description,
+        colors_json, product_quantity, discount,
+        rating, sync_status, sync_error,
+        product_created_at, product_updated_at,
+        cart_quantity, sort_order, updated_at
+      FROM cart_item_records;
+    ''');
+
+    await customStatement('DROP TABLE cart_item_records;');
+
+    await customStatement('''
+      ALTER TABLE cart_item_records_v15
+      RENAME TO cart_item_records;
+    ''');
+
+    await customStatement('''
+      CREATE UNIQUE INDEX cart_catalog_product_unique
+      ON cart_item_records(cart_id, product_id)
+      WHERE kind = 'catalog' AND product_id IS NOT NULL;
+    ''');
+
+    await customStatement('''
+      CREATE INDEX cart_items_sort_index
+      ON cart_item_records(cart_id, sort_order);
+    ''');
+  }
+
+  Future<void> _ensureV15CartIndexes() async {
+    await customStatement('''
+      CREATE UNIQUE INDEX IF NOT EXISTS cart_catalog_product_unique
+      ON cart_item_records(cart_id, product_id)
+      WHERE kind = 'catalog' AND product_id IS NOT NULL;
+    ''');
+
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS cart_items_sort_index
+      ON cart_item_records(cart_id, sort_order);
+    ''');
   }
 
   Future<void> _ensureProductServerVersionColumn(Migrator m) async {

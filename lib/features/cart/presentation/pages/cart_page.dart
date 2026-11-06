@@ -9,6 +9,7 @@ import 'package:talbatiyk/features/orders/presentation/providers/orders_provider
 import 'package:talbatiyk/features/products/presentation/widgets/product_image.dart';
 import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
 import 'package:talbatiyk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
+import 'package:talbatiyk/features/cart/presentation/widgets/cart_management_bar.dart';
 
 /// صفحة سلة المشتريات.
 ///
@@ -41,6 +42,7 @@ class CartPage extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
+            const CartManagementBar(),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 320),
@@ -251,9 +253,6 @@ class CartPage extends ConsumerWidget {
     if (cart.isEmpty) {
       return;
     }
-
-    final submittedItems = List<CartItemEntity>.unmodifiable(cart.items);
-
     final supplierDiscoveryController = ref.read(
       supplierDiscoveryControllerProvider,
     );
@@ -304,6 +303,22 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
+    // Capture the latest cart state after supplier selection.
+    final currentItems = cart.items;
+
+    if (currentItems.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('السلة فارغة، أضف منتجات قبل إرسال الطلبية.'),
+          ),
+        );
+
+      return;
+    }
+
+    final submittedItems = List<CartItemEntity>.unmodifiable(currentItems);
     final request = CreateOrderRequest(
       supplierIds: selectedSuppliers.toList()..sort(),
       items: submittedItems
@@ -565,6 +580,105 @@ class _CartItemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final product = item.product;
 
+    Widget buildImage(double size) {
+      return Hero(
+        tag: 'cart-product-${product.id}',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Container(
+            width: size,
+            height: size,
+            color: const Color(0xFFF6F6F7),
+            child: ProductImage(imageUrl: product.displayImagePath),
+          ),
+        ),
+      );
+    }
+
+    Widget buildDetails(double minHeight) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: CartPage._textPrimary,
+                fontSize: 14.5,
+                height: 1.25,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (product.brand.trim().isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(
+                product.brand,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: CartPage._textSecondary,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+            const SizedBox(height: 6),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.3),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: Text(
+                '${_formatPrice(item.totalPrice)} ر.ي',
+                key: ValueKey(item.totalPrice),
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: CartPage._primary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildRemoveButton() {
+      return _RemoveButton(
+        onPressed: () {
+          ref.read(cartProvider).removeProduct(product.id);
+        },
+      );
+    }
+
+    Widget buildQuantityControl({required bool compact}) {
+      return _QuantityControl(
+        quantity: item.quantity,
+        compact: compact,
+        onDecrease: () {
+          ref.read(cartProvider).decreaseProduct(product.id);
+        },
+        onIncrease: () {
+          ref.read(cartProvider).addProduct(product);
+        },
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
@@ -579,103 +693,55 @@ class _CartItemCard extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Hero(
-            tag: 'cart-product-${product.id}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(17),
-              child: Container(
-                width: 90,
-                height: 90,
-                color: const Color(0xFFF6F6F7),
-                child: ProductImage(imageUrl: product.displayImagePath),
-              ),
-            ),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 90),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: CartPage._textPrimary,
-                      fontSize: 14.5,
-                      height: 1.25,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  if (product.brand.trim().isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      product.brand,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: CartPage._textSecondary,
-                        fontSize: 11.5,
-                      ),
-                    ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // At phone widths, put controls on a second row so the product
+          // details keep enough horizontal space and the card cannot overflow.
+          final compact = constraints.maxWidth < 340;
+
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    buildImage(72),
+                    const SizedBox(width: 10),
+                    Expanded(child: buildDetails(72)),
                   ],
-                  const SizedBox(height: 6),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    transitionBuilder: (child, animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.3),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Text(
-                      '${_formatPrice(item.totalPrice)} ر.ي',
-                      key: ValueKey(item.totalPrice),
-                      style: const TextStyle(
-                        color: CartPage._primary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    buildRemoveButton(),
+                    const SizedBox(width: 8),
+                    buildQuantityControl(compact: true),
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              buildImage(90),
+              const SizedBox(width: 13),
+              Expanded(child: buildDetails(90)),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildRemoveButton(),
+                  const SizedBox(height: 8),
+                  buildQuantityControl(compact: false),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _RemoveButton(
-                onPressed: () {
-                  ref.read(cartProvider).removeProduct(product.id);
-                },
-              ),
-              const SizedBox(height: 8),
-              _QuantityControl(
-                quantity: item.quantity,
-                onDecrease: () {
-                  ref.read(cartProvider).decreaseProduct(product.id);
-                },
-                onIncrease: () {
-                  ref.read(cartProvider).addProduct(product);
-                },
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -709,17 +775,22 @@ class _QuantityControl extends StatelessWidget {
     required this.quantity,
     required this.onDecrease,
     required this.onIncrease,
+    this.compact = false,
   });
 
   final int quantity;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final buttonSize = compact ? 28.0 : 30.0;
+    final valueWidth = compact ? 24.0 : 30.0;
+
     return Container(
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 3),
+      height: compact ? 34 : 36,
+      padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 3),
       decoration: BoxDecoration(
         color: const Color(0xFFF4F4F5),
         borderRadius: BorderRadius.circular(13),
@@ -727,9 +798,13 @@ class _QuantityControl extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _QuantityButton(icon: Icons.remove_rounded, onPressed: onDecrease),
+          _QuantityButton(
+            icon: Icons.remove_rounded,
+            onPressed: onDecrease,
+            size: buttonSize,
+          ),
           SizedBox(
-            width: 30,
+            width: valueWidth,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 180),
               transitionBuilder: (child, animation) {
@@ -759,6 +834,7 @@ class _QuantityControl extends StatelessWidget {
             icon: Icons.add_rounded,
             primary: true,
             onPressed: onIncrease,
+            size: buttonSize,
           ),
         ],
       ),
@@ -766,17 +842,18 @@ class _QuantityControl extends StatelessWidget {
   }
 }
 
-/// زر زيادة/إنقاص.
 class _QuantityButton extends StatelessWidget {
   const _QuantityButton({
     required this.icon,
     required this.onPressed,
     this.primary = false,
+    this.size = 30,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
   final bool primary;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -787,11 +864,11 @@ class _QuantityButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(10),
         child: SizedBox(
-          width: 30,
-          height: 30,
+          width: size,
+          height: size,
           child: Icon(
             icon,
-            size: 17,
+            size: size < 30 ? 16 : 17,
             color: primary ? Colors.white : CartPage._textPrimary,
           ),
         ),
