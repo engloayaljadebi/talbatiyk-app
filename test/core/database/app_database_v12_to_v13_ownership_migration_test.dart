@@ -91,7 +91,7 @@ void main() {
 
       final operations = await upgraded.select(upgraded.syncOperations).get();
 
-      expect(upgraded.schemaVersion, 14);
+      expect(upgraded.schemaVersion, 16);
 
       expect(orders, hasLength(1));
       expect(orders.single.id, 'legacy-order-A');

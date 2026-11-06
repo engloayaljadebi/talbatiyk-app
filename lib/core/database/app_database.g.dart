@@ -4442,12 +4442,692 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
   }
 }
 
+class $CartRecordsTable extends CartRecords
+    with TableInfo<$CartRecordsTable, CartRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CartRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ownerUserId,
+    name,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cart_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CartRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CartRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CartRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CartRecordsTable createAlias(String alias) {
+    return $CartRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class CartRecord extends DataClass implements Insertable<CartRecord> {
+  final String id;
+  final String? ownerUserId;
+  final String name;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const CartRecord({
+    required this.id,
+    this.ownerUserId,
+    required this.name,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || ownerUserId != null) {
+      map['owner_user_id'] = Variable<String>(ownerUserId);
+    }
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CartRecordsCompanion toCompanion(bool nullToAbsent) {
+    return CartRecordsCompanion(
+      id: Value(id),
+      ownerUserId: ownerUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUserId),
+      name: Value(name),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CartRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CartRecord(
+      id: serializer.fromJson<String>(json['id']),
+      ownerUserId: serializer.fromJson<String?>(json['ownerUserId']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ownerUserId': serializer.toJson<String?>(ownerUserId),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CartRecord copyWith({
+    String? id,
+    Value<String?> ownerUserId = const Value.absent(),
+    String? name,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => CartRecord(
+    id: id ?? this.id,
+    ownerUserId: ownerUserId.present ? ownerUserId.value : this.ownerUserId,
+    name: name ?? this.name,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CartRecord copyWithCompanion(CartRecordsCompanion data) {
+    return CartRecord(
+      id: data.id.present ? data.id.value : this.id,
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CartRecord(')
+          ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, ownerUserId, name, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CartRecord &&
+          other.id == this.id &&
+          other.ownerUserId == this.ownerUserId &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CartRecordsCompanion extends UpdateCompanion<CartRecord> {
+  final Value<String> id;
+  final Value<String?> ownerUserId;
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CartRecordsCompanion({
+    this.id = const Value.absent(),
+    this.ownerUserId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CartRecordsCompanion.insert({
+    required String id,
+    this.ownerUserId = const Value.absent(),
+    required String name,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CartRecord> custom({
+    Expression<String>? id,
+    Expression<String>? ownerUserId,
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CartRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? ownerUserId,
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CartRecordsCompanion(
+      id: id ?? this.id,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CartRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('ownerUserId: $ownerUserId, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CartActiveSelectionRecordsTable extends CartActiveSelectionRecords
+    with
+        TableInfo<$CartActiveSelectionRecordsTable, CartActiveSelectionRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CartActiveSelectionRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerUserIdMeta = const VerificationMeta(
+    'ownerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUserId = GeneratedColumn<String>(
+    'owner_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cartIdMeta = const VerificationMeta('cartId');
+  @override
+  late final GeneratedColumn<String> cartId = GeneratedColumn<String>(
+    'cart_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES cart_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [ownerUserId, cartId, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cart_active_selection_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CartActiveSelectionRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner_user_id')) {
+      context.handle(
+        _ownerUserIdMeta,
+        ownerUserId.isAcceptableOrUnknown(
+          data['owner_user_id']!,
+          _ownerUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerUserIdMeta);
+    }
+    if (data.containsKey('cart_id')) {
+      context.handle(
+        _cartIdMeta,
+        cartId.isAcceptableOrUnknown(data['cart_id']!, _cartIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cartIdMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {ownerUserId};
+  @override
+  CartActiveSelectionRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CartActiveSelectionRecord(
+      ownerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_user_id'],
+      )!,
+      cartId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cart_id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CartActiveSelectionRecordsTable createAlias(String alias) {
+    return $CartActiveSelectionRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class CartActiveSelectionRecord extends DataClass
+    implements Insertable<CartActiveSelectionRecord> {
+  final String ownerUserId;
+  final String cartId;
+  final DateTime updatedAt;
+  const CartActiveSelectionRecord({
+    required this.ownerUserId,
+    required this.cartId,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner_user_id'] = Variable<String>(ownerUserId);
+    map['cart_id'] = Variable<String>(cartId);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CartActiveSelectionRecordsCompanion toCompanion(bool nullToAbsent) {
+    return CartActiveSelectionRecordsCompanion(
+      ownerUserId: Value(ownerUserId),
+      cartId: Value(cartId),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CartActiveSelectionRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CartActiveSelectionRecord(
+      ownerUserId: serializer.fromJson<String>(json['ownerUserId']),
+      cartId: serializer.fromJson<String>(json['cartId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'ownerUserId': serializer.toJson<String>(ownerUserId),
+      'cartId': serializer.toJson<String>(cartId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CartActiveSelectionRecord copyWith({
+    String? ownerUserId,
+    String? cartId,
+    DateTime? updatedAt,
+  }) => CartActiveSelectionRecord(
+    ownerUserId: ownerUserId ?? this.ownerUserId,
+    cartId: cartId ?? this.cartId,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CartActiveSelectionRecord copyWithCompanion(
+    CartActiveSelectionRecordsCompanion data,
+  ) {
+    return CartActiveSelectionRecord(
+      ownerUserId: data.ownerUserId.present
+          ? data.ownerUserId.value
+          : this.ownerUserId,
+      cartId: data.cartId.present ? data.cartId.value : this.cartId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CartActiveSelectionRecord(')
+          ..write('ownerUserId: $ownerUserId, ')
+          ..write('cartId: $cartId, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(ownerUserId, cartId, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CartActiveSelectionRecord &&
+          other.ownerUserId == this.ownerUserId &&
+          other.cartId == this.cartId &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CartActiveSelectionRecordsCompanion
+    extends UpdateCompanion<CartActiveSelectionRecord> {
+  final Value<String> ownerUserId;
+  final Value<String> cartId;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CartActiveSelectionRecordsCompanion({
+    this.ownerUserId = const Value.absent(),
+    this.cartId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CartActiveSelectionRecordsCompanion.insert({
+    required String ownerUserId,
+    required String cartId,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : ownerUserId = Value(ownerUserId),
+       cartId = Value(cartId),
+       updatedAt = Value(updatedAt);
+  static Insertable<CartActiveSelectionRecord> custom({
+    Expression<String>? ownerUserId,
+    Expression<String>? cartId,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (ownerUserId != null) 'owner_user_id': ownerUserId,
+      if (cartId != null) 'cart_id': cartId,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CartActiveSelectionRecordsCompanion copyWith({
+    Value<String>? ownerUserId,
+    Value<String>? cartId,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CartActiveSelectionRecordsCompanion(
+      ownerUserId: ownerUserId ?? this.ownerUserId,
+      cartId: cartId ?? this.cartId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (ownerUserId.present) {
+      map['owner_user_id'] = Variable<String>(ownerUserId.value);
+    }
+    if (cartId.present) {
+      map['cart_id'] = Variable<String>(cartId.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CartActiveSelectionRecordsCompanion(')
+          ..write('ownerUserId: $ownerUserId, ')
+          ..write('cartId: $cartId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CartItemRecordsTable extends CartItemRecords
     with TableInfo<$CartItemRecordsTable, CartItemRecord> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $CartItemRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cartIdMeta = const VerificationMeta('cartId');
+  @override
+  late final GeneratedColumn<String> cartId = GeneratedColumn<String>(
+    'cart_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES cart_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('catalog'),
+  );
   static const VerificationMeta _productIdMeta = const VerificationMeta(
     'productId',
   );
@@ -4455,9 +5135,9 @@ class $CartItemRecordsTable extends CartItemRecords
   late final GeneratedColumn<String> productId = GeneratedColumn<String>(
     'product_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _supplierIdMeta = const VerificationMeta(
     'supplierId',
@@ -4701,8 +5381,29 @@ class $CartItemRecordsTable extends CartItemRecords
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
+    id,
+    cartId,
+    kind,
     productId,
     supplierId,
     supplierName,
@@ -4725,6 +5426,8 @@ class $CartItemRecordsTable extends CartItemRecords
     cartQuantity,
     sortOrder,
     updatedAt,
+    unit,
+    note,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4738,13 +5441,30 @@ class $CartItemRecordsTable extends CartItemRecords
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('cart_id')) {
+      context.handle(
+        _cartIdMeta,
+        cartId.isAcceptableOrUnknown(data['cart_id']!, _cartIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cartIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
     if (data.containsKey('product_id')) {
       context.handle(
         _productIdMeta,
         productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_productIdMeta);
     }
     if (data.containsKey('supplier_id')) {
       context.handle(
@@ -4909,19 +5629,43 @@ class $CartItemRecordsTable extends CartItemRecords
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {productId};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   CartItemRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CartItemRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      cartId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cart_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
       productId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}product_id'],
-      )!,
+      ),
       supplierId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}supplier_id'],
@@ -5006,6 +5750,14 @@ class $CartItemRecordsTable extends CartItemRecords
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
     );
   }
 
@@ -5016,7 +5768,10 @@ class $CartItemRecordsTable extends CartItemRecords
 }
 
 class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
-  final String productId;
+  final String id;
+  final String cartId;
+  final String kind;
+  final String? productId;
   final String supplierId;
   final String supplierName;
   final String productName;
@@ -5038,8 +5793,13 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
   final int cartQuantity;
   final int sortOrder;
   final DateTime updatedAt;
+  final String? unit;
+  final String? note;
   const CartItemRecord({
-    required this.productId,
+    required this.id,
+    required this.cartId,
+    required this.kind,
+    this.productId,
     required this.supplierId,
     required this.supplierName,
     required this.productName,
@@ -5061,11 +5821,18 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
     required this.cartQuantity,
     required this.sortOrder,
     required this.updatedAt,
+    this.unit,
+    this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['product_id'] = Variable<String>(productId);
+    map['id'] = Variable<String>(id);
+    map['cart_id'] = Variable<String>(cartId);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
     map['supplier_id'] = Variable<String>(supplierId);
     map['supplier_name'] = Variable<String>(supplierName);
     map['product_name'] = Variable<String>(productName);
@@ -5095,12 +5862,23 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
     map['cart_quantity'] = Variable<int>(cartQuantity);
     map['sort_order'] = Variable<int>(sortOrder);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
     return map;
   }
 
   CartItemRecordsCompanion toCompanion(bool nullToAbsent) {
     return CartItemRecordsCompanion(
-      productId: Value(productId),
+      id: Value(id),
+      cartId: Value(cartId),
+      kind: Value(kind),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
       supplierId: Value(supplierId),
       supplierName: Value(supplierName),
       productName: Value(productName),
@@ -5130,6 +5908,8 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
       cartQuantity: Value(cartQuantity),
       sortOrder: Value(sortOrder),
       updatedAt: Value(updatedAt),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
 
@@ -5139,7 +5919,10 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CartItemRecord(
-      productId: serializer.fromJson<String>(json['productId']),
+      id: serializer.fromJson<String>(json['id']),
+      cartId: serializer.fromJson<String>(json['cartId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      productId: serializer.fromJson<String?>(json['productId']),
       supplierId: serializer.fromJson<String>(json['supplierId']),
       supplierName: serializer.fromJson<String>(json['supplierName']),
       productName: serializer.fromJson<String>(json['productName']),
@@ -5165,13 +5948,18 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
       cartQuantity: serializer.fromJson<int>(json['cartQuantity']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      note: serializer.fromJson<String?>(json['note']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'productId': serializer.toJson<String>(productId),
+      'id': serializer.toJson<String>(id),
+      'cartId': serializer.toJson<String>(cartId),
+      'kind': serializer.toJson<String>(kind),
+      'productId': serializer.toJson<String?>(productId),
       'supplierId': serializer.toJson<String>(supplierId),
       'supplierName': serializer.toJson<String>(supplierName),
       'productName': serializer.toJson<String>(productName),
@@ -5193,11 +5981,16 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
       'cartQuantity': serializer.toJson<int>(cartQuantity),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'unit': serializer.toJson<String?>(unit),
+      'note': serializer.toJson<String?>(note),
     };
   }
 
   CartItemRecord copyWith({
-    String? productId,
+    String? id,
+    String? cartId,
+    String? kind,
+    Value<String?> productId = const Value.absent(),
     String? supplierId,
     String? supplierName,
     String? productName,
@@ -5219,8 +6012,13 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
     int? cartQuantity,
     int? sortOrder,
     DateTime? updatedAt,
+    Value<String?> unit = const Value.absent(),
+    Value<String?> note = const Value.absent(),
   }) => CartItemRecord(
-    productId: productId ?? this.productId,
+    id: id ?? this.id,
+    cartId: cartId ?? this.cartId,
+    kind: kind ?? this.kind,
+    productId: productId.present ? productId.value : this.productId,
     supplierId: supplierId ?? this.supplierId,
     supplierName: supplierName ?? this.supplierName,
     productName: productName ?? this.productName,
@@ -5248,9 +6046,14 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
     cartQuantity: cartQuantity ?? this.cartQuantity,
     sortOrder: sortOrder ?? this.sortOrder,
     updatedAt: updatedAt ?? this.updatedAt,
+    unit: unit.present ? unit.value : this.unit,
+    note: note.present ? note.value : this.note,
   );
   CartItemRecord copyWithCompanion(CartItemRecordsCompanion data) {
     return CartItemRecord(
+      id: data.id.present ? data.id.value : this.id,
+      cartId: data.cartId.present ? data.cartId.value : this.cartId,
+      kind: data.kind.present ? data.kind.value : this.kind,
       productId: data.productId.present ? data.productId.value : this.productId,
       supplierId: data.supplierId.present
           ? data.supplierId.value
@@ -5297,12 +6100,17 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
           : this.cartQuantity,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      note: data.note.present ? data.note.value : this.note,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('CartItemRecord(')
+          ..write('id: $id, ')
+          ..write('cartId: $cartId, ')
+          ..write('kind: $kind, ')
           ..write('productId: $productId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
@@ -5324,13 +6132,18 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
           ..write('productUpdatedAt: $productUpdatedAt, ')
           ..write('cartQuantity: $cartQuantity, ')
           ..write('sortOrder: $sortOrder, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hashAll([
+    id,
+    cartId,
+    kind,
     productId,
     supplierId,
     supplierName,
@@ -5353,11 +6166,16 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
     cartQuantity,
     sortOrder,
     updatedAt,
+    unit,
+    note,
   ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CartItemRecord &&
+          other.id == this.id &&
+          other.cartId == this.cartId &&
+          other.kind == this.kind &&
           other.productId == this.productId &&
           other.supplierId == this.supplierId &&
           other.supplierName == this.supplierName &&
@@ -5379,11 +6197,16 @@ class CartItemRecord extends DataClass implements Insertable<CartItemRecord> {
           other.productUpdatedAt == this.productUpdatedAt &&
           other.cartQuantity == this.cartQuantity &&
           other.sortOrder == this.sortOrder &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.unit == this.unit &&
+          other.note == this.note);
 }
 
 class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
-  final Value<String> productId;
+  final Value<String> id;
+  final Value<String> cartId;
+  final Value<String> kind;
+  final Value<String?> productId;
   final Value<String> supplierId;
   final Value<String> supplierName;
   final Value<String> productName;
@@ -5405,8 +6228,13 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
   final Value<int> cartQuantity;
   final Value<int> sortOrder;
   final Value<DateTime> updatedAt;
+  final Value<String?> unit;
+  final Value<String?> note;
   final Value<int> rowid;
   const CartItemRecordsCompanion({
+    this.id = const Value.absent(),
+    this.cartId = const Value.absent(),
+    this.kind = const Value.absent(),
     this.productId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
@@ -5429,10 +6257,15 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
     this.cartQuantity = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CartItemRecordsCompanion.insert({
-    required String productId,
+    required String id,
+    required String cartId,
+    this.kind = const Value.absent(),
+    this.productId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
     required String productName,
@@ -5454,14 +6287,20 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
     required int cartQuantity,
     required int sortOrder,
     required DateTime updatedAt,
+    this.unit = const Value.absent(),
+    this.note = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : productId = Value(productId),
+  }) : id = Value(id),
+       cartId = Value(cartId),
        productName = Value(productName),
        price = Value(price),
        cartQuantity = Value(cartQuantity),
        sortOrder = Value(sortOrder),
        updatedAt = Value(updatedAt);
   static Insertable<CartItemRecord> custom({
+    Expression<String>? id,
+    Expression<String>? cartId,
+    Expression<String>? kind,
     Expression<String>? productId,
     Expression<String>? supplierId,
     Expression<String>? supplierName,
@@ -5484,9 +6323,14 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
     Expression<int>? cartQuantity,
     Expression<int>? sortOrder,
     Expression<DateTime>? updatedAt,
+    Expression<String>? unit,
+    Expression<String>? note,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (cartId != null) 'cart_id': cartId,
+      if (kind != null) 'kind': kind,
       if (productId != null) 'product_id': productId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (supplierName != null) 'supplier_name': supplierName,
@@ -5509,12 +6353,17 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
       if (cartQuantity != null) 'cart_quantity': cartQuantity,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (unit != null) 'unit': unit,
+      if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   CartItemRecordsCompanion copyWith({
-    Value<String>? productId,
+    Value<String>? id,
+    Value<String>? cartId,
+    Value<String>? kind,
+    Value<String?>? productId,
     Value<String>? supplierId,
     Value<String>? supplierName,
     Value<String>? productName,
@@ -5536,9 +6385,14 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
     Value<int>? cartQuantity,
     Value<int>? sortOrder,
     Value<DateTime>? updatedAt,
+    Value<String?>? unit,
+    Value<String?>? note,
     Value<int>? rowid,
   }) {
     return CartItemRecordsCompanion(
+      id: id ?? this.id,
+      cartId: cartId ?? this.cartId,
+      kind: kind ?? this.kind,
       productId: productId ?? this.productId,
       supplierId: supplierId ?? this.supplierId,
       supplierName: supplierName ?? this.supplierName,
@@ -5561,6 +6415,8 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
       cartQuantity: cartQuantity ?? this.cartQuantity,
       sortOrder: sortOrder ?? this.sortOrder,
       updatedAt: updatedAt ?? this.updatedAt,
+      unit: unit ?? this.unit,
+      note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5568,6 +6424,15 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (cartId.present) {
+      map['cart_id'] = Variable<String>(cartId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
     if (productId.present) {
       map['product_id'] = Variable<String>(productId.value);
     }
@@ -5634,6 +6499,12 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5643,6 +6514,9 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
   @override
   String toString() {
     return (StringBuffer('CartItemRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('cartId: $cartId, ')
+          ..write('kind: $kind, ')
           ..write('productId: $productId, ')
           ..write('supplierId: $supplierId, ')
           ..write('supplierName: $supplierName, ')
@@ -5665,6 +6539,8 @@ class CartItemRecordsCompanion extends UpdateCompanion<CartItemRecord> {
           ..write('cartQuantity: $cartQuantity, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6960,6 +7836,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OrderItemRecordsTable orderItemRecords = $OrderItemRecordsTable(
     this,
   );
+  late final $CartRecordsTable cartRecords = $CartRecordsTable(this);
+  late final $CartActiveSelectionRecordsTable cartActiveSelectionRecords =
+      $CartActiveSelectionRecordsTable(this);
   late final $CartItemRecordsTable cartItemRecords = $CartItemRecordsTable(
     this,
   );
@@ -6976,6 +7855,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     productDiscoveryRecords,
     orderRecords,
     orderItemRecords,
+    cartRecords,
+    cartActiveSelectionRecords,
     cartItemRecords,
     notificationRecords,
     syncOperations,
@@ -6988,6 +7869,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('order_item_records', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'cart_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('cart_active_selection_records', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'cart_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('cart_item_records', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -9298,9 +10195,741 @@ typedef $$OrderItemRecordsTableProcessedTableManager =
       OrderItemRecord,
       PrefetchHooks Function({bool orderId})
     >;
+typedef $$CartRecordsTableCreateCompanionBuilder =
+    CartRecordsCompanion Function({
+      required String id,
+      Value<String?> ownerUserId,
+      required String name,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$CartRecordsTableUpdateCompanionBuilder =
+    CartRecordsCompanion Function({
+      Value<String> id,
+      Value<String?> ownerUserId,
+      Value<String> name,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$CartRecordsTableReferences
+    extends BaseReferences<_$AppDatabase, $CartRecordsTable, CartRecord> {
+  $$CartRecordsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<
+    $CartActiveSelectionRecordsTable,
+    List<CartActiveSelectionRecord>
+  >
+  _cartActiveSelectionRecordsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.cartActiveSelectionRecords,
+        aliasName: 'cart_records__id__cart_active_selection_records__cart_id',
+      );
+
+  $$CartActiveSelectionRecordsTableProcessedTableManager
+  get cartActiveSelectionRecordsRefs {
+    final manager = $$CartActiveSelectionRecordsTableTableManager(
+      $_db,
+      $_db.cartActiveSelectionRecords,
+    ).filter((f) => f.cartId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cartActiveSelectionRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CartItemRecordsTable, List<CartItemRecord>>
+  _cartItemRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.cartItemRecords,
+    aliasName: 'cart_records__id__cart_item_records__cart_id',
+  );
+
+  $$CartItemRecordsTableProcessedTableManager get cartItemRecordsRefs {
+    final manager = $$CartItemRecordsTableTableManager(
+      $_db,
+      $_db.cartItemRecords,
+    ).filter((f) => f.cartId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cartItemRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CartRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $CartRecordsTable> {
+  $$CartRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> cartActiveSelectionRecordsRefs(
+    Expression<bool> Function($$CartActiveSelectionRecordsTableFilterComposer f)
+    f,
+  ) {
+    final $$CartActiveSelectionRecordsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.cartActiveSelectionRecords,
+          getReferencedColumn: (t) => t.cartId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CartActiveSelectionRecordsTableFilterComposer(
+                $db: $db,
+                $table: $db.cartActiveSelectionRecords,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> cartItemRecordsRefs(
+    Expression<bool> Function($$CartItemRecordsTableFilterComposer f) f,
+  ) {
+    final $$CartItemRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cartItemRecords,
+      getReferencedColumn: (t) => t.cartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartItemRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.cartItemRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CartRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CartRecordsTable> {
+  $$CartRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CartRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CartRecordsTable> {
+  $$CartRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> cartActiveSelectionRecordsRefs<T extends Object>(
+    Expression<T> Function(
+      $$CartActiveSelectionRecordsTableAnnotationComposer a,
+    )
+    f,
+  ) {
+    final $$CartActiveSelectionRecordsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.cartActiveSelectionRecords,
+          getReferencedColumn: (t) => t.cartId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CartActiveSelectionRecordsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.cartActiveSelectionRecords,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> cartItemRecordsRefs<T extends Object>(
+    Expression<T> Function($$CartItemRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$CartItemRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cartItemRecords,
+      getReferencedColumn: (t) => t.cartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartItemRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cartItemRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CartRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CartRecordsTable,
+          CartRecord,
+          $$CartRecordsTableFilterComposer,
+          $$CartRecordsTableOrderingComposer,
+          $$CartRecordsTableAnnotationComposer,
+          $$CartRecordsTableCreateCompanionBuilder,
+          $$CartRecordsTableUpdateCompanionBuilder,
+          (CartRecord, $$CartRecordsTableReferences),
+          CartRecord,
+          PrefetchHooks Function({
+            bool cartActiveSelectionRecordsRefs,
+            bool cartItemRecordsRefs,
+          })
+        > {
+  $$CartRecordsTableTableManager(_$AppDatabase db, $CartRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CartRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CartRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CartRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> ownerUserId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CartRecordsCompanion(
+                id: id,
+                ownerUserId: ownerUserId,
+                name: name,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> ownerUserId = const Value.absent(),
+                required String name,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CartRecordsCompanion.insert(
+                id: id,
+                ownerUserId: ownerUserId,
+                name: name,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CartRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                cartActiveSelectionRecordsRefs = false,
+                cartItemRecordsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (cartActiveSelectionRecordsRefs)
+                      db.cartActiveSelectionRecords,
+                    if (cartItemRecordsRefs) db.cartItemRecords,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (cartActiveSelectionRecordsRefs)
+                        await $_getPrefetchedData<
+                          CartRecord,
+                          $CartRecordsTable,
+                          CartActiveSelectionRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CartRecordsTableReferences
+                              ._cartActiveSelectionRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CartRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cartActiveSelectionRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.cartId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (cartItemRecordsRefs)
+                        await $_getPrefetchedData<
+                          CartRecord,
+                          $CartRecordsTable,
+                          CartItemRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CartRecordsTableReferences
+                              ._cartItemRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CartRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cartItemRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.cartId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$CartRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CartRecordsTable,
+      CartRecord,
+      $$CartRecordsTableFilterComposer,
+      $$CartRecordsTableOrderingComposer,
+      $$CartRecordsTableAnnotationComposer,
+      $$CartRecordsTableCreateCompanionBuilder,
+      $$CartRecordsTableUpdateCompanionBuilder,
+      (CartRecord, $$CartRecordsTableReferences),
+      CartRecord,
+      PrefetchHooks Function({
+        bool cartActiveSelectionRecordsRefs,
+        bool cartItemRecordsRefs,
+      })
+    >;
+typedef $$CartActiveSelectionRecordsTableCreateCompanionBuilder =
+    CartActiveSelectionRecordsCompanion Function({
+      required String ownerUserId,
+      required String cartId,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$CartActiveSelectionRecordsTableUpdateCompanionBuilder =
+    CartActiveSelectionRecordsCompanion Function({
+      Value<String> ownerUserId,
+      Value<String> cartId,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$CartActiveSelectionRecordsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $CartActiveSelectionRecordsTable,
+          CartActiveSelectionRecord
+        > {
+  $$CartActiveSelectionRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CartRecordsTable _cartIdTable(_$AppDatabase db) => db.cartRecords
+      .createAlias('cart_active_selection_records__cart_id__cart_records__id');
+
+  $$CartRecordsTableProcessedTableManager get cartId {
+    final $_column = $_itemColumn<String>('cart_id')!;
+
+    final manager = $$CartRecordsTableTableManager(
+      $_db,
+      $_db.cartRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cartIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CartActiveSelectionRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $CartActiveSelectionRecordsTable> {
+  $$CartActiveSelectionRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CartRecordsTableFilterComposer get cartId {
+    final $$CartRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CartActiveSelectionRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CartActiveSelectionRecordsTable> {
+  $$CartActiveSelectionRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CartRecordsTableOrderingComposer get cartId {
+    final $$CartRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CartActiveSelectionRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CartActiveSelectionRecordsTable> {
+  $$CartActiveSelectionRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get ownerUserId => $composableBuilder(
+    column: $table.ownerUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$CartRecordsTableAnnotationComposer get cartId {
+    final $$CartRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CartActiveSelectionRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CartActiveSelectionRecordsTable,
+          CartActiveSelectionRecord,
+          $$CartActiveSelectionRecordsTableFilterComposer,
+          $$CartActiveSelectionRecordsTableOrderingComposer,
+          $$CartActiveSelectionRecordsTableAnnotationComposer,
+          $$CartActiveSelectionRecordsTableCreateCompanionBuilder,
+          $$CartActiveSelectionRecordsTableUpdateCompanionBuilder,
+          (
+            CartActiveSelectionRecord,
+            $$CartActiveSelectionRecordsTableReferences,
+          ),
+          CartActiveSelectionRecord,
+          PrefetchHooks Function({bool cartId})
+        > {
+  $$CartActiveSelectionRecordsTableTableManager(
+    _$AppDatabase db,
+    $CartActiveSelectionRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CartActiveSelectionRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CartActiveSelectionRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CartActiveSelectionRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> ownerUserId = const Value.absent(),
+                Value<String> cartId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CartActiveSelectionRecordsCompanion(
+                ownerUserId: ownerUserId,
+                cartId: cartId,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String ownerUserId,
+                required String cartId,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CartActiveSelectionRecordsCompanion.insert(
+                ownerUserId: ownerUserId,
+                cartId: cartId,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CartActiveSelectionRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({cartId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (cartId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.cartId,
+                                referencedTable:
+                                    $$CartActiveSelectionRecordsTableReferences
+                                        ._cartIdTable(db),
+                                referencedColumn:
+                                    $$CartActiveSelectionRecordsTableReferences
+                                        ._cartIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CartActiveSelectionRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CartActiveSelectionRecordsTable,
+      CartActiveSelectionRecord,
+      $$CartActiveSelectionRecordsTableFilterComposer,
+      $$CartActiveSelectionRecordsTableOrderingComposer,
+      $$CartActiveSelectionRecordsTableAnnotationComposer,
+      $$CartActiveSelectionRecordsTableCreateCompanionBuilder,
+      $$CartActiveSelectionRecordsTableUpdateCompanionBuilder,
+      (CartActiveSelectionRecord, $$CartActiveSelectionRecordsTableReferences),
+      CartActiveSelectionRecord,
+      PrefetchHooks Function({bool cartId})
+    >;
 typedef $$CartItemRecordsTableCreateCompanionBuilder =
     CartItemRecordsCompanion Function({
-      required String productId,
+      required String id,
+      required String cartId,
+      Value<String> kind,
+      Value<String?> productId,
       Value<String> supplierId,
       Value<String> supplierName,
       required String productName,
@@ -9322,11 +10951,16 @@ typedef $$CartItemRecordsTableCreateCompanionBuilder =
       required int cartQuantity,
       required int sortOrder,
       required DateTime updatedAt,
+      Value<String?> unit,
+      Value<String?> note,
       Value<int> rowid,
     });
 typedef $$CartItemRecordsTableUpdateCompanionBuilder =
     CartItemRecordsCompanion Function({
-      Value<String> productId,
+      Value<String> id,
+      Value<String> cartId,
+      Value<String> kind,
+      Value<String?> productId,
       Value<String> supplierId,
       Value<String> supplierName,
       Value<String> productName,
@@ -9348,8 +10982,37 @@ typedef $$CartItemRecordsTableUpdateCompanionBuilder =
       Value<int> cartQuantity,
       Value<int> sortOrder,
       Value<DateTime> updatedAt,
+      Value<String?> unit,
+      Value<String?> note,
       Value<int> rowid,
     });
+
+final class $$CartItemRecordsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $CartItemRecordsTable, CartItemRecord> {
+  $$CartItemRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CartRecordsTable _cartIdTable(_$AppDatabase db) => db.cartRecords
+      .createAlias('cart_item_records__cart_id__cart_records__id');
+
+  $$CartRecordsTableProcessedTableManager get cartId {
+    final $_column = $_itemColumn<String>('cart_id')!;
+
+    final manager = $$CartRecordsTableTableManager(
+      $_db,
+      $_db.cartRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cartIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$CartItemRecordsTableFilterComposer
     extends Composer<_$AppDatabase, $CartItemRecordsTable> {
@@ -9360,6 +11023,16 @@ class $$CartItemRecordsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get productId => $composableBuilder(
     column: $table.productId,
     builder: (column) => ColumnFilters(column),
@@ -9469,6 +11142,39 @@ class $$CartItemRecordsTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CartRecordsTableFilterComposer get cartId {
+    final $$CartRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$CartItemRecordsTableOrderingComposer
@@ -9480,6 +11186,16 @@ class $$CartItemRecordsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get productId => $composableBuilder(
     column: $table.productId,
     builder: (column) => ColumnOrderings(column),
@@ -9589,6 +11305,39 @@ class $$CartItemRecordsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CartRecordsTableOrderingComposer get cartId {
+    final $$CartRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$CartItemRecordsTableAnnotationComposer
@@ -9600,6 +11349,12 @@ class $$CartItemRecordsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
   GeneratedColumn<String> get productId =>
       $composableBuilder(column: $table.productId, builder: (column) => column);
 
@@ -9689,6 +11444,35 @@ class $$CartItemRecordsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  $$CartRecordsTableAnnotationComposer get cartId {
+    final $$CartRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cartId,
+      referencedTable: $db.cartRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CartRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cartRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$CartItemRecordsTableTableManager
@@ -9702,16 +11486,9 @@ class $$CartItemRecordsTableTableManager
           $$CartItemRecordsTableAnnotationComposer,
           $$CartItemRecordsTableCreateCompanionBuilder,
           $$CartItemRecordsTableUpdateCompanionBuilder,
-          (
-            CartItemRecord,
-            BaseReferences<
-              _$AppDatabase,
-              $CartItemRecordsTable,
-              CartItemRecord
-            >,
-          ),
+          (CartItemRecord, $$CartItemRecordsTableReferences),
           CartItemRecord,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool cartId})
         > {
   $$CartItemRecordsTableTableManager(
     _$AppDatabase db,
@@ -9728,7 +11505,10 @@ class $$CartItemRecordsTableTableManager
               $$CartItemRecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> productId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> cartId = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> productId = const Value.absent(),
                 Value<String> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 Value<String> productName = const Value.absent(),
@@ -9750,8 +11530,13 @@ class $$CartItemRecordsTableTableManager
                 Value<int> cartQuantity = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CartItemRecordsCompanion(
+                id: id,
+                cartId: cartId,
+                kind: kind,
                 productId: productId,
                 supplierId: supplierId,
                 supplierName: supplierName,
@@ -9774,11 +11559,16 @@ class $$CartItemRecordsTableTableManager
                 cartQuantity: cartQuantity,
                 sortOrder: sortOrder,
                 updatedAt: updatedAt,
+                unit: unit,
+                note: note,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required String productId,
+                required String id,
+                required String cartId,
+                Value<String> kind = const Value.absent(),
+                Value<String?> productId = const Value.absent(),
                 Value<String> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 required String productName,
@@ -9800,8 +11590,13 @@ class $$CartItemRecordsTableTableManager
                 required int cartQuantity,
                 required int sortOrder,
                 required DateTime updatedAt,
+                Value<String?> unit = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CartItemRecordsCompanion.insert(
+                id: id,
+                cartId: cartId,
+                kind: kind,
                 productId: productId,
                 supplierId: supplierId,
                 supplierName: supplierName,
@@ -9824,12 +11619,61 @@ class $$CartItemRecordsTableTableManager
                 cartQuantity: cartQuantity,
                 sortOrder: sortOrder,
                 updatedAt: updatedAt,
+                unit: unit,
+                note: note,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CartItemRecordsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({cartId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (cartId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.cartId,
+                                referencedTable:
+                                    $$CartItemRecordsTableReferences
+                                        ._cartIdTable(db),
+                                referencedColumn:
+                                    $$CartItemRecordsTableReferences
+                                        ._cartIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -9844,12 +11688,9 @@ typedef $$CartItemRecordsTableProcessedTableManager =
       $$CartItemRecordsTableAnnotationComposer,
       $$CartItemRecordsTableCreateCompanionBuilder,
       $$CartItemRecordsTableUpdateCompanionBuilder,
-      (
-        CartItemRecord,
-        BaseReferences<_$AppDatabase, $CartItemRecordsTable, CartItemRecord>,
-      ),
+      (CartItemRecord, $$CartItemRecordsTableReferences),
       CartItemRecord,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool cartId})
     >;
 typedef $$NotificationRecordsTableCreateCompanionBuilder =
     NotificationRecordsCompanion Function({
@@ -10507,6 +12348,14 @@ class $AppDatabaseManager {
       $$OrderRecordsTableTableManager(_db, _db.orderRecords);
   $$OrderItemRecordsTableTableManager get orderItemRecords =>
       $$OrderItemRecordsTableTableManager(_db, _db.orderItemRecords);
+  $$CartRecordsTableTableManager get cartRecords =>
+      $$CartRecordsTableTableManager(_db, _db.cartRecords);
+  $$CartActiveSelectionRecordsTableTableManager
+  get cartActiveSelectionRecords =>
+      $$CartActiveSelectionRecordsTableTableManager(
+        _db,
+        _db.cartActiveSelectionRecords,
+      );
   $$CartItemRecordsTableTableManager get cartItemRecords =>
       $$CartItemRecordsTableTableManager(_db, _db.cartItemRecords);
   $$NotificationRecordsTableTableManager get notificationRecords =>

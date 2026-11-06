@@ -22,8 +22,12 @@ void showCartAddResultMessage(
       message = 'هذا المنتج غير متوفر حاليًا';
       backgroundColor = Colors.orange.shade800;
 
+    case CartAddResult.busy:
+      message = 'جارٍ تبديل السلة، حاول مجددًا بعد اكتمال العملية';
+      backgroundColor = Colors.blueGrey.shade700;
+
     case CartAddResult.differentSupplier:
-      // Legacy compatibility فقط؛ Multi-Supplier Cart لا تعيد هذه النتيجة.
+      // Legacy compatibility only.
       message = 'تعذر إضافة المنتج إلى السلة';
       backgroundColor = Colors.red.shade700;
   }

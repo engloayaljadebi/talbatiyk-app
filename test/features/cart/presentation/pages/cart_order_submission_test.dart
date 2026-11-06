@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
 import 'package:talbatiyk/features/cart/presentation/pages/cart_page.dart';
+import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
 import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:talbatiyk/features/orders/data/datasources/orders_datasource.dart';
 import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
@@ -68,6 +70,9 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
+        cartLocalDataSourceProvider.overrideWithValue(
+          CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+        ),
         ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
         accountSessionFenceProvider.overrideWithValue(
           createLegacyOrderTestFence(),
@@ -126,6 +131,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
           ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
           accountSessionFenceProvider.overrideWithValue(
             createLegacyOrderTestFence(),
@@ -206,6 +214,9 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
+        cartLocalDataSourceProvider.overrideWithValue(
+          CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+        ),
         ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
         accountSessionFenceProvider.overrideWithValue(
           createLegacyOrderTestFence(),
@@ -324,6 +335,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
           ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
           accountSessionFenceProvider.overrideWithValue(
             createLegacyOrderTestFence(),
@@ -405,6 +419,90 @@ void main() {
       expect(cart.isEmpty, isTrue);
 
       await _expectEmptyCartUi(tester);
+    },
+  );
+  testWidgets(
+    'includes cart changes made while supplier discovery is pending',
+    (WidgetTester tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      final remoteDataSource = _FakeOrdersRemoteDataSource();
+      final supplierRepository = _CompleterSupplierDiscoveryRepository();
+
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
+          ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            supplierRepository,
+          ),
+        ],
+      );
+
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+
+      final cart = container.read(cartProvider);
+
+      cart.addProduct(_supplierAProduct);
+
+      await cart.ready;
+      expect(cart.items, hasLength(1));
+
+      await _pumpCartPage(tester, container);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'إرسال الطلبية'));
+
+      await tester.pump();
+
+      expect(
+        container.read(supplierDiscoveryControllerProvider).state.isLoading,
+        isTrue,
+      );
+
+      // Simulate adding another product while suppliers are loading.
+      cart.addProduct(_supplierBProduct);
+
+      expect(cart.quantityOf(_supplierBProduct.id), 1);
+
+      supplierRepository.completer.complete(<SupplierCandidateEntity>[
+        _supplierA,
+      ]);
+
+      await _waitForSupplierDialog(tester);
+
+      final supplierCheckbox = find.widgetWithText(
+        CheckboxListTile,
+        _supplierA.name,
+      );
+
+      expect(supplierCheckbox, findsOneWidget);
+
+      await tester.tap(supplierCheckbox);
+      await tester.pump();
+
+      await _confirmSupplierSelection(tester);
+
+      await _waitForSubmission(tester, container, remoteDataSource);
+
+      final submittedProductIds = remoteDataSource.requests.single.items
+          .map((item) => item.productId)
+          .toSet();
+
+      expect(
+        submittedProductIds,
+        <String>{_supplierAProduct.id, _supplierBProduct.id},
+        reason: 'The order must use the current cart after supplier loading.',
+      );
+
+      expect(cart.isEmpty, isTrue);
     },
   );
 }
@@ -495,6 +593,17 @@ final class _FakeSupplierDiscoveryRepository
   @override
   Future<List<SupplierCandidateEntity>> getSuppliers() async {
     return suppliers;
+  }
+}
+
+final class _CompleterSupplierDiscoveryRepository
+    implements SupplierDiscoveryRepository {
+  final Completer<List<SupplierCandidateEntity>> completer =
+      Completer<List<SupplierCandidateEntity>>();
+
+  @override
+  Future<List<SupplierCandidateEntity>> getSuppliers() {
+    return completer.future;
   }
 }
 

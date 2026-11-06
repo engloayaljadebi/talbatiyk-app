@@ -37,7 +37,7 @@ void main() {
 
         final operations = await database.select(database.syncOperations).get();
 
-        expect(database.schemaVersion, 14);
+        expect(database.schemaVersion, 16);
         expect(notifications, isEmpty);
 
         expect(operations, hasLength(1));
@@ -48,7 +48,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(file), 14);
+      expect(_readUserVersion(file), 16);
       expect(_tableExists(file, 'notification_records'), isTrue);
     });
 
@@ -79,7 +79,7 @@ void main() {
             .select(database.notificationRecords)
             .get();
 
-        expect(database.schemaVersion, 14);
+        expect(database.schemaVersion, 16);
         expect(notifications, hasLength(1));
         expect(notifications.single.userId, 'existing-user');
         expect(notifications.single.id, 'existing-notification');
@@ -87,7 +87,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(file), 14);
+      expect(_readUserVersion(file), 16);
       expect(_tableExists(file, 'notification_records'), isTrue);
     });
   });

@@ -51,7 +51,7 @@ void main() {
         'supplier-a',
       );
       expect(await local.readSnapshot(userId: 'user-b'), isEmpty);
-      expect(upgraded.schemaVersion, 14);
+      expect(upgraded.schemaVersion, 16);
     },
   );
 }

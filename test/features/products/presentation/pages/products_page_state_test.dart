@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
@@ -16,6 +18,7 @@ void main() {
     (tester) async {
       final container = ProviderContainer(
         overrides: [
+          cartProvider.overrideWith((ref) => CartController()),
           supplierFollowRepositoryProvider.overrideWithValue(
             _FakeSupplierFollowRepository(),
           ),

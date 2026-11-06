@@ -8,7 +8,7 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test('migrates persisted data from v6 through v14 without loss', () async {
+    test('migrates persisted data from v6 through v15 without loss', () async {
       final tempDirectory = await Directory.systemTemp.createTemp(
         'talbatiyk-drift-v6-v7-',
       );
@@ -43,7 +43,33 @@ void main() {
         await database.select(database.orderItemRecords).get();
         await database.select(database.cartItemRecords).get();
 
-        expect(database.schemaVersion, 14);
+        // Confirm the historical cart item survives v6 -> v15.
+        final oldCartRows = await database
+            .customSelect(
+              'SELECT i.product_id, i.product_name, i.price, '
+              'i.cart_quantity, c.owner_user_id '
+              'FROM cart_item_records i '
+              'JOIN cart_records c ON c.id = i.cart_id '
+              "WHERE i.product_id = 'legacy-v6-product';",
+            )
+            .get();
+
+        expect(oldCartRows, hasLength(1));
+        expect(
+          oldCartRows.single.read<String>('product_name'),
+          'Historical product',
+        );
+        expect(oldCartRows.single.read<double>('price'), 250);
+        expect(oldCartRows.single.read<int>('cart_quantity'), 3);
+        expect(oldCartRows.single.data['owner_user_id'], isNull);
+
+        final foreignKeyErrors = await database
+            .customSelect('PRAGMA foreign_key_check;')
+            .get();
+
+        expect(foreignKeyErrors, isEmpty);
+
+        expect(database.schemaVersion, 16);
 
         // v7 table was created by MigrationStrategy and starts empty.
         expect(notifications, isEmpty);
@@ -106,7 +132,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(databaseFile), 14);
+      expect(_readUserVersion(databaseFile), 16);
     });
   });
 }
@@ -132,14 +158,73 @@ Future<void> _createExactV6Fixture(File file) async {
   try {
     final currentVersion = _userVersion(rawDatabase);
 
-    if (currentVersion != 14) {
+    if (currentVersion != 16) {
       throw StateError(
-        'Fixture precondition failed: expected current schema v14, '
+        'Fixture precondition failed: expected current schema v15, '
         'found v$currentVersion.',
       );
     }
 
     rawDatabase.execute('DROP TABLE notification_records;');
+
+    // A v6 database must not contain the tables introduced in v15.
+    final originalCartCount =
+        rawDatabase
+                .select('SELECT COUNT(*) AS total FROM cart_records;')
+                .single['total']
+            as int;
+
+    final originalItemCount =
+        rawDatabase
+                .select('SELECT COUNT(*) AS total FROM cart_item_records;')
+                .single['total']
+            as int;
+
+    if (originalCartCount != 0 || originalItemCount != 0) {
+      throw StateError('Fixture bootstrap unexpectedly contains cart data.');
+    }
+
+    rawDatabase.execute('DROP TABLE cart_item_records;');
+    rawDatabase.execute('DROP TABLE cart_records;');
+
+    // Reconstruct the pre-v15 cart table rather than leaving
+    // the new multi-cart schema in a database marked as v6.
+    rawDatabase.execute('''
+      CREATE TABLE cart_item_records (
+        product_id TEXT NOT NULL PRIMARY KEY,
+        supplier_id TEXT NOT NULL DEFAULT '',
+        supplier_name TEXT NOT NULL DEFAULT '',
+        product_name TEXT NOT NULL,
+        price REAL NOT NULL,
+        image_url TEXT NOT NULL DEFAULT '',
+        local_image_path TEXT,
+        category TEXT NOT NULL DEFAULT '',
+        brand TEXT NOT NULL DEFAULT '',
+        is_available INTEGER NOT NULL DEFAULT 1,
+        description TEXT NOT NULL DEFAULT '',
+        colors_json TEXT NOT NULL DEFAULT '[]',
+        product_quantity INTEGER NOT NULL DEFAULT 0,
+        discount REAL NOT NULL DEFAULT 0,
+        rating REAL NOT NULL DEFAULT 0,
+        sync_status TEXT NOT NULL DEFAULT 'synced',
+        sync_error TEXT,
+        product_created_at INTEGER,
+        product_updated_at INTEGER,
+        cart_quantity INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    ''');
+
+    rawDatabase.execute('''
+      INSERT INTO cart_item_records (
+        product_id, product_name, price,
+        cart_quantity, sort_order, updated_at
+      ) VALUES (
+        'legacy-v6-product', 'Historical product',
+        250, 3, 0, 1789912800
+      );
+    ''');
 
     rawDatabase.execute(
       '''

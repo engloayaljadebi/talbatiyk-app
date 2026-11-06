@@ -26,7 +26,10 @@ void main() {
     final firstDatabase = AppDatabase.forTesting(NativeDatabase(databaseFile));
 
     final firstController = CartController(
-      localDataSource: CartLocalDataSource(firstDatabase),
+      localDataSource: CartLocalDataSource(
+        firstDatabase,
+        ownerUserId: 'cart-test-user',
+      ),
     );
 
     await firstController.ready;
@@ -45,7 +48,10 @@ void main() {
     );
 
     final reopenedController = CartController(
-      localDataSource: CartLocalDataSource(reopenedDatabase),
+      localDataSource: CartLocalDataSource(
+        reopenedDatabase,
+        ownerUserId: 'cart-test-user',
+      ),
     );
 
     await reopenedController.ready;
@@ -65,7 +71,10 @@ void main() {
     addTearDown(thirdDatabase.close);
 
     final thirdController = CartController(
-      localDataSource: CartLocalDataSource(thirdDatabase),
+      localDataSource: CartLocalDataSource(
+        thirdDatabase,
+        ownerUserId: 'cart-test-user',
+      ),
     );
 
     await thirdController.ready;
