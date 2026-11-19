@@ -39,6 +39,7 @@ class OrderItemResource extends JsonResource
 
             /**
              * @var string|null
+             *
              * @format uuid
              */
             'supplier_id' => $this->supplier_id,
