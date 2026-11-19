@@ -43,6 +43,27 @@ class CartPage extends ConsumerWidget {
         child: Column(
           children: [
             const CartManagementBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: cart.isSwitching
+                      ? null
+                      : () => _showManualItemDialog(context, ref),
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text('إضافة صنف يدوي'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _primary,
+                    side: BorderSide(color: _primary.withValues(alpha: 0.28)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 320),
@@ -87,6 +108,46 @@ class CartPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showManualItemDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final draft = await showDialog<_ManualCartItemDraft>(
+      context: context,
+      builder: (_) => const _ManualCartItemDialog(),
+    );
+
+    if (draft == null || !context.mounted) {
+      return;
+    }
+
+    final itemId = ref
+        .read(cartProvider)
+        .addManualItem(
+          name: draft.name,
+          unitPrice: draft.unitPrice,
+          quantity: draft.quantity,
+          unit: draft.unit,
+          note: draft.note,
+        );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            itemId == null
+                ? 'تعذر إضافة الصنف أثناء تبديل السلة.'
+                : 'تمت إضافة ${draft.name} إلى السلة.',
+          ),
+        ),
+      );
   }
 
   PreferredSizeWidget _buildAppBar(
@@ -250,9 +311,12 @@ class CartPage extends ConsumerWidget {
     WidgetRef ref,
     CartController cart,
   ) async {
-    if (cart.isEmpty) {
+    await cart.ready;
+    if (!context.mounted || cart.isEmpty || cart.isSwitching) {
       return;
     }
+    final submittingCartId = cart.activeCartId;
+
     final supplierDiscoveryController = ref.read(
       supplierDiscoveryControllerProvider,
     );
@@ -299,7 +363,9 @@ class CartPage extends ConsumerWidget {
 
     if (!context.mounted ||
         selectedSuppliers == null ||
-        selectedSuppliers.isEmpty) {
+        selectedSuppliers.isEmpty ||
+        cart.isSwitching ||
+        cart.activeCartId != submittingCartId) {
       return;
     }
 
@@ -323,6 +389,20 @@ class CartPage extends ConsumerWidget {
       supplierIds: selectedSuppliers.toList()..sort(),
       items: submittedItems
           .map((item) {
+            if (item.isManual) {
+              return OrderItemEntity(
+                itemType: 'manual',
+                productId: null,
+                productName: item.product.name,
+                unitPrice: item.unitPrice,
+                quantity: item.quantity,
+                supplierId: null,
+                supplierName: '',
+                unit: item.unit,
+                note: item.note,
+              );
+            }
+
             return OrderItemEntity(
               productId: item.product.id,
               productName: item.product.name,
@@ -360,9 +440,7 @@ class CartPage extends ConsumerWidget {
       return;
     }
 
-    // The RFQ contains the entire basket, so every submitted cart item
-    // is consumed after successful creation.
-    cart.clear();
+    cart.removeSubmittedItems(submittingCartId, submittedItems);
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -450,6 +528,273 @@ class CartPage extends ConsumerWidget {
   }
 }
 
+class _ManualCartItemDraft {
+  const _ManualCartItemDraft({
+    required this.name,
+    required this.quantity,
+    required this.unitPrice,
+    this.unit,
+    this.note,
+  });
+
+  final String name;
+  final int quantity;
+  final double unitPrice;
+  final String? unit;
+  final String? note;
+}
+
+class _ManualCartItemDialog extends StatefulWidget {
+  const _ManualCartItemDialog();
+
+  @override
+  State<_ManualCartItemDialog> createState() => _ManualCartItemDialogState();
+}
+
+class _ManualCartItemDialogState extends State<_ManualCartItemDialog> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _unitController = TextEditingController();
+  final _noteController = TextEditingController();
+
+  int _quantity = 1;
+  bool _showDetails = false;
+
+  double? get _parsedUnitPrice {
+    return double.tryParse(_priceController.text.trim());
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _priceController.addListener(_onPriceChanged);
+  }
+
+  void _onPriceChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _priceController.removeListener(_onPriceChanged);
+    _nameController.dispose();
+    _priceController.dispose();
+    _unitController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'اسم الصنف مطلوب.';
+    }
+
+    return null;
+  }
+
+  String? _validatePrice(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'سعر الوحدة مطلوب.';
+    }
+
+    final price = _parsedUnitPrice;
+
+    if (price == null || !price.isFinite || price < 0) {
+      return 'أدخل سعرًا صحيحًا.';
+    }
+
+    return null;
+  }
+
+  InputDecoration _decoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      isDense: true,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final price = _parsedUnitPrice!;
+
+    Navigator.of(context).pop(
+      _ManualCartItemDraft(
+        name: _nameController.text.trim(),
+        quantity: _quantity,
+        unitPrice: price,
+        unit: _unitController.text.trim().isEmpty
+            ? null
+            : _unitController.text.trim(),
+        note: _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final unitPrice = _parsedUnitPrice;
+    final totalPrice = unitPrice == null ? null : unitPrice * _quantity;
+
+    return AlertDialog(
+      title: const Text(
+        'إضافة صنف يدوي',
+        style: TextStyle(fontWeight: FontWeight.w800),
+      ),
+      content: SizedBox(
+        width: 420,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  textInputAction: TextInputAction.next,
+                  decoration: _decoration('اسم الصنف *'),
+                  validator: _validateName,
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    const Text(
+                      'الكمية *',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'تقليل الكمية',
+                      onPressed: _quantity <= 1
+                          ? null
+                          : () {
+                              setState(() => _quantity--);
+                            },
+                      icon: const Icon(Icons.remove_circle_outline),
+                    ),
+                    SizedBox(
+                      width: 30,
+                      child: Center(
+                        child: Text(
+                          '$_quantity',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'زيادة الكمية',
+                      onPressed: () {
+                        setState(() => _quantity++);
+                      },
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _decoration('سعر الوحدة *'),
+                  validator: _validatePrice,
+                ),
+                const SizedBox(height: 14),
+
+                Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F6F8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'إجمالي الصنف',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        totalPrice == null
+                            ? '—'
+                            : '${_formatPrice(totalPrice)} ر.ي',
+                        style: const TextStyle(
+                          color: CartPage._primary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showDetails = !_showDetails;
+                      });
+                    },
+                    icon: Icon(
+                      _showDetails
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                    ),
+                    label: Text(
+                      _showDetails ? 'إخفاء التفاصيل' : 'تفاصيل إضافية',
+                    ),
+                  ),
+                ),
+
+                if (_showDetails) ...[
+                  TextFormField(
+                    controller: _unitController,
+                    textInputAction: TextInputAction.next,
+                    decoration: _decoration('الوحدة (اختياري)'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _noteController,
+                    maxLines: 2,
+                    decoration: _decoration('ملاحظة (اختيارية)'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        FilledButton.icon(
+          onPressed: _submit,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('إضافة إلى السلة'),
+        ),
+      ],
+    );
+  }
+}
+
 /// محتوى السلة.
 ///
 /// يتم تنظيم المنتجات حسب المورد بدل عرض جميع المنتجات
@@ -532,8 +877,10 @@ class _SupplierHeader extends StatelessWidget {
             color: Color(0xFFFFEBEE),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.storefront_outlined,
+          child: Icon(
+            group.key == 'manual-items'
+                ? Icons.edit_note_rounded
+                : Icons.storefront_outlined,
             color: CartPage._primary,
             size: 20,
           ),
@@ -581,6 +928,22 @@ class _CartItemCard extends ConsumerWidget {
     final product = item.product;
 
     Widget buildImage(double size) {
+      if (item.isManual) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFEBEE),
+            borderRadius: BorderRadius.circular(17),
+          ),
+          child: const Icon(
+            Icons.edit_note_rounded,
+            color: CartPage._primary,
+            size: 34,
+          ),
+        );
+      }
+
       return Hero(
         tag: 'cart-product-${product.id}',
         child: ClipRRect(
@@ -596,6 +959,8 @@ class _CartItemCard extends ConsumerWidget {
     }
 
     Widget buildDetails(double minHeight) {
+      final lineTotal = item.totalPrice;
+
       return ConstrainedBox(
         constraints: BoxConstraints(minHeight: minHeight),
         child: Column(
@@ -613,7 +978,31 @@ class _CartItemCard extends ConsumerWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            if (product.brand.trim().isNotEmpty) ...[
+            if (item.isManual && item.unit != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                'الوحدة: ${item.unit}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: CartPage._textSecondary,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+            if (item.isManual && item.note != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                item.note!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: CartPage._textSecondary,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+            if (!item.isManual && product.brand.trim().isNotEmpty) ...[
               const SizedBox(height: 3),
               Text(
                 product.brand,
@@ -641,8 +1030,8 @@ class _CartItemCard extends ConsumerWidget {
                 );
               },
               child: Text(
-                '${_formatPrice(item.totalPrice)} ر.ي',
-                key: ValueKey(item.totalPrice),
+                '${_formatPrice(lineTotal)} ر.ي',
+                key: ValueKey(lineTotal),
                 maxLines: 1,
                 softWrap: false,
                 overflow: TextOverflow.ellipsis,
@@ -661,7 +1050,13 @@ class _CartItemCard extends ConsumerWidget {
     Widget buildRemoveButton() {
       return _RemoveButton(
         onPressed: () {
-          ref.read(cartProvider).removeProduct(product.id);
+          final controller = ref.read(cartProvider);
+
+          if (item.isManual) {
+            controller.removeManualItem(item.id);
+          } else {
+            controller.removeProduct(product.id);
+          }
         },
       );
     }
@@ -671,10 +1066,22 @@ class _CartItemCard extends ConsumerWidget {
         quantity: item.quantity,
         compact: compact,
         onDecrease: () {
-          ref.read(cartProvider).decreaseProduct(product.id);
+          final controller = ref.read(cartProvider);
+
+          if (item.isManual) {
+            controller.decreaseManualItem(item.id);
+          } else {
+            controller.decreaseProduct(product.id);
+          }
         },
         onIncrease: () {
-          ref.read(cartProvider).addProduct(product);
+          final controller = ref.read(cartProvider);
+
+          if (item.isManual) {
+            controller.increaseManualItem(item.id);
+          } else {
+            controller.addProduct(product);
+          }
         },
       );
     }
@@ -913,9 +1320,9 @@ class _CheckoutBar extends StatelessWidget {
                       runSpacing: 2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'الإجمالي',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: CartPage._textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -1169,7 +1576,9 @@ List<_SupplierGroup> _groupBySupplier(List<CartItemEntity> items) {
 
   for (final item in items) {
     final key = _supplierKey(item);
-    final supplierName = item.product.supplierName.trim();
+    final supplierName = item.isManual
+        ? 'الأصناف اليدوية'
+        : item.product.supplierName.trim();
 
     groups.putIfAbsent(key, () => <CartItemEntity>[]);
 
@@ -1190,6 +1599,10 @@ List<_SupplierGroup> _groupBySupplier(List<CartItemEntity> items) {
 }
 
 String _supplierKey(CartItemEntity item) {
+  if (item.isManual) {
+    return 'manual-items';
+  }
+
   final supplierId = item.product.supplierId.trim();
 
   if (supplierId.isNotEmpty) {

@@ -47,9 +47,12 @@ class OrderItemEntity {
     required this.supplierId,
     required this.supplierName,
     this.imageUrl = '',
+    this.itemType = 'catalog',
+    this.unit,
+    this.note,
   });
 
-  final String productId;
+  final String? productId;
   final String productName;
   final double unitPrice;
   final int quantity;
@@ -58,7 +61,10 @@ class OrderItemEntity {
   ///
   /// وجود المورد على مستوى العنصر يسمح للطلبية الواحدة
   /// باحتواء منتجات من عدة موردين.
-  final String supplierId;
+  final String? supplierId;
+  final String itemType;
+  final String? unit;
+  final String? note;
   final String supplierName;
 
   final String imageUrl;

@@ -331,27 +331,40 @@ final class CartLocalDataSource {
       );
     }
 
-    return _readCatalogItemsForCart(ownedCart.id);
+    return _readCartItemsForCart(ownedCart.id);
   }
 
-  Future<List<CartItemEntity>> _readCatalogItemsForCart(String cartId) async {
-    // The current domain model supports catalog products only.
-    // Manual rows remain stored and untouched until manual-item
-    // support is added to the domain and presentation layers.
+  /// Reads catalog and manual items from exactly one owned cart.
+  Future<List<CartItemEntity>> _readCartItemsForCart(String cartId) async {
     final query = database.select(database.cartItemRecords)
-      ..where(
-        (table) =>
-            table.cartId.equals(cartId) &
-            table.kind.equals('catalog') &
-            table.productId.isNotNull(),
-      )
+      ..where((table) => table.cartId.equals(cartId))
       ..orderBy([(table) => OrderingTerm.asc(table.sortOrder)]);
 
     final records = await query.get();
+    final items = <CartItemEntity>[];
 
-    return List<CartItemEntity>.unmodifiable(
-      records.map((record) {
-        return CartItemEntity(
+    for (final record in records) {
+      if (record.kind == 'manual') {
+        items.add(
+          CartItemEntity.manual(
+            id: record.id,
+            name: record.productName,
+            unitPrice: record.price,
+            quantity: record.cartQuantity,
+            unit: record.unit,
+            note: record.note,
+          ),
+        );
+
+        continue;
+      }
+
+      if (record.kind != 'catalog' || record.productId == null) {
+        continue;
+      }
+
+      items.add(
+        CartItemEntity(
           product: ProductEntity(
             id: record.productId!,
             supplierId: record.supplierId,
@@ -374,9 +387,11 @@ final class CartLocalDataSource {
             updatedAt: record.productUpdatedAt?.toUtc(),
           ),
           quantity: record.cartQuantity,
-        );
-      }),
-    );
+        ),
+      );
+    }
+
+    return List<CartItemEntity>.unmodifiable(items);
   }
 
   /// Legacy entry point: retains the previous default-cart behavior.
@@ -430,6 +445,39 @@ final class CartLocalDataSource {
     });
   }
 
+  /// Replaces the complete cart snapshot, including catalog and manual items.
+  /// Only the explicitly identified owned cart is modified.
+  Future<void> replaceAllItemsForCart(
+    String cartId,
+    List<CartItemEntity> items,
+  ) async {
+    if (_owner == null) {
+      throw StateError(
+        'Cannot persist a cart without authenticated ownership.',
+      );
+    }
+
+    final normalizedId = cartId.trim();
+
+    if (normalizedId.isEmpty) {
+      throw ArgumentError.value(cartId, 'cartId', 'Cart ID is required.');
+    }
+
+    final now = DateTime.now().toUtc();
+
+    await database.transaction(() async {
+      final ownedCart = await getOwnedCart(normalizedId);
+
+      if (ownedCart == null) {
+        throw StateError(
+          'Cart does not exist or does not belong to this account.',
+        );
+      }
+
+      await _replaceAllItemsForCart(ownedCart.id, items, now);
+    });
+  }
+
   /// Shared catalog-only persistence. Caller must verify ownership
   /// and open a database transaction before invoking this helper.
   Future<void> _replaceCatalogItemsForCart(
@@ -466,6 +514,165 @@ final class CartLocalDataSource {
           .insert(
             CartItemRecordsCompanion.insert(
               id: existingIds[product.id] ?? const Uuid().v4(),
+              cartId: cartId,
+              kind: const Value('catalog'),
+              productId: Value(product.id),
+              supplierId: Value(product.supplierId),
+              supplierName: Value(product.supplierName),
+              productName: product.name,
+              price: product.price,
+              imageUrl: Value(product.imageUrl),
+              localImagePath: Value(product.localImagePath),
+              category: Value(product.category),
+              brand: Value(product.brand),
+              isAvailable: Value(product.isAvailable),
+              description: Value(product.description),
+              colorsJson: Value(jsonEncode(product.colors)),
+              productQuantity: Value(product.quantity),
+              discount: Value(product.discount),
+              rating: Value(product.rating),
+              syncStatus: Value(product.syncStatus.name),
+              syncError: Value(product.syncError),
+              productCreatedAt: Value(product.createdAt?.toUtc()),
+              productUpdatedAt: Value(product.updatedAt?.toUtc()),
+              cartQuantity: item.quantity,
+              sortOrder: index,
+              updatedAt: now,
+            ),
+          );
+    }
+  }
+
+  /// Writes every item type in one transaction.
+  /// Caller must verify ownership and open a database transaction.
+  Future<void> _replaceAllItemsForCart(
+    String cartId,
+    List<CartItemEntity> items,
+    DateTime now,
+  ) async {
+    final existing = await (database.select(
+      database.cartItemRecords,
+    )..where((table) => table.cartId.equals(cartId))).get();
+
+    final existingCatalogIds = <String, String>{
+      for (final record in existing)
+        if (record.kind == 'catalog' && record.productId != null)
+          record.productId!: record.id,
+    };
+
+    String manualIdFor(CartItemEntity item) {
+      final explicitId = item.manualId?.trim();
+
+      if (explicitId != null && explicitId.isNotEmpty) {
+        return explicitId;
+      }
+
+      return item.product.id.trim();
+    }
+
+    // Validate the entire snapshot before deleting anything.
+    final seenCatalogIds = <String>{};
+    final seenManualIds = <String>{};
+    final seenRowIds = <String>{};
+
+    for (final item in items) {
+      if (item.quantity < 1) {
+        throw ArgumentError('Cart item quantity must be positive.');
+      }
+
+      if (item.isManual) {
+        final manualId = manualIdFor(item);
+
+        if (manualId.isEmpty) {
+          throw ArgumentError('Manual item ID is required.');
+        }
+
+        if (!seenManualIds.add(manualId)) {
+          throw ArgumentError('Duplicate manual item ID: $manualId');
+        }
+
+        if (!seenRowIds.add(manualId)) {
+          throw ArgumentError('Duplicate cart row ID: $manualId');
+        }
+
+        final price = item.unitPrice;
+
+        if (!price.isFinite || price < 0) {
+          throw ArgumentError('Manual item price is invalid.');
+        }
+      } else {
+        final productId = item.product.id;
+
+        if (productId.trim().isEmpty) {
+          throw ArgumentError('Catalog product ID is required.');
+        }
+
+        if (!seenCatalogIds.add(productId)) {
+          throw ArgumentError('Duplicate catalog product ID: $productId');
+        }
+
+        final rowId = existingCatalogIds[productId] ?? const Uuid().v4();
+
+        if (!seenRowIds.add(rowId)) {
+          throw ArgumentError('Duplicate cart row ID: $rowId');
+        }
+      }
+    }
+
+    // Delete entries from this cart only.
+    await (database.delete(
+      database.cartItemRecords,
+    )..where((table) => table.cartId.equals(cartId))).go();
+
+    for (var index = 0; index < items.length; index++) {
+      final item = items[index];
+      final product = item.product;
+
+      if (item.isManual) {
+        final manualId = manualIdFor(item);
+
+        await database
+            .into(database.cartItemRecords)
+            .insert(
+              CartItemRecordsCompanion.insert(
+                id: manualId,
+                cartId: cartId,
+                kind: const Value('manual'),
+                productId: const Value<String?>(null),
+                supplierId: const Value(''),
+                supplierName: const Value(''),
+                productName: product.name,
+                price: product.price,
+                imageUrl: const Value(''),
+                localImagePath: const Value<String?>(null),
+                category: const Value(''),
+                brand: const Value(''),
+                isAvailable: const Value(true),
+                description: const Value(''),
+                colorsJson: const Value('[]'),
+                productQuantity: const Value(0),
+                discount: const Value(0),
+                rating: const Value(0),
+                syncStatus: const Value('synced'),
+                syncError: const Value<String?>(null),
+                productCreatedAt: const Value<DateTime?>(null),
+                productUpdatedAt: const Value<DateTime?>(null),
+                cartQuantity: item.quantity,
+                sortOrder: index,
+                updatedAt: now,
+                unit: Value(item.unit),
+                note: Value(item.note),
+              ),
+            );
+
+        continue;
+      }
+
+      await database
+          .into(database.cartItemRecords)
+          .insert(
+            CartItemRecordsCompanion.insert(
+              id: existingCatalogIds[product.id] ?? const Uuid().v4(),
               cartId: cartId,
               kind: const Value('catalog'),
               productId: Value(product.id),

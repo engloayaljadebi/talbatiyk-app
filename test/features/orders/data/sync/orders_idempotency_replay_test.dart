@@ -109,6 +109,15 @@ void main() {
 
       expect(replayKey, firstAttemptKey);
 
+      final firstRequest = remoteDataSource.createRequests[0];
+      final replayRequest = remoteDataSource.createRequests[1];
+      expect(replayRequest.notes, firstRequest.notes);
+      expect(replayRequest.supplierIds, firstRequest.supplierIds);
+      expect(
+        replayRequest.items.map((item) => item.toJson()).toList(),
+        firstRequest.items.map((item) => item.toJson()).toList(),
+      );
+
       // A changed key would have produced a second fake server order.
       expect(remoteDataSource.serverCreateCount, 1);
 

@@ -12,10 +12,13 @@ part 'order_item_resource.g.dart';
 ///
 /// Properties:
 /// * [id] 
+/// * [itemType] 
 /// * [productId] 
 /// * [productName] 
 /// * [unitPrice] - decimal cast في Eloquent يعيد string للحفاظ على الدقة.
 /// * [quantity] 
+/// * [unit] 
+/// * [note] 
 /// * [supplierId] 
 /// * [supplierName] 
 /// * [imageUrl] 
@@ -24,8 +27,11 @@ abstract class OrderItemResource implements Built<OrderItemResource, OrderItemRe
   @BuiltValueField(wireName: r'id')
   String get id;
 
+  @BuiltValueField(wireName: r'item_type')
+  String get itemType;
+
   @BuiltValueField(wireName: r'product_id')
-  String get productId;
+  String? get productId;
 
   @BuiltValueField(wireName: r'product_name')
   String get productName;
@@ -37,11 +43,17 @@ abstract class OrderItemResource implements Built<OrderItemResource, OrderItemRe
   @BuiltValueField(wireName: r'quantity')
   int get quantity;
 
+  @BuiltValueField(wireName: r'unit')
+  String? get unit;
+
+  @BuiltValueField(wireName: r'note')
+  String? get note;
+
   @BuiltValueField(wireName: r'supplier_id')
-  String get supplierId;
+  String? get supplierId;
 
   @BuiltValueField(wireName: r'supplier_name')
-  String get supplierName;
+  String? get supplierName;
 
   @BuiltValueField(wireName: r'image_url')
   String? get imageUrl;
@@ -74,10 +86,15 @@ class _$OrderItemResourceSerializer implements PrimitiveSerializer<OrderItemReso
       object.id,
       specifiedType: const FullType(String),
     );
-    yield r'product_id';
+    yield r'item_type';
     yield serializers.serialize(
-      object.productId,
+      object.itemType,
       specifiedType: const FullType(String),
+    );
+    yield r'product_id';
+    yield object.productId == null ? null : serializers.serialize(
+      object.productId,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'product_name';
     yield serializers.serialize(
@@ -94,15 +111,25 @@ class _$OrderItemResourceSerializer implements PrimitiveSerializer<OrderItemReso
       object.quantity,
       specifiedType: const FullType(int),
     );
+    yield r'unit';
+    yield object.unit == null ? null : serializers.serialize(
+      object.unit,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'note';
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'supplier_id';
-    yield serializers.serialize(
+    yield object.supplierId == null ? null : serializers.serialize(
       object.supplierId,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'supplier_name';
-    yield serializers.serialize(
+    yield object.supplierName == null ? null : serializers.serialize(
       object.supplierName,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'image_url';
     yield object.imageUrl == null ? null : serializers.serialize(
@@ -139,11 +166,19 @@ class _$OrderItemResourceSerializer implements PrimitiveSerializer<OrderItemReso
           ) as String;
           result.id = valueDes;
           break;
-        case r'product_id':
+        case r'item_type':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
+          result.itemType = valueDes;
+          break;
+        case r'product_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.productId = valueDes;
           break;
         case r'product_name':
@@ -167,18 +202,36 @@ class _$OrderItemResourceSerializer implements PrimitiveSerializer<OrderItemReso
           ) as int;
           result.quantity = valueDes;
           break;
+        case r'unit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.unit = valueDes;
+          break;
+        case r'note':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.note = valueDes;
+          break;
         case r'supplier_id':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.supplierId = valueDes;
           break;
         case r'supplier_name':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.supplierName = valueDes;
           break;
         case r'image_url':

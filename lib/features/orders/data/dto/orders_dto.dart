@@ -16,11 +16,23 @@ class OrderItemDto {
     this.supplierId = '',
     this.supplierName = '',
     this.imageUrl = '',
+    this.itemType = 'catalog',
+    this.unit,
+    this.note,
   });
 
   factory OrderItemDto.fromJson(Map<String, dynamic> json) {
+    final itemType =
+        _valueFor(json, const ['itemType', 'item_type']) as String? ??
+        'catalog';
+
     return OrderItemDto(
-      productId: _requiredString(json, const ['productId', 'product_id']),
+      itemType: itemType,
+      productId: itemType == 'manual'
+          ? null
+          : _requiredString(json, const ['productId', 'product_id']),
+      unit: _valueFor(json, const ['unit']) as String?,
+      note: _valueFor(json, const ['note']) as String?,
       productName: _requiredString(json, const [
         'productName',
         'product_name',
@@ -32,14 +44,16 @@ class OrderItemDto {
         'price',
       ]),
       quantity: _requiredInt(json, const ['quantity']),
-      supplierId: _optionalString(json, const [
-        'supplierId',
-        'supplier_id',
-        'vendorId',
-        'vendor_id',
-        'merchantId',
-        'merchant_id',
-      ]),
+      supplierId: itemType == 'manual'
+          ? null
+          : _optionalString(json, const [
+              'supplierId',
+              'supplier_id',
+              'vendorId',
+              'vendor_id',
+              'merchantId',
+              'merchant_id',
+            ]),
       supplierName: _optionalString(json, const [
         'supplierName',
         'supplier_name',
@@ -52,13 +66,16 @@ class OrderItemDto {
     );
   }
 
-  final String productId;
+  final String? productId;
   final String productName;
   final double unitPrice;
   final int quantity;
 
   /// المورد محفوظ على مستوى العنصر لدعم طلبية واحدة متعددة الموردين.
-  final String supplierId;
+  final String? supplierId;
+  final String itemType;
+  final String? unit;
+  final String? note;
   final String supplierName;
 
   final String imageUrl;

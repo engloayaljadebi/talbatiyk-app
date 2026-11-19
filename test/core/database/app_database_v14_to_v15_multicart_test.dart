@@ -11,7 +11,7 @@ void main() {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 16);
+    expect(db.schemaVersion, 17);
 
     for (final owner in ['account-A', 'account-B']) {
       await db.customInsert(
@@ -210,7 +210,7 @@ void main() {
       try {
         await upgraded.customSelect('SELECT 1').get();
 
-        expect(upgraded.schemaVersion, 16);
+        expect(upgraded.schemaVersion, 17);
 
         final carts = await upgraded
             .customSelect('SELECT id, owner_user_id FROM cart_records')

@@ -568,6 +568,138 @@ class OrderResponseComparisonApiTest extends TestCase
         );
     }
 
+    public function test_one_order_item_cannot_be_selected_from_two_suppliers(): void
+    {
+        $buyer = User::factory()->create();
+
+        $memberA = User::factory()->create();
+        $memberB = User::factory()->create();
+
+        $supplierA = $this->createSupplier(
+            'Duplicate selection supplier A',
+            $memberA,
+        );
+
+        $supplierB = $this->createSupplier(
+            'Duplicate selection supplier B',
+            $memberB,
+        );
+
+        $product = $this->createProduct(
+            $supplierA,
+            (string) Str::uuid(),
+            'Shared comparison product',
+        );
+
+        $order = app(OrderService::class)->create(
+            $buyer,
+            [
+                'notes' => 'Duplicate supplier selection acceptance test',
+                'supplier_ids' => [
+                    $supplierA->id,
+                    $supplierB->id,
+                ],
+                'items' => [
+                    [
+                        'product_id' => $product->id,
+                        'quantity' => 2,
+                        'expected_unit_price' => (float) $product->price,
+                        'expected_supplier_id' => $supplierA->id,
+                    ],
+                ],
+            ],
+            (string) Str::uuid(),
+        );
+
+        $recipients = OrderRecipient::query()
+            ->where('order_id', $order->id)
+            ->with('items')
+            ->get()
+            ->keyBy('supplier_id');
+
+        $recipientA = $recipients->get($supplierA->id);
+        $recipientB = $recipients->get($supplierB->id);
+
+        $this->assertNotNull($recipientA);
+        $this->assertNotNull($recipientB);
+
+        $orderItem = $order->items()
+            ->where('product_id', $product->id)
+            ->firstOrFail();
+
+        $recipientItemA = $recipientA->items()
+            ->where('order_item_id', $orderItem->id)
+            ->firstOrFail();
+
+        $recipientItemB = $recipientB->items()
+            ->where('order_item_id', $orderItem->id)
+            ->firstOrFail();
+
+        $responseItemAId = $this->submitSupplierResponse(
+            $memberA,
+            $supplierA,
+            $recipientA,
+            $recipientItemA->id,
+            status: 'full',
+            availableQuantity: 2,
+            offeredUnitPrice: '91.00',
+        );
+
+        $responseItemBId = $this->submitSupplierResponse(
+            $memberB,
+            $supplierB,
+            $recipientB,
+            $recipientItemB->id,
+            status: 'full',
+            availableQuantity: 2,
+            offeredUnitPrice: '92.00',
+        );
+
+        $initialOrderVersion = (int) $order->fresh()->version;
+
+        $initialRecipientAVersion =
+            (int) $recipientA->fresh()->fulfillment_version;
+
+        $initialRecipientBVersion =
+            (int) $recipientB->fresh()->fulfillment_version;
+
+        $this->actAs($buyer);
+
+        $this->putJson(
+            $this->selectionEndpoint($order),
+            [
+                'expected_version' => $initialOrderVersion,
+                'selections' => [
+                    [
+                        'order_recipient_item_response_id' => $responseItemAId,
+                        'selected_quantity' => 1,
+                    ],
+                    [
+                        'order_recipient_item_response_id' => $responseItemBId,
+                        'selected_quantity' => 1,
+                    ],
+                ],
+            ],
+        )->assertStatus(422);
+
+        $this->assertDatabaseCount('order_item_selections', 0);
+
+        $this->assertSame(
+            $initialOrderVersion,
+            (int) $order->fresh()->version,
+        );
+
+        $this->assertSame(
+            $initialRecipientAVersion,
+            (int) $recipientA->fresh()->fulfillment_version,
+        );
+
+        $this->assertSame(
+            $initialRecipientBVersion,
+            (int) $recipientB->fresh()->fulfillment_version,
+        );
+    }
+
     /**
      * @return array{
      *     0: User,

@@ -42,7 +42,7 @@ final class OrderResponseComparisonItemEntity {
   });
 
   final String id;
-  final String productId;
+  final String? productId;
   final String productName;
   final int requestedQuantity;
   final String orderUnitPrice;

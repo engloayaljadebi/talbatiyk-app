@@ -9,10 +9,13 @@ import 'package:talbatiyk_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
+**itemType** | **String** |  | 
 **productId** | **String** |  | 
 **productName** | **String** |  | 
 **unitPrice** | **String** | decimal cast في Eloquent يعيد string للحفاظ على الدقة. | 
 **quantity** | **int** |  | 
+**unit** | **String** |  | 
+**note** | **String** |  | 
 **supplierId** | **String** |  | 
 **supplierName** | **String** |  | 
 **imageUrl** | **String** |  | 

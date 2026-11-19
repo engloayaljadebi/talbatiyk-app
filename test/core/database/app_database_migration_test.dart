@@ -7,7 +7,7 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test('migrates persisted data from v4 to v15 without loss', () async {
+    test('migrates persisted data from v4 to v17 without loss', () async {
       final Directory tempDirectory = await Directory.systemTemp.createTemp(
         'talbatiyk-drift-migration-',
       );
@@ -30,7 +30,7 @@ void main() {
 
       addTearDown(database.close);
 
-      // First query opens persisted v4 and runs the real MigrationStrategy through v11.
+      // First query opens persisted v4 and runs the real MigrationStrategy through v17.
       final List<SyncOperation> operations = await database
           .select(database.syncOperations)
           .get();
@@ -39,7 +39,7 @@ void main() {
           .select(database.orderRecords)
           .get();
 
-      expect(database.schemaVersion, 16);
+      expect(database.schemaVersion, 17);
       expect(operations, hasLength(1));
       expect(orders, hasLength(1));
 

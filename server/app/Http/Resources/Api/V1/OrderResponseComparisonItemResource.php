@@ -26,10 +26,19 @@ class OrderResponseComparisonItemResource extends JsonResource
             /** @format uuid */
             'id' => $orderItem->id,
 
+            'item_type' => $orderItem->item_type,
+
+            // Null for manual items.
+            /** @var string|null */
             'product_id' => $orderItem->product_id,
             'product_name' => $orderItem->product_name,
 
             'requested_quantity' => (int) $orderItem->quantity,
+
+            /** @var string|null */
+            'unit' => $orderItem->unit,
+            /** @var string|null */
+            'note' => $orderItem->note,
 
             'order_unit_price' => (string) $orderItem->unit_price,
 

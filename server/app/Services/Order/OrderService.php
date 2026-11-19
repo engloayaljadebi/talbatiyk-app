@@ -31,15 +31,14 @@ class OrderService
     /**
      * Create a new order for the authenticated user.
      *
+     * Each item is either a catalog item (product_id, quantity,
+     * expected_unit_price, expected_supplier_id) or a manual item
+     * (item_type=manual, name, unit_price, quantity, unit, note).
+     *
      * @param array{
      *     notes?: string|null,
      *     supplier_ids: array<int, string>,
-     *     items: array<int, array{
-     *         product_id: string,
-     *         quantity: int,
-     *         expected_unit_price: numeric-string|int|float,
-     *         expected_supplier_id: string
-     *     }>
+     *     items: array<int, array<string, mixed>>
      * } $data
      */
     public function create(
@@ -230,6 +229,9 @@ class OrderService
     private function resolveAuthoritativeItems(array $items): array
     {
         $productIds = collect($items)
+            ->reject(
+                fn (array $item): bool => $this->isManualItem($item),
+            )
             ->pluck('product_id')
             ->unique()
             ->sort()
@@ -269,6 +271,12 @@ class OrderService
         $resolved = [];
 
         foreach ($items as $index => $item) {
+            if ($this->isManualItem($item)) {
+                $resolved[] = $this->manualItemSnapshot($item);
+
+                continue;
+            }
+
             /** @var Product|null $product */
             $product = $products->get($item['product_id']);
 
@@ -321,6 +329,7 @@ class OrderService
             }
 
             $resolved[] = [
+                'item_type' => 'catalog',
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'unit_price' => $product->price,
@@ -332,6 +341,46 @@ class OrderService
         }
 
         return $resolved;
+    }
+
+    /**
+     * An item without item_type is a catalog item. This keeps the payload
+     * of existing clients, and therefore their idempotency hash, unchanged.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function isManualItem(array $item): bool
+    {
+        return ($item['item_type'] ?? 'catalog') === 'manual';
+    }
+
+    /**
+     * Manual items are typed by the customer. They have no Product and no
+     * source supplier, and the unit price is the customer's own value
+     * because there is no server-side price authority for them.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function manualItemSnapshot(array $item): array
+    {
+        return [
+            'item_type' => 'manual',
+            'product_id' => null,
+            'product_name' => $item['name'],
+            'unit_price' => number_format(
+                (float) $item['unit_price'],
+                2,
+                '.',
+                '',
+            ),
+            'quantity' => $item['quantity'],
+            'supplier_id' => null,
+            'supplier_name' => null,
+            'image_url' => null,
+            'unit' => $item['unit'] ?? null,
+            'note' => $item['note'] ?? null,
+        ];
     }
 
     /**

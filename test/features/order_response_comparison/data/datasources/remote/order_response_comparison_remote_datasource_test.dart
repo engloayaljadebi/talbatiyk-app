@@ -286,6 +286,7 @@ Map<String, dynamic> _comparisonResponse({
       'items': [
         {
           'id': itemId,
+          'item_type': 'catalog',
           'product_id': 'product-1',
           'product_name': 'Product One',
           'requested_quantity': 3,

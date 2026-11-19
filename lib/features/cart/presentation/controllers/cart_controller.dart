@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
 import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
@@ -171,7 +172,7 @@ class CartController extends ChangeNotifier {
       _items
         ..clear()
         ..addEntries(
-          restoredItems.map((item) => MapEntry(item.product.id, item)),
+          restoredItems.map((item) => MapEntry(_itemKey(item), item)),
         );
 
       _activeCartId = ownedCart.id;
@@ -242,15 +243,16 @@ class CartController extends ChangeNotifier {
     });
   }
 
+  /// Total price of all catalog and manual cart items.
   double get totalPrice {
-    return _items.values.fold(0, (double total, CartItemEntity item) {
+    return _items.values.fold(0.0, (double total, CartItemEntity item) {
       return total + item.totalPrice;
     });
   }
 
   /// كمية منتج محدد داخل السلة.
   int quantityOf(String productId) {
-    return _items[productId]?.quantity ?? 0;
+    return _items[_catalogItemKey(productId)]?.quantity ?? 0;
   }
 
   /// يحدد ما إذا كان المنتج صالحًا للإضافة من منظور السلة.
@@ -298,9 +300,7 @@ class CartController extends ChangeNotifier {
     // Start with the persisted state.
     _items
       ..clear()
-      ..addEntries(
-        restoredItems.map((item) => MapEntry(item.product.id, item)),
-      );
+      ..addEntries(restoredItems.map((item) => MapEntry(_itemKey(item), item)));
 
     // Replay every mutation accepted while the database read was pending.
     final hadPendingMutations = _pendingRestoreMutations.isNotEmpty;
@@ -359,7 +359,7 @@ class CartController extends ChangeNotifier {
       // Capture the snapshot only after restoration and mutation replay.
       final snapshot = List<CartItemEntity>.unmodifiable(_items.values);
 
-      await localDataSource.replaceItemsForCart(cartId, snapshot);
+      await localDataSource.replaceAllItemsForCart(cartId, snapshot);
     });
 
     // Preserve queue continuity while exposing the last write failure.
@@ -407,21 +407,134 @@ class CartController extends ChangeNotifier {
     return CartAddResult.added;
   }
 
+  /// Adds a manually entered item without creating a catalog product.
+  /// Returns its stable local ID, or null while the cart is switching.
+  String? addManualItem({
+    required String name,
+    required double unitPrice,
+    required int quantity,
+    String? unit,
+    String? note,
+  }) {
+    if (_isSwitching) {
+      return null;
+    }
+
+    final item = CartItemEntity.manual(
+      id: const Uuid().v4(),
+      name: name,
+      unitPrice: unitPrice,
+      quantity: quantity,
+      unit: unit,
+      note: note,
+    );
+
+    final itemKey = _itemKey(item);
+
+    _items[itemKey] = item;
+
+    _recordMutationDuringRestore((items) => items[itemKey] = item);
+
+    _commitMutation();
+
+    return item.id;
+  }
+
+  int quantityOfManualItem(String manualItemId) {
+    return _items[_manualItemKey(manualItemId)]?.quantity ?? 0;
+  }
+
+  void increaseManualItem(String manualItemId) {
+    _changeManualItemQuantity(manualItemId, 1);
+  }
+
+  void decreaseManualItem(String manualItemId) {
+    _changeManualItemQuantity(manualItemId, -1);
+  }
+
+  void removeManualItem(String manualItemId) {
+    if (_isSwitching) {
+      return;
+    }
+
+    final itemKey = _manualItemKey(manualItemId);
+    final isRestoring = !_restoreCompleted;
+
+    if (!isRestoring && !_items.containsKey(itemKey)) {
+      return;
+    }
+
+    _items.remove(itemKey);
+
+    _recordMutationDuringRestore((items) => items.remove(itemKey));
+
+    _commitMutation();
+  }
+
+  /// Updates all manual fields. Null unit/note explicitly clears them.
+  Future<bool> updateManualItem({
+    required String id,
+    required String name,
+    required double unitPrice,
+    required int quantity,
+    String? unit,
+    String? note,
+  }) async {
+    if (_isSwitching) {
+      return false;
+    }
+
+    await _ready;
+
+    if (_isSwitching) {
+      return false;
+    }
+
+    final normalizedId = id.trim();
+
+    if (normalizedId.isEmpty) {
+      return false;
+    }
+
+    final itemKey = _manualItemKey(normalizedId);
+    final currentItem = _items[itemKey];
+
+    if (currentItem == null || !currentItem.isManual) {
+      return false;
+    }
+
+    final updatedItem = CartItemEntity.manual(
+      id: currentItem.id,
+      name: name,
+      unitPrice: unitPrice,
+      quantity: quantity,
+      unit: unit,
+      note: note,
+    );
+
+    _items[itemKey] = updatedItem;
+
+    _commitMutation();
+
+    return true;
+  }
+
   /// Decreases a product, preserving the operation if restore is pending.
   void decreaseProduct(String productId) {
     if (_isSwitching) {
       return;
     }
     final isRestoring = !_restoreCompleted;
+    final itemKey = _catalogItemKey(productId);
 
-    if (!isRestoring && !_items.containsKey(productId)) {
+    if (!isRestoring && !_items.containsKey(itemKey)) {
       return;
     }
 
-    _applyDecreaseProduct(_items, productId);
+    _applyDecreaseProduct(_items, itemKey);
 
     _recordMutationDuringRestore(
-      (items) => _applyDecreaseProduct(items, productId),
+      (items) => _applyDecreaseProduct(items, itemKey),
     );
 
     _commitMutation();
@@ -433,14 +546,15 @@ class CartController extends ChangeNotifier {
       return;
     }
     final isRestoring = !_restoreCompleted;
+    final itemKey = _catalogItemKey(productId);
 
-    if (!isRestoring && !_items.containsKey(productId)) {
+    if (!isRestoring && !_items.containsKey(itemKey)) {
       return;
     }
 
-    _items.remove(productId);
+    _items.remove(itemKey);
 
-    _recordMutationDuringRestore((items) => items.remove(productId));
+    _recordMutationDuringRestore((items) => items.remove(itemKey));
 
     _commitMutation();
   }
@@ -450,16 +564,19 @@ class CartController extends ChangeNotifier {
     if (_isSwitching) {
       return;
     }
-    final ids = productIds.toSet().toList(growable: false);
+    final keys = productIds
+        .map(_catalogItemKey)
+        .toSet()
+        .toList(growable: false);
 
-    if (ids.isEmpty) {
+    if (keys.isEmpty) {
       return;
     }
 
     var changed = false;
 
-    for (final productId in ids) {
-      if (_items.remove(productId) != null) {
+    for (final itemKey in keys) {
+      if (_items.remove(itemKey) != null) {
         changed = true;
       }
     }
@@ -469,12 +586,35 @@ class CartController extends ChangeNotifier {
     }
 
     _recordMutationDuringRestore((items) {
-      for (final productId in ids) {
-        items.remove(productId);
+      for (final itemKey in keys) {
+        items.remove(itemKey);
       }
     });
 
     _commitMutation();
+  }
+
+  /// Removes unchanged submitted lines from the cart that is still active.
+  void removeSubmittedItems(
+    String? submittedCartId,
+    Iterable<CartItemEntity> submittedItems,
+  ) {
+    if (_isSwitching || _activeCartId != submittedCartId) {
+      return;
+    }
+
+    var removed = false;
+    for (final submittedItem in submittedItems) {
+      final key = _itemKey(submittedItem);
+      if (identical(_items[key], submittedItem)) {
+        _items.remove(key);
+        removed = true;
+      }
+    }
+
+    if (removed) {
+      _commitMutation();
+    }
   }
 
   /// Clears the current and pending restored cart state.
@@ -493,37 +633,93 @@ class CartController extends ChangeNotifier {
     _commitMutation();
   }
 
+  String _catalogItemKey(String productId) {
+    return 'catalog:${productId.trim()}';
+  }
+
+  String _manualItemKey(String manualItemId) {
+    return 'manual:${manualItemId.trim()}';
+  }
+
+  String _itemKey(CartItemEntity item) {
+    return item.isManual ? _manualItemKey(item.id) : _catalogItemKey(item.id);
+  }
+
+  void _changeManualItemQuantity(String manualItemId, int delta) {
+    if (_isSwitching) {
+      return;
+    }
+
+    final normalizedId = manualItemId.trim();
+
+    if (normalizedId.isEmpty) {
+      return;
+    }
+
+    final itemKey = _manualItemKey(normalizedId);
+    final isRestoring = !_restoreCompleted;
+
+    if (!isRestoring && !_items.containsKey(itemKey)) {
+      return;
+    }
+
+    _applyManualQuantityChange(_items, itemKey, delta);
+
+    _recordMutationDuringRestore(
+      (items) => _applyManualQuantityChange(items, itemKey, delta),
+    );
+
+    _commitMutation();
+  }
+
+  void _applyManualQuantityChange(
+    Map<String, CartItemEntity> items,
+    String itemKey,
+    int delta,
+  ) {
+    final currentItem = items[itemKey];
+
+    if (currentItem == null || !currentItem.isManual) {
+      return;
+    }
+
+    final nextQuantity = currentItem.quantity + delta;
+
+    if (nextQuantity < 1) {
+      items.remove(itemKey);
+    } else {
+      items[itemKey] = currentItem.copyWith(quantity: nextQuantity);
+    }
+  }
+
   void _applyAddProduct(
     Map<String, CartItemEntity> items,
     ProductEntity product,
   ) {
-    final currentItem = items[product.id];
+    final itemKey = _catalogItemKey(product.id);
+    final currentItem = items[itemKey];
 
     if (currentItem == null) {
-      items[product.id] = CartItemEntity(product: product, quantity: 1);
+      items[itemKey] = CartItemEntity(product: product, quantity: 1);
     } else {
-      items[product.id] = currentItem.copyWith(
-        quantity: currentItem.quantity + 1,
-      );
+      items[itemKey] = currentItem.copyWith(quantity: currentItem.quantity + 1);
     }
   }
 
   void _applyDecreaseProduct(
     Map<String, CartItemEntity> items,
-    String productId,
+    String itemKey,
   ) {
-    final currentItem = items[productId];
+    final currentItem = items[itemKey];
 
     if (currentItem == null) {
       return;
     }
 
     if (currentItem.quantity <= 1) {
-      items.remove(productId);
+      items.remove(itemKey);
     } else {
-      items[productId] = currentItem.copyWith(
-        quantity: currentItem.quantity - 1,
-      );
+      items[itemKey] = currentItem.copyWith(quantity: currentItem.quantity - 1);
     }
   }
 

@@ -448,6 +448,266 @@ class OrderRecipientRoutingApiTest extends TestCase
         ]);
     }
 
+    public function test_manual_items_are_broadcast_to_every_selected_recipient_without_product_or_supplier(): void
+    {
+        $user = User::factory()->create();
+
+        $catalogSourceSupplier = $this->createSupplier(
+            'Catalog source supplier',
+        );
+
+        $recipientA = $this->createSupplier(
+            'Selected recipient A',
+        );
+
+        $recipientB = $this->createSupplier(
+            'Selected recipient B',
+        );
+
+        $product = $this->createProduct(
+            $catalogSourceSupplier,
+            'Catalog product',
+        );
+
+        $payload = $this->payload(
+            [$recipientA->id, $recipientB->id],
+            [$product],
+        );
+
+        $payload['items'][] = $this->manualItem();
+
+        $response = $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                (string) Str::uuid(),
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $orderId = (string) $response->json('data.id');
+
+        $manualItem = OrderItem::query()
+            ->where('order_id', $orderId)
+            ->where('product_name', 'Manual entered item')
+            ->firstOrFail();
+
+        $this->assertNull($manualItem->product_id);
+        $this->assertNull($manualItem->supplier_id);
+        $this->assertNull($manualItem->supplier_name);
+        $this->assertSame('manual', (string) $manualItem->item_type);
+        $this->assertSame('75.50', (string) $manualItem->unit_price);
+        $this->assertSame(2, $manualItem->quantity);
+        $this->assertSame('piece', $manualItem->unit);
+        $this->assertSame('Manual item note', $manualItem->note);
+
+        $catalogItem = OrderItem::query()
+            ->where('order_id', $orderId)
+            ->where('product_id', $product->id)
+            ->firstOrFail();
+
+        $this->assertSame('catalog', (string) $catalogItem->item_type);
+        $this->assertSame(
+            (string) $catalogSourceSupplier->id,
+            (string) $catalogItem->supplier_id,
+        );
+
+        $responseManualItem = collect($response->json('data.items'))
+            ->firstWhere('product_name', 'Manual entered item');
+
+        $this->assertIsArray($responseManualItem);
+        $this->assertNull($responseManualItem['product_id']);
+        $this->assertNull($responseManualItem['supplier_id']);
+        $this->assertNull($responseManualItem['supplier_name']);
+        $this->assertSame('manual', $responseManualItem['item_type']);
+        $this->assertSame('75.50', $responseManualItem['unit_price']);
+        $this->assertSame(2, $responseManualItem['quantity']);
+        $this->assertSame('piece', $responseManualItem['unit']);
+        $this->assertSame('Manual item note', $responseManualItem['note']);
+
+        $recipients = OrderRecipient::query()
+            ->where('order_id', $orderId)
+            ->get();
+
+        $orderItems = OrderItem::query()
+            ->where('order_id', $orderId)
+            ->get();
+
+        $this->assertCount(2, $recipients);
+        $this->assertCount(2, $orderItems);
+
+        $this->assertEqualsCanonicalizing(
+            [$recipientA->id, $recipientB->id],
+            $recipients->pluck('supplier_id')->all(),
+        );
+
+        foreach ($recipients as $recipient) {
+            foreach ($orderItems as $orderItem) {
+                $this->assertDatabaseHas(
+                    'order_recipient_items',
+                    [
+                        'order_recipient_id' => $recipient->id,
+                        'order_item_id' => $orderItem->id,
+                    ],
+                );
+            }
+        }
+
+        $this->assertDatabaseCount(
+            'order_recipient_items',
+            4,
+        );
+    }
+
+    public function test_order_with_only_manual_items_is_created_for_selected_recipient(): void
+    {
+        $user = User::factory()->create();
+
+        $recipient = $this->createSupplier(
+            'Manual only recipient',
+        );
+
+        $payload = [
+            'notes' => 'Manual only order',
+            'supplier_ids' => [$recipient->id],
+            'items' => [
+                $this->manualItem(),
+                $this->manualItem('Second manual item', 3, 10.25),
+            ],
+        ];
+
+        $response = $this
+            ->withToken($this->tokenFor($user))
+            ->withHeader(
+                'Idempotency-Key',
+                (string) Str::uuid(),
+            )
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $orderId = (string) $response->json('data.id');
+
+        $this->assertDatabaseCount('order_items', 2);
+        $this->assertDatabaseCount('order_recipients', 1);
+        $this->assertDatabaseCount('order_recipient_items', 2);
+
+        $this->assertSame(
+            2,
+            OrderItem::query()
+                ->where('order_id', $orderId)
+                ->where('item_type', 'manual')
+                ->count(),
+        );
+
+        $this->assertSame(
+            0,
+            OrderItem::query()
+                ->where('order_id', $orderId)
+                ->whereNotNull('product_id')
+                ->count(),
+        );
+    }
+
+    public function test_manual_items_reject_invalid_or_catalog_only_fields(): void
+    {
+        $user = User::factory()->create();
+
+        $recipient = $this->createSupplier(
+            'Manual validation recipient',
+        );
+
+        $someId = (string) Str::uuid();
+
+        $cases = [
+            'name is required' => [
+                ['name' => null],
+                'items.0.name',
+            ],
+            'name is too long' => [
+                ['name' => str_repeat('a', 256)],
+                'items.0.name',
+            ],
+            'price is required' => [
+                ['unit_price' => null],
+                'items.0.unit_price',
+            ],
+            'price cannot be negative' => [
+                ['unit_price' => -1],
+                'items.0.unit_price',
+            ],
+            'price allows two decimals only' => [
+                ['unit_price' => 10.555],
+                'items.0.unit_price',
+            ],
+            'quantity must be positive' => [
+                ['quantity' => 0],
+                'items.0.quantity',
+            ],
+            'product_id is not allowed' => [
+                ['product_id' => $someId],
+                'items.0.product_id',
+            ],
+            'expected_supplier_id is not allowed' => [
+                ['expected_supplier_id' => $someId],
+                'items.0.expected_supplier_id',
+            ],
+            'expected_unit_price is not allowed' => [
+                ['expected_unit_price' => 10],
+                'items.0.expected_unit_price',
+            ],
+            'unknown item type' => [
+                ['item_type' => 'service'],
+                'items.0.item_type',
+            ],
+        ];
+
+        foreach ($cases as $label => [$overrides, $errorKey]) {
+            $payload = [
+                'supplier_ids' => [$recipient->id],
+                'items' => [
+                    array_merge($this->manualItem(), $overrides),
+                ],
+            ];
+
+            $response = $this
+                ->withToken($this->tokenFor($user))
+                ->withHeader(
+                    'Idempotency-Key',
+                    (string) Str::uuid(),
+                )
+                ->postJson('/api/v1/orders', $payload);
+
+            $response->assertUnprocessable();
+
+            $this->assertArrayHasKey(
+                $errorKey,
+                $response->json('errors') ?? [],
+                $label,
+            );
+        }
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_items', 0);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function manualItem(
+        string $name = 'Manual entered item',
+        int $quantity = 2,
+        float $unitPrice = 75.50,
+    ): array {
+        return [
+            'item_type' => 'manual',
+            'name' => $name,
+            'unit_price' => $unitPrice,
+            'quantity' => $quantity,
+            'unit' => 'piece',
+            'note' => 'Manual item note',
+        ];
+    }
+
     private function tokenFor(User $user): string
     {
         return $user

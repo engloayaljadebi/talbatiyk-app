@@ -277,12 +277,25 @@ final class OrdersSyncCoordinator {
               throw const FormatException('Invalid order Outbox item.');
             }
 
+            final itemType = rawItem['itemType'] as String? ?? 'catalog';
+
+            if (itemType != 'catalog' && itemType != 'manual') {
+              throw const FormatException('Invalid order Outbox item type.');
+            }
+
             return OrderItemModel(
-              productId: rawItem['productId'] as String,
+              itemType: itemType,
+              productId: itemType == 'manual'
+                  ? null
+                  : rawItem['productId'] as String,
+              unit: rawItem['unit'] as String?,
+              note: rawItem['note'] as String?,
               productName: rawItem['productName'] as String,
               unitPrice: (rawItem['unitPrice'] as num).toDouble(),
               quantity: rawItem['quantity'] as int,
-              supplierId: rawItem['supplierId'] as String,
+              supplierId: itemType == 'manual'
+                  ? null
+                  : rawItem['supplierId'] as String,
               supplierName: rawItem['supplierName'] as String? ?? '',
               imageUrl: rawItem['imageUrl'] as String? ?? '',
             );

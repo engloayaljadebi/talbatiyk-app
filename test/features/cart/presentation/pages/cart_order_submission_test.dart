@@ -205,6 +205,204 @@ void main() {
     },
   );
 
+  testWidgets(
+    'submits catalog and manual items in the same order',
+    (WidgetTester tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      final remoteDataSource = _FakeOrdersRemoteDataSource();
+
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
+          ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+              _supplierA,
+            ]),
+          ),
+        ],
+      );
+
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+
+      final cart = container.read(cartProvider);
+
+      cart.addProduct(_supplierAProduct);
+
+      final manualId = cart.addManualItem(
+        name: 'Manual bolts',
+        unitPrice: 1250,
+        quantity: 3,
+        unit: 'box',
+        note: 'Galvanized',
+      );
+      expect(manualId, isNotNull);
+
+      await _pumpCartPage(tester, container);
+      await tester.tap(find.widgetWithText(FilledButton, 'إرسال الطلبية'));
+      await _waitForSupplierDialog(tester);
+
+      await tester.tap(find.widgetWithText(CheckboxListTile, _supplierA.name));
+      await tester.pump();
+      await _confirmSupplierSelection(tester);
+      await _waitForSubmission(tester, container, remoteDataSource);
+
+      expect(remoteDataSource.requests, hasLength(1));
+      final request = remoteDataSource.requests.single;
+      expect(request.supplierIds, <String>[_supplierA.id]);
+      expect(request.items, hasLength(2));
+
+      final catalog = request.items.singleWhere(
+        (item) => item.itemType == 'catalog',
+      );
+      expect(catalog.productId, _supplierAProduct.id);
+      expect(catalog.supplierId, _supplierAProduct.supplierId);
+      expect(catalog.quantity, 1);
+
+      final manual = request.items.singleWhere(
+        (item) => item.itemType == 'manual',
+      );
+      expect(manual.productId, isNull);
+      expect(manual.supplierId, isNull);
+      expect(manual.productName, 'Manual bolts');
+      expect(manual.unitPrice, 1250);
+      expect(manual.quantity, 3);
+      expect(manual.unit, 'box');
+      expect(manual.note, 'Galvanized');
+
+      expect(cart.isEmpty, isTrue);
+    },
+  );
+
+  testWidgets(
+    'keeps items added while an order is being submitted',
+    (WidgetTester tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      final responseGate = Completer<void>();
+      final remoteDataSource = _FakeOrdersRemoteDataSource(responseGate);
+
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
+          ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+              _supplierA,
+            ]),
+          ),
+        ],
+      );
+
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+
+      final cart = container.read(cartProvider);
+
+      cart.addProduct(_supplierAProduct);
+
+      await _pumpCartPage(tester, container);
+      await tester.tap(find.widgetWithText(FilledButton, 'إرسال الطلبية'));
+      await _waitForSupplierDialog(tester);
+      await tester.tap(find.widgetWithText(CheckboxListTile, _supplierA.name));
+      await tester.pump();
+      await _confirmSupplierSelection(tester);
+
+      for (var attempt = 0;
+          attempt < 100 && remoteDataSource.requests.isEmpty;
+          attempt++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(remoteDataSource.requests, hasLength(1));
+
+      cart.addProduct(_supplierBProduct);
+
+      responseGate.complete();
+      await _waitForSubmission(tester, container, remoteDataSource);
+
+      expect(cart.quantityOf(_supplierAProduct.id), 0);
+      expect(cart.quantityOf(_supplierBProduct.id), 1);
+      await cart.flushPersistence();
+    },
+  );
+
+  testWidgets(
+    'keeps the newly active cart when an earlier order finishes',
+    (WidgetTester tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      final responseGate = Completer<void>();
+      final remoteDataSource = _FakeOrdersRemoteDataSource(responseGate);
+
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          cartLocalDataSourceProvider.overrideWithValue(
+            CartLocalDataSource(database, ownerUserId: legacyOrderTestUserId),
+          ),
+          ordersRemoteDataSourceProvider.overrideWithValue(remoteDataSource),
+          accountSessionFenceProvider.overrideWithValue(
+            createLegacyOrderTestFence(),
+          ),
+          supplierDiscoveryRepositoryProvider.overrideWithValue(
+            const _FakeSupplierDiscoveryRepository(<SupplierCandidateEntity>[
+              _supplierA,
+            ]),
+          ),
+        ],
+      );
+
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+
+      final cart = container.read(cartProvider);
+
+      cart.addProduct(_supplierAProduct);
+
+      await _pumpCartPage(tester, container);
+      await tester.tap(find.widgetWithText(FilledButton, 'إرسال الطلبية'));
+      await _waitForSupplierDialog(tester);
+      await tester.tap(find.widgetWithText(CheckboxListTile, _supplierA.name));
+      await tester.pump();
+      await _confirmSupplierSelection(tester);
+
+      for (var attempt = 0;
+          attempt < 100 && remoteDataSource.requests.isEmpty;
+          attempt++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(remoteDataSource.requests, hasLength(1));
+
+      final replacement = await cart.createCartAndActivate('Another cart');
+      // The same product ID can appear in both carts.
+      cart.addProduct(_supplierAProduct);
+
+      responseGate.complete();
+      await _waitForSubmission(tester, container, remoteDataSource);
+
+      expect(cart.activeCartId, replacement.id);
+      expect(cart.quantityOf(_supplierAProduct.id), 1);
+      await cart.flushPersistence();
+    },
+  );
+
   testWidgets('selected recipient receives the entire cross-source basket', (
     WidgetTester tester,
   ) async {
@@ -608,11 +806,18 @@ final class _CompleterSupplierDiscoveryRepository
 }
 
 final class _FakeOrdersRemoteDataSource implements OrdersDataSource {
+  _FakeOrdersRemoteDataSource([this._responseGate]);
+
+  final Completer<void>? _responseGate;
   final List<CreateOrderModel> requests = <CreateOrderModel>[];
 
   @override
   Future<OrderModel> createOrder(CreateOrderModel request) async {
     requests.add(request);
+    final responseGate = _responseGate;
+    if (responseGate != null) {
+      await responseGate.future;
+    }
 
     return OrderModel(
       id: 'server-order-${requests.length}',

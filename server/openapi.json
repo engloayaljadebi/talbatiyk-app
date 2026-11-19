@@ -4043,10 +4043,22 @@
                         "items": {
                             "type": "object",
                             "properties": {
+                                "item_type": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Omitted or null means catalog. The value is intentionally not\ninjected into the validated data so that the idempotency\npayload hash of existing clients stays unchanged.",
+                                    "enum": [
+                                        "catalog",
+                                        "manual",
+                                        null
+                                    ]
+                                },
                                 "product_id": {
                                     "type": "string",
                                     "format": "uuid",
-                                    "description": "Product existence is commercial state and must be validated\nafter idempotency replay lookup inside OrderService."
+                                    "description": "Catalog items only. Product existence is commercial state and must be validated\nafter idempotency replay lookup inside OrderService."
                                 },
                                 "quantity": {
                                     "type": "integer",
@@ -4054,21 +4066,41 @@
                                 },
                                 "expected_unit_price": {
                                     "type": "number",
-                                    "description": "This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price.",
+                                    "description": "Catalog items only. This is the price Flutter observed when the user confirmed.\nLaravel compares it with Product.price and never stores it\nas the authoritative order price.",
                                     "minimum": 0,
                                     "exclusiveMaximum": 10000000000
                                 },
                                 "expected_supplier_id": {
                                     "type": "string",
                                     "format": "uuid",
-                                    "description": "This is a concurrency expectation, not the authoritative\nsupplier. Laravel resolves the real supplier from Product."
+                                    "description": "Catalog items only. This is a concurrency expectation, not the authoritative\nsupplier. Laravel resolves the real supplier from Product."
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "description": "Manual items only. The name is stored in order_items.product_name and the price\nin order_items.unit_price. A manual item has one price only.",
+                                    "maxLength": 255
+                                },
+                                "unit_price": {
+                                    "type": "number",
+                                    "minimum": 0
+                                },
+                                "unit": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "maxLength": 50
+                                },
+                                "note": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "maxLength": 1000
                                 }
                             },
                             "required": [
-                                "product_id",
-                                "quantity",
-                                "expected_unit_price",
-                                "expected_supplier_id"
+                                "quantity"
                             ]
                         },
                         "minItems": 1,
@@ -4248,8 +4280,14 @@
                         "type": "string",
                         "format": "uuid"
                     },
-                    "product_id": {
+                    "item_type": {
                         "type": "string"
+                    },
+                    "product_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "product_name": {
                         "type": "string"
@@ -4261,12 +4299,30 @@
                     "quantity": {
                         "type": "integer"
                     },
+                    "unit": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "supplier_id": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uuid"
                     },
                     "supplier_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "image_url": {
                         "type": [
@@ -4277,10 +4333,13 @@
                 },
                 "required": [
                     "id",
+                    "item_type",
                     "product_id",
                     "product_name",
                     "unit_price",
                     "quantity",
+                    "unit",
+                    "note",
                     "supplier_id",
                     "supplier_name",
                     "image_url"
@@ -4294,8 +4353,14 @@
                         "type": "string",
                         "format": "uuid"
                     },
-                    "product_id": {
+                    "item_type": {
                         "type": "string"
+                    },
+                    "product_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "product_name": {
                         "type": "string"
@@ -4305,6 +4370,18 @@
                     },
                     "requested_quantity": {
                         "type": "integer"
+                    },
+                    "unit": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "selected_quantity": {
                         "type": [
@@ -4321,10 +4398,13 @@
                 },
                 "required": [
                     "id",
+                    "item_type",
                     "product_id",
                     "product_name",
                     "unit_price",
                     "requested_quantity",
+                    "unit",
+                    "note",
                     "selected_quantity",
                     "image_url"
                 ],
@@ -4569,14 +4649,32 @@
                         "type": "string",
                         "format": "uuid"
                     },
-                    "product_id": {
+                    "item_type": {
                         "type": "string"
+                    },
+                    "product_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "product_name": {
                         "type": "string"
                     },
                     "requested_quantity": {
                         "type": "integer"
+                    },
+                    "unit": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "order_unit_price": {
                         "type": "string"
@@ -4625,9 +4723,12 @@
                 },
                 "required": [
                     "id",
+                    "item_type",
                     "product_id",
                     "product_name",
                     "requested_quantity",
+                    "unit",
+                    "note",
                     "order_unit_price",
                     "supplier",
                     "response",

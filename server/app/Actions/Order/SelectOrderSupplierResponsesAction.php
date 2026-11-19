@@ -140,6 +140,14 @@ class SelectOrderSupplierResponsesAction
 
                 $orderItemId = (string) $orderItem->id;
 
+                if (array_key_exists($orderItemId, $selectedTotalsByOrderItem)) {
+                    throw ValidationException::withMessages([
+                        "selections.$index.order_recipient_item_response_id" => [
+                            'Only one supplier response can be selected for each order item.',
+                        ],
+                    ]);
+                }
+
                 $selectedTotalsByOrderItem[$orderItemId] =
                     ($selectedTotalsByOrderItem[$orderItemId] ?? 0)
                     + $selectedQuantity;

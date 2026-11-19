@@ -6,7 +6,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
-  test('v15 to v16 preserves data and adds active cart selection', () async {
+  test('v15 to v16 creates active selection and preserves cart data', () async {
     final directory = await Directory.systemTemp.createTemp(
       'talbatiyk-v15-v16-',
     );
@@ -25,7 +25,7 @@ void main() {
         DateTime.utc(2026, 11, 4, 12).millisecondsSinceEpoch ~/ 1000;
 
     // Prepare a v15-equivalent fixture from the current schema.
-    // The only v16 addition is removed before setting user_version=15.
+    // The v16 active-selection addition is removed before setting user_version=15.
     final original = AppDatabase.forTesting(NativeDatabase(file));
 
     try {
@@ -113,7 +113,7 @@ void main() {
     final raw = sqlite.sqlite3.open(file.path);
 
     try {
-      expect(raw.select('PRAGMA user_version;').single.values.single, 16);
+      expect(raw.select('PRAGMA user_version;').single.values.single, 17);
 
       final selectionTable = raw.select(
         "SELECT name FROM sqlite_master "
@@ -148,14 +148,14 @@ void main() {
           .select(upgraded.cartActiveSelectionRecords)
           .get();
 
-      expect(upgraded.schemaVersion, 16);
+      expect(upgraded.schemaVersion, 17);
       expect(selections, isEmpty);
 
       final version = await upgraded
           .customSelect('PRAGMA user_version;')
           .getSingle();
 
-      expect(version.read<int>('user_version'), 16);
+      expect(version.read<int>('user_version'), 17);
 
       final carts = await upgraded
           .customSelect(
@@ -174,7 +174,7 @@ void main() {
       final items = await upgraded
           .customSelect(
             'SELECT id, cart_id, kind, product_id, '
-            'product_name, cart_quantity '
+            'product_name, price, cart_quantity '
             'FROM cart_item_records ORDER BY id;',
           )
           .get();
@@ -185,6 +185,7 @@ void main() {
       expect(items[0].read<String>('kind'), 'catalog');
       expect(items[0].read<String>('product_id'), 'product-1');
       expect(items[0].read<int>('cart_quantity'), 3);
+      expect(items[0].read<double>('price'), 4500.0);
 
       expect(items[1].read<String>('id'), 'item-manual');
       expect(items[1].read<String>('cart_id'), 'cart-b');
@@ -192,6 +193,7 @@ void main() {
       expect(items[1].data['product_id'], isNull);
       expect(items[1].read<String>('product_name'), 'Manual Product');
       expect(items[1].read<int>('cart_quantity'), 2);
+      expect(items[1].read<double>('price'), 2500.0);
 
       final orders = await upgraded
           .customSelect(

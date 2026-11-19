@@ -51,16 +51,36 @@ class OrdersRemoteDataSource implements OrdersDataSource {
         BuiltList<CreateOrderRequestItemsInner>(
           request.items.map(
             (item) => CreateOrderRequestItemsInner((itemBuilder) {
-              /*
-               * Flutter sends the commercial values it observed.
-               * Laravel resolves the authoritative Product snapshot and
-               * rejects stale price/supplier expectations explicitly.
-               */
+              itemBuilder.quantity = item.quantity;
+
+              if (item.isManual) {
+                itemBuilder
+                  ..itemType = CreateOrderRequestItemsInnerItemTypeEnum.manual
+                  ..name = item.productName
+                  ..unitPrice = item.unitPrice
+                  ..unit = item.unit
+                  ..note = item.note;
+                return;
+              }
+
+              final productId = item.productId;
+              final supplierId = item.supplierId;
+
+              if (item.itemType != 'catalog' ||
+                  productId == null ||
+                  productId.trim().isEmpty ||
+                  supplierId == null ||
+                  supplierId.trim().isEmpty) {
+                throw const FormatException(
+                  'A catalog order item requires a product and supplier.',
+                );
+              }
+
+              // Preserve the catalog request shape for idempotent retries.
               itemBuilder
-                ..productId = item.productId
-                ..quantity = item.quantity
+                ..productId = productId
                 ..expectedUnitPrice = item.unitPrice
-                ..expectedSupplierId = item.supplierId;
+                ..expectedSupplierId = supplierId;
             }),
           ),
         ),
@@ -105,8 +125,11 @@ class OrdersRemoteDataSource implements OrdersDataSource {
               unitPrice: double.parse(item.unitPrice),
               quantity: item.quantity,
               supplierId: item.supplierId,
-              supplierName: item.supplierName,
+              supplierName: item.supplierName ?? '',
               imageUrl: item.imageUrl ?? '',
+              itemType: item.itemType,
+              unit: item.unit,
+              note: item.note,
             ),
           )
           .toList(growable: false),

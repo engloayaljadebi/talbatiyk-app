@@ -52,7 +52,7 @@ void main() {
     );
 
     test(
-      'posts the request through generated API and maps created order',
+      'posts catalog and manual items with their exact API fields',
       () async {
         final adapter = _RecordingHttpClientAdapter(
           responseBody: _orderStoreEnvelope(),
@@ -81,6 +81,17 @@ void main() {
               supplierId: 'supplier-1',
               supplierName: 'Supplier 1',
             ),
+            OrderItemModel(
+              itemType: 'manual',
+              productId: null,
+              productName: 'Bulk rice',
+              unitPrice: 12.5,
+              quantity: 3,
+              supplierId: null,
+              supplierName: '',
+              unit: 'kg',
+              note: 'Unopened bags',
+            ),
           ],
           notes: 'Call before delivery',
         );
@@ -105,6 +116,14 @@ void main() {
               'quantity': 2,
               'expected_unit_price': 4500.0,
               'expected_supplier_id': 'supplier-1',
+            },
+            {
+              'item_type': 'manual',
+              'name': 'Bulk rice',
+              'unit_price': 12.5,
+              'quantity': 3,
+              'unit': 'kg',
+              'note': 'Unopened bags',
             },
           ],
           'notes': 'Call before delivery',
@@ -146,6 +165,9 @@ Map<String, dynamic> _orderJson({required String aggregateStatus}) {
     'items': [
       {
         'id': 'order-item-1',
+        'item_type': 'catalog',
+        'unit': null,
+        'note': null,
         'product_id': 'product-1',
         'product_name': 'Fast charger',
         'unit_price': '4500.00',
