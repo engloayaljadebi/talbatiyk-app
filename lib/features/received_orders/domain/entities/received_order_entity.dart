@@ -36,7 +36,7 @@ final class ReceivedOrderItemEntity {
   });
 
   final String id;
-  final String productId;
+  final String? productId;
   final String productName;
   final String unitPrice;
   final int requestedQuantity;

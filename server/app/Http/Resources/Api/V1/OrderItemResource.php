@@ -20,6 +20,10 @@ class OrderItemResource extends JsonResource
             /** @format uuid */
             'id' => $this->id,
 
+            'item_type' => $this->item_type,
+
+            // Null for manual items.
+            /** @var string|null */
             'product_id' => $this->product_id,
             'product_name' => $this->product_name,
 
@@ -28,9 +32,18 @@ class OrderItemResource extends JsonResource
 
             'quantity' => $this->quantity,
 
-            /** @format uuid */
+            /** @var string|null */
+            'unit' => $this->unit,
+            /** @var string|null */
+            'note' => $this->note,
+
+            /**
+             * @var string|null
+             * @format uuid
+             */
             'supplier_id' => $this->supplier_id,
 
+            /** @var string|null */
             'supplier_name' => $this->supplier_name,
             'image_url' => PublicDiskUrl::resolve(
                 $this->image_url,

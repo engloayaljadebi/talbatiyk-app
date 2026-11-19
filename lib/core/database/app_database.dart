@@ -132,9 +132,9 @@ class OrderItemRecords extends Table {
   TextColumn get orderId =>
       text().references(OrderRecords, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get productId => text()();
+  TextColumn get productId => text().nullable()();
 
-  TextColumn get supplierId => text()();
+  TextColumn get supplierId => text().nullable()();
 
   TextColumn get supplierName => text().withDefault(const Constant(''))();
 
@@ -145,6 +145,13 @@ class OrderItemRecords extends Table {
   IntColumn get quantity => integer()();
 
   TextColumn get imageUrl => text().withDefault(const Constant(''))();
+
+  /// 'catalog' for a product-backed item, 'manual' for a typed item.
+  TextColumn get itemType => text().withDefault(const Constant('catalog'))();
+
+  TextColumn get unit => text().nullable()();
+
+  TextColumn get note => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -396,7 +403,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -513,7 +520,42 @@ class AppDatabase extends _$AppDatabase {
         if (from < 16 && to >= 16) {
           await _ensureCartActiveSelectionTable(m);
         }
+
+        if (from < 17 && to >= 17) {
+          await _migrateOrderItemsToV17(m);
+        }
       },
+    );
+  }
+
+  /// Rebuilds order_item_records for the v17 manual-item shape.
+  ///
+  /// product_id and supplier_id become nullable so a manual item can be stored
+  /// without a catalog product or supplier. Existing rows keep their data and
+  /// receive item_type = 'catalog'.
+  Future<void> _migrateOrderItemsToV17(Migrator m) async {
+    final existing = await customSelect(
+      "SELECT 1 FROM sqlite_master "
+      "WHERE type = 'table' "
+      "AND name = 'order_item_records' "
+      "LIMIT 1;",
+    ).get();
+
+    if (existing.isEmpty) {
+      // Historical fixtures may lack the table; create it in the v17 shape.
+      await m.createTable(orderItemRecords);
+      return;
+    }
+
+    await m.alterTable(
+      TableMigration(
+        orderItemRecords,
+        newColumns: [
+          orderItemRecords.itemType,
+          orderItemRecords.unit,
+          orderItemRecords.note,
+        ],
+      ),
     );
   }
 

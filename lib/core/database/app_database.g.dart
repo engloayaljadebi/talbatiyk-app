@@ -3907,9 +3907,9 @@ class $OrderItemRecordsTable extends OrderItemRecords
   late final GeneratedColumn<String> productId = GeneratedColumn<String>(
     'product_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _supplierIdMeta = const VerificationMeta(
     'supplierId',
@@ -3918,9 +3918,9 @@ class $OrderItemRecordsTable extends OrderItemRecords
   late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
     'supplier_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _supplierNameMeta = const VerificationMeta(
     'supplierName',
@@ -3979,6 +3979,36 @@ class $OrderItemRecordsTable extends OrderItemRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _itemTypeMeta = const VerificationMeta(
+    'itemType',
+  );
+  @override
+  late final GeneratedColumn<String> itemType = GeneratedColumn<String>(
+    'item_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('catalog'),
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3990,6 +4020,9 @@ class $OrderItemRecordsTable extends OrderItemRecords
     unitPrice,
     quantity,
     imageUrl,
+    itemType,
+    unit,
+    note,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4021,16 +4054,12 @@ class $OrderItemRecordsTable extends OrderItemRecords
         _productIdMeta,
         productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_productIdMeta);
     }
     if (data.containsKey('supplier_id')) {
       context.handle(
         _supplierIdMeta,
         supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_supplierIdMeta);
     }
     if (data.containsKey('supplier_name')) {
       context.handle(
@@ -4074,6 +4103,24 @@ class $OrderItemRecordsTable extends OrderItemRecords
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('item_type')) {
+      context.handle(
+        _itemTypeMeta,
+        itemType.isAcceptableOrUnknown(data['item_type']!, _itemTypeMeta),
+      );
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     return context;
   }
 
@@ -4094,11 +4141,11 @@ class $OrderItemRecordsTable extends OrderItemRecords
       productId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}product_id'],
-      )!,
+      ),
       supplierId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}supplier_id'],
-      )!,
+      ),
       supplierName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}supplier_name'],
@@ -4119,6 +4166,18 @@ class $OrderItemRecordsTable extends OrderItemRecords
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       )!,
+      itemType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_type'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
     );
   }
 
@@ -4131,36 +4190,55 @@ class $OrderItemRecordsTable extends OrderItemRecords
 class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
   final String id;
   final String orderId;
-  final String productId;
-  final String supplierId;
+  final String? productId;
+  final String? supplierId;
   final String supplierName;
   final String productName;
   final double unitPrice;
   final int quantity;
   final String imageUrl;
+
+  /// 'catalog' for a product-backed item, 'manual' for a typed item.
+  final String itemType;
+  final String? unit;
+  final String? note;
   const OrderItemRecord({
     required this.id,
     required this.orderId,
-    required this.productId,
-    required this.supplierId,
+    this.productId,
+    this.supplierId,
     required this.supplierName,
     required this.productName,
     required this.unitPrice,
     required this.quantity,
     required this.imageUrl,
+    required this.itemType,
+    this.unit,
+    this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['order_id'] = Variable<String>(orderId);
-    map['product_id'] = Variable<String>(productId);
-    map['supplier_id'] = Variable<String>(supplierId);
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    if (!nullToAbsent || supplierId != null) {
+      map['supplier_id'] = Variable<String>(supplierId);
+    }
     map['supplier_name'] = Variable<String>(supplierName);
     map['product_name'] = Variable<String>(productName);
     map['unit_price'] = Variable<double>(unitPrice);
     map['quantity'] = Variable<int>(quantity);
     map['image_url'] = Variable<String>(imageUrl);
+    map['item_type'] = Variable<String>(itemType);
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
     return map;
   }
 
@@ -4168,13 +4246,20 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
     return OrderItemRecordsCompanion(
       id: Value(id),
       orderId: Value(orderId),
-      productId: Value(productId),
-      supplierId: Value(supplierId),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+      supplierId: supplierId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierId),
       supplierName: Value(supplierName),
       productName: Value(productName),
       unitPrice: Value(unitPrice),
       quantity: Value(quantity),
       imageUrl: Value(imageUrl),
+      itemType: Value(itemType),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
 
@@ -4186,13 +4271,16 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
     return OrderItemRecord(
       id: serializer.fromJson<String>(json['id']),
       orderId: serializer.fromJson<String>(json['orderId']),
-      productId: serializer.fromJson<String>(json['productId']),
-      supplierId: serializer.fromJson<String>(json['supplierId']),
+      productId: serializer.fromJson<String?>(json['productId']),
+      supplierId: serializer.fromJson<String?>(json['supplierId']),
       supplierName: serializer.fromJson<String>(json['supplierName']),
       productName: serializer.fromJson<String>(json['productName']),
       unitPrice: serializer.fromJson<double>(json['unitPrice']),
       quantity: serializer.fromJson<int>(json['quantity']),
       imageUrl: serializer.fromJson<String>(json['imageUrl']),
+      itemType: serializer.fromJson<String>(json['itemType']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      note: serializer.fromJson<String?>(json['note']),
     );
   }
   @override
@@ -4201,36 +4289,45 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'orderId': serializer.toJson<String>(orderId),
-      'productId': serializer.toJson<String>(productId),
-      'supplierId': serializer.toJson<String>(supplierId),
+      'productId': serializer.toJson<String?>(productId),
+      'supplierId': serializer.toJson<String?>(supplierId),
       'supplierName': serializer.toJson<String>(supplierName),
       'productName': serializer.toJson<String>(productName),
       'unitPrice': serializer.toJson<double>(unitPrice),
       'quantity': serializer.toJson<int>(quantity),
       'imageUrl': serializer.toJson<String>(imageUrl),
+      'itemType': serializer.toJson<String>(itemType),
+      'unit': serializer.toJson<String?>(unit),
+      'note': serializer.toJson<String?>(note),
     };
   }
 
   OrderItemRecord copyWith({
     String? id,
     String? orderId,
-    String? productId,
-    String? supplierId,
+    Value<String?> productId = const Value.absent(),
+    Value<String?> supplierId = const Value.absent(),
     String? supplierName,
     String? productName,
     double? unitPrice,
     int? quantity,
     String? imageUrl,
+    String? itemType,
+    Value<String?> unit = const Value.absent(),
+    Value<String?> note = const Value.absent(),
   }) => OrderItemRecord(
     id: id ?? this.id,
     orderId: orderId ?? this.orderId,
-    productId: productId ?? this.productId,
-    supplierId: supplierId ?? this.supplierId,
+    productId: productId.present ? productId.value : this.productId,
+    supplierId: supplierId.present ? supplierId.value : this.supplierId,
     supplierName: supplierName ?? this.supplierName,
     productName: productName ?? this.productName,
     unitPrice: unitPrice ?? this.unitPrice,
     quantity: quantity ?? this.quantity,
     imageUrl: imageUrl ?? this.imageUrl,
+    itemType: itemType ?? this.itemType,
+    unit: unit.present ? unit.value : this.unit,
+    note: note.present ? note.value : this.note,
   );
   OrderItemRecord copyWithCompanion(OrderItemRecordsCompanion data) {
     return OrderItemRecord(
@@ -4249,6 +4346,9 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
       unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      itemType: data.itemType.present ? data.itemType.value : this.itemType,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      note: data.note.present ? data.note.value : this.note,
     );
   }
 
@@ -4263,7 +4363,10 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
           ..write('productName: $productName, ')
           ..write('unitPrice: $unitPrice, ')
           ..write('quantity: $quantity, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('itemType: $itemType, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -4279,6 +4382,9 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
     unitPrice,
     quantity,
     imageUrl,
+    itemType,
+    unit,
+    note,
   );
   @override
   bool operator ==(Object other) =>
@@ -4292,19 +4398,25 @@ class OrderItemRecord extends DataClass implements Insertable<OrderItemRecord> {
           other.productName == this.productName &&
           other.unitPrice == this.unitPrice &&
           other.quantity == this.quantity &&
-          other.imageUrl == this.imageUrl);
+          other.imageUrl == this.imageUrl &&
+          other.itemType == this.itemType &&
+          other.unit == this.unit &&
+          other.note == this.note);
 }
 
 class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
   final Value<String> id;
   final Value<String> orderId;
-  final Value<String> productId;
-  final Value<String> supplierId;
+  final Value<String?> productId;
+  final Value<String?> supplierId;
   final Value<String> supplierName;
   final Value<String> productName;
   final Value<double> unitPrice;
   final Value<int> quantity;
   final Value<String> imageUrl;
+  final Value<String> itemType;
+  final Value<String?> unit;
+  final Value<String?> note;
   final Value<int> rowid;
   const OrderItemRecordsCompanion({
     this.id = const Value.absent(),
@@ -4316,23 +4428,27 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
     this.unitPrice = const Value.absent(),
     this.quantity = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.itemType = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrderItemRecordsCompanion.insert({
     required String id,
     required String orderId,
-    required String productId,
-    required String supplierId,
+    this.productId = const Value.absent(),
+    this.supplierId = const Value.absent(),
     this.supplierName = const Value.absent(),
     required String productName,
     required double unitPrice,
     required int quantity,
     this.imageUrl = const Value.absent(),
+    this.itemType = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        orderId = Value(orderId),
-       productId = Value(productId),
-       supplierId = Value(supplierId),
        productName = Value(productName),
        unitPrice = Value(unitPrice),
        quantity = Value(quantity);
@@ -4346,6 +4462,9 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
     Expression<double>? unitPrice,
     Expression<int>? quantity,
     Expression<String>? imageUrl,
+    Expression<String>? itemType,
+    Expression<String>? unit,
+    Expression<String>? note,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4358,6 +4477,9 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
       if (unitPrice != null) 'unit_price': unitPrice,
       if (quantity != null) 'quantity': quantity,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (itemType != null) 'item_type': itemType,
+      if (unit != null) 'unit': unit,
+      if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4365,13 +4487,16 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
   OrderItemRecordsCompanion copyWith({
     Value<String>? id,
     Value<String>? orderId,
-    Value<String>? productId,
-    Value<String>? supplierId,
+    Value<String?>? productId,
+    Value<String?>? supplierId,
     Value<String>? supplierName,
     Value<String>? productName,
     Value<double>? unitPrice,
     Value<int>? quantity,
     Value<String>? imageUrl,
+    Value<String>? itemType,
+    Value<String?>? unit,
+    Value<String?>? note,
     Value<int>? rowid,
   }) {
     return OrderItemRecordsCompanion(
@@ -4384,6 +4509,9 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
       unitPrice: unitPrice ?? this.unitPrice,
       quantity: quantity ?? this.quantity,
       imageUrl: imageUrl ?? this.imageUrl,
+      itemType: itemType ?? this.itemType,
+      unit: unit ?? this.unit,
+      note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4418,6 +4546,15 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (itemType.present) {
+      map['item_type'] = Variable<String>(itemType.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4436,6 +4573,9 @@ class OrderItemRecordsCompanion extends UpdateCompanion<OrderItemRecord> {
           ..write('unitPrice: $unitPrice, ')
           ..write('quantity: $quantity, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('itemType: $itemType, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9791,26 +9931,32 @@ typedef $$OrderItemRecordsTableCreateCompanionBuilder =
     OrderItemRecordsCompanion Function({
       required String id,
       required String orderId,
-      required String productId,
-      required String supplierId,
+      Value<String?> productId,
+      Value<String?> supplierId,
       Value<String> supplierName,
       required String productName,
       required double unitPrice,
       required int quantity,
       Value<String> imageUrl,
+      Value<String> itemType,
+      Value<String?> unit,
+      Value<String?> note,
       Value<int> rowid,
     });
 typedef $$OrderItemRecordsTableUpdateCompanionBuilder =
     OrderItemRecordsCompanion Function({
       Value<String> id,
       Value<String> orderId,
-      Value<String> productId,
-      Value<String> supplierId,
+      Value<String?> productId,
+      Value<String?> supplierId,
       Value<String> supplierName,
       Value<String> productName,
       Value<double> unitPrice,
       Value<int> quantity,
       Value<String> imageUrl,
+      Value<String> itemType,
+      Value<String?> unit,
+      Value<String?> note,
       Value<int> rowid,
     });
 
@@ -9890,6 +10036,21 @@ class $$OrderItemRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get itemType => $composableBuilder(
+    column: $table.itemType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$OrderRecordsTableFilterComposer get orderId {
     final $$OrderRecordsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -9963,6 +10124,21 @@ class $$OrderItemRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get itemType => $composableBuilder(
+    column: $table.itemType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$OrderRecordsTableOrderingComposer get orderId {
     final $$OrderRecordsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -10026,6 +10202,15 @@ class $$OrderItemRecordsTableAnnotationComposer
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
 
+  GeneratedColumn<String> get itemType =>
+      $composableBuilder(column: $table.itemType, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
   $$OrderRecordsTableAnnotationComposer get orderId {
     final $$OrderRecordsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -10082,13 +10267,16 @@ class $$OrderItemRecordsTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> orderId = const Value.absent(),
-                Value<String> productId = const Value.absent(),
-                Value<String> supplierId = const Value.absent(),
+                Value<String?> productId = const Value.absent(),
+                Value<String?> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 Value<String> productName = const Value.absent(),
                 Value<double> unitPrice = const Value.absent(),
                 Value<int> quantity = const Value.absent(),
                 Value<String> imageUrl = const Value.absent(),
+                Value<String> itemType = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderItemRecordsCompanion(
                 id: id,
@@ -10100,19 +10288,25 @@ class $$OrderItemRecordsTableTableManager
                 unitPrice: unitPrice,
                 quantity: quantity,
                 imageUrl: imageUrl,
+                itemType: itemType,
+                unit: unit,
+                note: note,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String id,
                 required String orderId,
-                required String productId,
-                required String supplierId,
+                Value<String?> productId = const Value.absent(),
+                Value<String?> supplierId = const Value.absent(),
                 Value<String> supplierName = const Value.absent(),
                 required String productName,
                 required double unitPrice,
                 required int quantity,
                 Value<String> imageUrl = const Value.absent(),
+                Value<String> itemType = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderItemRecordsCompanion.insert(
                 id: id,
@@ -10124,6 +10318,9 @@ class $$OrderItemRecordsTableTableManager
                 unitPrice: unitPrice,
                 quantity: quantity,
                 imageUrl: imageUrl,
+                itemType: itemType,
+                unit: unit,
+                note: note,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

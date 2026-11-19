@@ -10,13 +10,19 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
   @override
   final String id;
   @override
-  final String productId;
+  final String itemType;
+  @override
+  final String? productId;
   @override
   final String productName;
   @override
   final String unitPrice;
   @override
   final int requestedQuantity;
+  @override
+  final String? unit;
+  @override
+  final String? note;
   @override
   final int? selectedQuantity;
   @override
@@ -28,10 +34,13 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
 
   _$OrderRecipientItemResource._(
       {required this.id,
-      required this.productId,
+      required this.itemType,
+      this.productId,
       required this.productName,
       required this.unitPrice,
       required this.requestedQuantity,
+      this.unit,
+      this.note,
       this.selectedQuantity,
       this.imageUrl})
       : super._();
@@ -49,10 +58,13 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
     if (identical(other, this)) return true;
     return other is OrderRecipientItemResource &&
         id == other.id &&
+        itemType == other.itemType &&
         productId == other.productId &&
         productName == other.productName &&
         unitPrice == other.unitPrice &&
         requestedQuantity == other.requestedQuantity &&
+        unit == other.unit &&
+        note == other.note &&
         selectedQuantity == other.selectedQuantity &&
         imageUrl == other.imageUrl;
   }
@@ -61,10 +73,13 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, itemType.hashCode);
     _$hash = $jc(_$hash, productId.hashCode);
     _$hash = $jc(_$hash, productName.hashCode);
     _$hash = $jc(_$hash, unitPrice.hashCode);
     _$hash = $jc(_$hash, requestedQuantity.hashCode);
+    _$hash = $jc(_$hash, unit.hashCode);
+    _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, selectedQuantity.hashCode);
     _$hash = $jc(_$hash, imageUrl.hashCode);
     _$hash = $jf(_$hash);
@@ -75,10 +90,13 @@ class _$OrderRecipientItemResource extends OrderRecipientItemResource {
   String toString() {
     return (newBuiltValueToStringHelper(r'OrderRecipientItemResource')
           ..add('id', id)
+          ..add('itemType', itemType)
           ..add('productId', productId)
           ..add('productName', productName)
           ..add('unitPrice', unitPrice)
           ..add('requestedQuantity', requestedQuantity)
+          ..add('unit', unit)
+          ..add('note', note)
           ..add('selectedQuantity', selectedQuantity)
           ..add('imageUrl', imageUrl))
         .toString();
@@ -93,6 +111,10 @@ class OrderRecipientItemResourceBuilder
   String? _id;
   String? get id => _$this._id;
   set id(String? id) => _$this._id = id;
+
+  String? _itemType;
+  String? get itemType => _$this._itemType;
+  set itemType(String? itemType) => _$this._itemType = itemType;
 
   String? _productId;
   String? get productId => _$this._productId;
@@ -111,6 +133,14 @@ class OrderRecipientItemResourceBuilder
   set requestedQuantity(int? requestedQuantity) =>
       _$this._requestedQuantity = requestedQuantity;
 
+  String? _unit;
+  String? get unit => _$this._unit;
+  set unit(String? unit) => _$this._unit = unit;
+
+  String? _note;
+  String? get note => _$this._note;
+  set note(String? note) => _$this._note = note;
+
   int? _selectedQuantity;
   int? get selectedQuantity => _$this._selectedQuantity;
   set selectedQuantity(int? selectedQuantity) =>
@@ -128,10 +158,13 @@ class OrderRecipientItemResourceBuilder
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
+      _itemType = $v.itemType;
       _productId = $v.productId;
       _productName = $v.productName;
       _unitPrice = $v.unitPrice;
       _requestedQuantity = $v.requestedQuantity;
+      _unit = $v.unit;
+      _note = $v.note;
       _selectedQuantity = $v.selectedQuantity;
       _imageUrl = $v.imageUrl;
       _$v = null;
@@ -157,8 +190,9 @@ class OrderRecipientItemResourceBuilder
         _$OrderRecipientItemResource._(
           id: BuiltValueNullFieldError.checkNotNull(
               id, r'OrderRecipientItemResource', 'id'),
-          productId: BuiltValueNullFieldError.checkNotNull(
-              productId, r'OrderRecipientItemResource', 'productId'),
+          itemType: BuiltValueNullFieldError.checkNotNull(
+              itemType, r'OrderRecipientItemResource', 'itemType'),
+          productId: productId,
           productName: BuiltValueNullFieldError.checkNotNull(
               productName, r'OrderRecipientItemResource', 'productName'),
           unitPrice: BuiltValueNullFieldError.checkNotNull(
@@ -167,6 +201,8 @@ class OrderRecipientItemResourceBuilder
               requestedQuantity,
               r'OrderRecipientItemResource',
               'requestedQuantity'),
+          unit: unit,
+          note: note,
           selectedQuantity: selectedQuantity,
           imageUrl: imageUrl,
         );

@@ -19,10 +19,18 @@ class OrderRecipientItemResource extends JsonResource
             /** @format uuid */
             'id' => $this->id,
 
+            'item_type' => $orderItem->item_type,
+
+            // Null for manual items.
+            /** @var string|null */
             'product_id' => $orderItem->product_id,
             'product_name' => $orderItem->product_name,
             'unit_price' => $orderItem->unit_price,
             'requested_quantity' => $orderItem->quantity,
+            /** @var string|null */
+            'unit' => $orderItem->unit,
+            /** @var string|null */
+            'note' => $orderItem->note,
 
             /** @var int|null */
             'selected_quantity' => $selectedQuantity,

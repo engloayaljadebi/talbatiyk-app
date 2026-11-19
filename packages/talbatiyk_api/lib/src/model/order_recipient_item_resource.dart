@@ -12,10 +12,13 @@ part 'order_recipient_item_resource.g.dart';
 ///
 /// Properties:
 /// * [id] 
+/// * [itemType] 
 /// * [productId] 
 /// * [productName] 
 /// * [unitPrice] 
 /// * [requestedQuantity] 
+/// * [unit] 
+/// * [note] 
 /// * [selectedQuantity] 
 /// * [imageUrl] 
 @BuiltValue()
@@ -23,8 +26,11 @@ abstract class OrderRecipientItemResource implements Built<OrderRecipientItemRes
   @BuiltValueField(wireName: r'id')
   String get id;
 
+  @BuiltValueField(wireName: r'item_type')
+  String get itemType;
+
   @BuiltValueField(wireName: r'product_id')
-  String get productId;
+  String? get productId;
 
   @BuiltValueField(wireName: r'product_name')
   String get productName;
@@ -34,6 +40,12 @@ abstract class OrderRecipientItemResource implements Built<OrderRecipientItemRes
 
   @BuiltValueField(wireName: r'requested_quantity')
   int get requestedQuantity;
+
+  @BuiltValueField(wireName: r'unit')
+  String? get unit;
+
+  @BuiltValueField(wireName: r'note')
+  String? get note;
 
   @BuiltValueField(wireName: r'selected_quantity')
   int? get selectedQuantity;
@@ -69,10 +81,15 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
       object.id,
       specifiedType: const FullType(String),
     );
-    yield r'product_id';
+    yield r'item_type';
     yield serializers.serialize(
-      object.productId,
+      object.itemType,
       specifiedType: const FullType(String),
+    );
+    yield r'product_id';
+    yield object.productId == null ? null : serializers.serialize(
+      object.productId,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'product_name';
     yield serializers.serialize(
@@ -88,6 +105,16 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
     yield serializers.serialize(
       object.requestedQuantity,
       specifiedType: const FullType(int),
+    );
+    yield r'unit';
+    yield object.unit == null ? null : serializers.serialize(
+      object.unit,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'note';
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'selected_quantity';
     yield object.selectedQuantity == null ? null : serializers.serialize(
@@ -129,11 +156,19 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
           ) as String;
           result.id = valueDes;
           break;
-        case r'product_id':
+        case r'item_type':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
+          result.itemType = valueDes;
+          break;
+        case r'product_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.productId = valueDes;
           break;
         case r'product_name':
@@ -156,6 +191,22 @@ class _$OrderRecipientItemResourceSerializer implements PrimitiveSerializer<Orde
             specifiedType: const FullType(int),
           ) as int;
           result.requestedQuantity = valueDes;
+          break;
+        case r'unit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.unit = valueDes;
+          break;
+        case r'note':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.note = valueDes;
           break;
         case r'selected_quantity':
           final valueDes = serializers.deserialize(

@@ -109,11 +109,21 @@ void main() {
     final firstItems = await accountA.getItemsForCart(first.id);
     final secondItems = await accountA.getItemsForCart(second.id);
 
-    expect(firstItems, hasLength(1));
-    expect(firstItems.single.product.id, 'new-product');
-    expect(firstItems.single.quantity, 6);
-
+    expect(firstItems, hasLength(2));
     expect(secondItems, hasLength(1));
+
+    final firstCatalog = firstItems.singleWhere((item) => !item.isManual);
+
+    final firstManual = firstItems.singleWhere((item) => item.isManual);
+
+    expect(firstCatalog.product.id, 'new-product');
+    expect(firstCatalog.quantity, 6);
+
+    expect(firstManual.id, 'manual-sentinel');
+    expect(firstManual.product.name, 'Manual item');
+    expect(firstManual.unitPrice, 900);
+    expect(firstManual.quantity, 2);
+
     expect(secondItems.single.product.id, 'other-product');
     expect(secondItems.single.quantity, 4);
 

@@ -16,6 +16,13 @@ use Illuminate\Validation\Validator;
 | Product name, supplier name and image are server-authoritative snapshots
 | and therefore are not required from the client.
 |
+| An item is one of two types:
+|
+| - catalog (default when item_type is omitted): references a Product and
+|   carries the price and supplier Flutter observed.
+| - manual: typed by the customer. It has no Product and no source supplier
+|   and carries its own name, unit price, quantity, unit and note.
+|
 */
 class CreateOrderRequest extends FormRequest
 {
@@ -61,11 +68,25 @@ class CreateOrderRequest extends FormRequest
             ],
 
             /*
+             * Omitted or null means catalog. The value is intentionally not
+             * injected into the validated data so that the idempotency
+             * payload hash of existing clients stays unchanged.
+             */
+            'items.*.item_type' => [
+                'nullable',
+                'string',
+                'in:catalog,manual',
+            ],
+
+            /*
+             * Catalog items only.
+             *
              * Product existence is commercial state and must be validated
              * after idempotency replay lookup inside OrderService.
              */
             'items.*.product_id' => [
-                'required',
+                'required_unless:items.*.item_type,manual',
+                'prohibited_if:items.*.item_type,manual',
                 'uuid',
             ],
 
@@ -76,12 +97,15 @@ class CreateOrderRequest extends FormRequest
             ],
 
             /*
+             * Catalog items only.
+             *
              * This is the price Flutter observed when the user confirmed.
              * Laravel compares it with Product.price and never stores it
              * as the authoritative order price.
              */
             'items.*.expected_unit_price' => [
-                'required',
+                'required_unless:items.*.item_type,manual',
+                'prohibited_if:items.*.item_type,manual',
                 'numeric',
                 'decimal:0,2',
                 'min:0',
@@ -89,12 +113,51 @@ class CreateOrderRequest extends FormRequest
             ],
 
             /*
+             * Catalog items only.
+             *
              * This is a concurrency expectation, not the authoritative
              * supplier. Laravel resolves the real supplier from Product.
              */
             'items.*.expected_supplier_id' => [
-                'required',
+                'required_unless:items.*.item_type,manual',
+                'prohibited_if:items.*.item_type,manual',
                 'uuid',
+            ],
+
+            /*
+             * Manual items only.
+             *
+             * The name is stored in order_items.product_name and the price
+             * in order_items.unit_price. A manual item has one price only.
+             */
+            'items.*.name' => [
+                'required_if:items.*.item_type,manual',
+                'prohibited_unless:items.*.item_type,manual',
+                'string',
+                'max:255',
+            ],
+
+            'items.*.unit_price' => [
+                'required_if:items.*.item_type,manual',
+                'prohibited_unless:items.*.item_type,manual',
+                'numeric',
+                'decimal:0,2',
+                'min:0',
+                'lt:10000000000',
+            ],
+
+            'items.*.unit' => [
+                'nullable',
+                'prohibited_unless:items.*.item_type,manual',
+                'string',
+                'max:50',
+            ],
+
+            'items.*.note' => [
+                'nullable',
+                'prohibited_unless:items.*.item_type,manual',
+                'string',
+                'max:1000',
             ],
         ];
     }

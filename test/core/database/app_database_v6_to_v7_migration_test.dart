@@ -8,7 +8,7 @@ import 'package:talbatiyk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
-    test('migrates persisted data from v6 through v15 without loss', () async {
+    test('migrates persisted data from v6 through v17 without loss', () async {
       final tempDirectory = await Directory.systemTemp.createTemp(
         'talbatiyk-drift-v6-v7-',
       );
@@ -69,7 +69,7 @@ void main() {
 
         expect(foreignKeyErrors, isEmpty);
 
-        expect(database.schemaVersion, 16);
+        expect(database.schemaVersion, 17);
 
         // v7 table was created by MigrationStrategy and starts empty.
         expect(notifications, isEmpty);
@@ -132,7 +132,7 @@ void main() {
         await database.close();
       }
 
-      expect(_readUserVersion(databaseFile), 16);
+      expect(_readUserVersion(databaseFile), 17);
     });
   });
 }
@@ -158,9 +158,9 @@ Future<void> _createExactV6Fixture(File file) async {
   try {
     final currentVersion = _userVersion(rawDatabase);
 
-    if (currentVersion != 16) {
+    if (currentVersion != 17) {
       throw StateError(
-        'Fixture precondition failed: expected current schema v15, '
+        'Fixture precondition failed: expected current schema v17, '
         'found v$currentVersion.',
       );
     }

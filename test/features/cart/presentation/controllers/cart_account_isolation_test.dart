@@ -90,7 +90,22 @@ void main() {
     await accountB.replaceItems([]);
 
     expect(await accountB.getItems(), isEmpty);
-    expect((await accountA.getItems()).single.quantity, 4);
+    final accountAItems = await accountA.getItems();
+
+    expect(accountAItems, hasLength(2));
+
+    final catalogItem = accountAItems.singleWhere((item) => !item.isManual);
+
+    final manualItem = accountAItems.singleWhere((item) => item.isManual);
+
+    expect(catalogItem.product.id, 'shared-product');
+    expect(catalogItem.quantity, 4);
+
+    expect(manualItem.id, 'manual-item-A');
+    expect(manualItem.product.name, 'Manual product');
+    expect(manualItem.unitPrice, 500);
+    expect(manualItem.quantity, 3);
+    expect(manualItem.catalogProductId, isNull);
 
     // No authenticated owner: fail closed.
     expect(await guest.getItems(), isEmpty);

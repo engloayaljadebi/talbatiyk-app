@@ -117,6 +117,7 @@ final class _CountingAdapter implements HttpClientAdapter {
     "items": [
       {
         "id": "22222222-2222-4222-8222-222222222222",
+        "item_type": "catalog",
         "product_id": "product-1",
         "product_name": "Product One",
         "requested_quantity": 3,

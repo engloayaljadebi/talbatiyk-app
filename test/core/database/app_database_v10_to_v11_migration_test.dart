@@ -59,7 +59,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 16);
+      expect(upgraded.schemaVersion, 17);
 
       final attemptTables = await upgraded
           .customSelect(
@@ -148,7 +148,7 @@ void main() {
 
       addTearDown(upgraded.close);
 
-      expect(upgraded.schemaVersion, 16);
+      expect(upgraded.schemaVersion, 17);
 
       final repairedColumns = await upgraded
           .customSelect("PRAGMA table_info('product_discovery_records');")

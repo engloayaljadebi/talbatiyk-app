@@ -9,9 +9,12 @@ import 'package:talbatiyk_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
+**itemType** | **String** |  | 
 **productId** | **String** |  | 
 **productName** | **String** |  | 
 **requestedQuantity** | **int** |  | 
+**unit** | **String** |  | 
+**note** | **String** |  | 
 **orderUnitPrice** | **String** |  | 
 **supplier** | [**OrderResponseComparisonItemResourceSupplier**](OrderResponseComparisonItemResourceSupplier.md) |  | 
 **response** | [**OrderRecipientItemResponseResource**](OrderRecipientItemResponseResource.md) |  | 

@@ -80,6 +80,9 @@ class OrdersMapper {
       supplierId: dto.supplierId,
       supplierName: dto.supplierName,
       imageUrl: dto.imageUrl,
+      itemType: dto.itemType,
+      unit: dto.unit,
+      note: dto.note,
     );
   }
 
@@ -92,6 +95,9 @@ class OrdersMapper {
       supplierId: model.supplierId,
       supplierName: model.supplierName,
       imageUrl: model.imageUrl,
+      itemType: model.itemType,
+      unit: model.unit,
+      note: model.note,
     );
   }
 
@@ -104,6 +110,9 @@ class OrdersMapper {
       supplierId: entity.supplierId,
       supplierName: entity.supplierName,
       imageUrl: entity.imageUrl,
+      itemType: entity.itemType,
+      unit: entity.unit,
+      note: entity.note,
     );
   }
 

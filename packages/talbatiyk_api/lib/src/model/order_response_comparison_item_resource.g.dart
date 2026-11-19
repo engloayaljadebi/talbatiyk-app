@@ -11,11 +11,17 @@ class _$OrderResponseComparisonItemResource
   @override
   final String id;
   @override
-  final String productId;
+  final String itemType;
+  @override
+  final String? productId;
   @override
   final String productName;
   @override
   final int requestedQuantity;
+  @override
+  final String? unit;
+  @override
+  final String? note;
   @override
   final String orderUnitPrice;
   @override
@@ -32,9 +38,12 @@ class _$OrderResponseComparisonItemResource
 
   _$OrderResponseComparisonItemResource._(
       {required this.id,
-      required this.productId,
+      required this.itemType,
+      this.productId,
       required this.productName,
       required this.requestedQuantity,
+      this.unit,
+      this.note,
       required this.orderUnitPrice,
       required this.supplier,
       this.response,
@@ -54,9 +63,12 @@ class _$OrderResponseComparisonItemResource
     if (identical(other, this)) return true;
     return other is OrderResponseComparisonItemResource &&
         id == other.id &&
+        itemType == other.itemType &&
         productId == other.productId &&
         productName == other.productName &&
         requestedQuantity == other.requestedQuantity &&
+        unit == other.unit &&
+        note == other.note &&
         orderUnitPrice == other.orderUnitPrice &&
         supplier == other.supplier &&
         response == other.response &&
@@ -67,9 +79,12 @@ class _$OrderResponseComparisonItemResource
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, itemType.hashCode);
     _$hash = $jc(_$hash, productId.hashCode);
     _$hash = $jc(_$hash, productName.hashCode);
     _$hash = $jc(_$hash, requestedQuantity.hashCode);
+    _$hash = $jc(_$hash, unit.hashCode);
+    _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, orderUnitPrice.hashCode);
     _$hash = $jc(_$hash, supplier.hashCode);
     _$hash = $jc(_$hash, response.hashCode);
@@ -82,9 +97,12 @@ class _$OrderResponseComparisonItemResource
   String toString() {
     return (newBuiltValueToStringHelper(r'OrderResponseComparisonItemResource')
           ..add('id', id)
+          ..add('itemType', itemType)
           ..add('productId', productId)
           ..add('productName', productName)
           ..add('requestedQuantity', requestedQuantity)
+          ..add('unit', unit)
+          ..add('note', note)
           ..add('orderUnitPrice', orderUnitPrice)
           ..add('supplier', supplier)
           ..add('response', response)
@@ -103,6 +121,10 @@ class OrderResponseComparisonItemResourceBuilder
   String? get id => _$this._id;
   set id(String? id) => _$this._id = id;
 
+  String? _itemType;
+  String? get itemType => _$this._itemType;
+  set itemType(String? itemType) => _$this._itemType = itemType;
+
   String? _productId;
   String? get productId => _$this._productId;
   set productId(String? productId) => _$this._productId = productId;
@@ -115,6 +137,14 @@ class OrderResponseComparisonItemResourceBuilder
   int? get requestedQuantity => _$this._requestedQuantity;
   set requestedQuantity(int? requestedQuantity) =>
       _$this._requestedQuantity = requestedQuantity;
+
+  String? _unit;
+  String? get unit => _$this._unit;
+  set unit(String? unit) => _$this._unit = unit;
+
+  String? _note;
+  String? get note => _$this._note;
+  set note(String? note) => _$this._note = note;
 
   String? _orderUnitPrice;
   String? get orderUnitPrice => _$this._orderUnitPrice;
@@ -147,9 +177,12 @@ class OrderResponseComparisonItemResourceBuilder
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
+      _itemType = $v.itemType;
       _productId = $v.productId;
       _productName = $v.productName;
       _requestedQuantity = $v.requestedQuantity;
+      _unit = $v.unit;
+      _note = $v.note;
       _orderUnitPrice = $v.orderUnitPrice;
       _supplier = $v.supplier.toBuilder();
       _response = $v.response?.toBuilder();
@@ -180,14 +213,17 @@ class OrderResponseComparisonItemResourceBuilder
           _$OrderResponseComparisonItemResource._(
             id: BuiltValueNullFieldError.checkNotNull(
                 id, r'OrderResponseComparisonItemResource', 'id'),
-            productId: BuiltValueNullFieldError.checkNotNull(
-                productId, r'OrderResponseComparisonItemResource', 'productId'),
+            itemType: BuiltValueNullFieldError.checkNotNull(
+                itemType, r'OrderResponseComparisonItemResource', 'itemType'),
+            productId: productId,
             productName: BuiltValueNullFieldError.checkNotNull(productName,
                 r'OrderResponseComparisonItemResource', 'productName'),
             requestedQuantity: BuiltValueNullFieldError.checkNotNull(
                 requestedQuantity,
                 r'OrderResponseComparisonItemResource',
                 'requestedQuantity'),
+            unit: unit,
+            note: note,
             orderUnitPrice: BuiltValueNullFieldError.checkNotNull(
                 orderUnitPrice,
                 r'OrderResponseComparisonItemResource',

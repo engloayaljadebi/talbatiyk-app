@@ -9,10 +9,13 @@ import 'package:talbatiyk_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
+**itemType** | **String** |  | 
 **productId** | **String** |  | 
 **productName** | **String** |  | 
 **unitPrice** | **String** |  | 
 **requestedQuantity** | **int** |  | 
+**unit** | **String** |  | 
+**note** | **String** |  | 
 **selectedQuantity** | **int** |  | 
 **imageUrl** | **String** |  | 
 

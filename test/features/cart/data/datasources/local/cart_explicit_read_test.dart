@@ -39,7 +39,7 @@ void main() {
     );
   }
 
-  test('reads only catalog items of the requested cart', () async {
+  test('reads catalog and manual items only from the requested cart', () async {
     final first = await accountA.createCart('السلة الأولى');
     final second = await accountA.createCart('السلة الثانية');
 
@@ -73,13 +73,22 @@ void main() {
     final secondItems = await accountA.getItemsForCart(second.id);
 
     expect(firstItems, hasLength(1));
-    expect(secondItems, hasLength(1));
+    expect(secondItems, hasLength(2));
 
     expect(firstItems.single.product.name, 'منتج السلة الأولى');
-    expect(secondItems.single.product.name, 'منتج السلة الثانية');
-
     expect(firstItems.single.product.id, 'shared-product');
-    expect(secondItems.single.product.id, 'shared-product');
+
+    final secondCatalog = secondItems.singleWhere((item) => !item.isManual);
+
+    final secondManual = secondItems.singleWhere((item) => item.isManual);
+
+    expect(secondCatalog.product.name, 'منتج السلة الثانية');
+    expect(secondCatalog.product.id, 'shared-product');
+
+    expect(secondManual.id, 'row-manual');
+    expect(secondManual.product.name, 'صنف يدوي محفوظ');
+    expect(secondManual.catalogProductId, isNull);
+    expect(secondManual.unitPrice, 1500.0);
 
     final manualRows = await database
         .customSelect(

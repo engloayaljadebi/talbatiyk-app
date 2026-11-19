@@ -20,15 +20,23 @@ class OrderItemModel {
     required this.supplierId,
     required this.supplierName,
     this.imageUrl = '',
+    this.itemType = 'catalog',
+    this.unit,
+    this.note,
   });
 
-  final String productId;
+  final String? productId;
   final String productName;
   final double unitPrice;
   final int quantity;
-  final String supplierId;
+  final String? supplierId;
+  final String itemType;
+  final String? unit;
+  final String? note;
   final String supplierName;
   final String imageUrl;
+
+  bool get isManual => itemType == 'manual';
 
   Map<String, dynamic> toJson() {
     return {
@@ -39,6 +47,7 @@ class OrderItemModel {
       'supplier_id': supplierId,
       'supplier_name': supplierName,
       'image_url': imageUrl,
+      if (isManual) ...{'item_type': itemType, 'unit': unit, 'note': note},
     };
   }
 }

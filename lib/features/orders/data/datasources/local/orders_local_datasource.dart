@@ -9,10 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../orders_datasource.dart';
 
 class OrdersLocalDataSource implements OrdersDataSource {
-  OrdersLocalDataSource(
-    this._database, {
-    required this._sessionFence,
-  });
+  OrdersLocalDataSource(this._database, {required this._sessionFence});
 
   final AppDatabase _database;
   final AccountSessionFence _sessionFence;
@@ -548,13 +545,16 @@ class OrdersLocalDataSource implements OrdersDataSource {
             OrderItemRecordsCompanion.insert(
               id: '${order.id}-item-$index',
               orderId: order.id,
-              productId: item.productId,
-              supplierId: item.supplierId,
+              productId: Value(item.productId),
+              supplierId: Value(item.supplierId),
               supplierName: Value(item.supplierName),
               productName: item.productName,
               unitPrice: item.unitPrice,
               quantity: item.quantity,
               imageUrl: Value(item.imageUrl),
+              itemType: Value(item.itemType),
+              unit: Value(item.unit),
+              note: Value(item.note),
             ),
           );
     }
@@ -577,6 +577,11 @@ class OrdersLocalDataSource implements OrdersDataSource {
               'supplierId': item.supplierId,
               'supplierName': item.supplierName,
               'imageUrl': item.imageUrl,
+              if (item.isManual) ...{
+                'itemType': item.itemType,
+                'unit': item.unit,
+                'note': item.note,
+              },
             },
           )
           .toList(growable: false),
@@ -592,6 +597,9 @@ class OrdersLocalDataSource implements OrdersDataSource {
       supplierId: row.supplierId,
       supplierName: row.supplierName,
       imageUrl: row.imageUrl,
+      itemType: row.itemType,
+      unit: row.unit,
+      note: row.note,
     );
   }
 }

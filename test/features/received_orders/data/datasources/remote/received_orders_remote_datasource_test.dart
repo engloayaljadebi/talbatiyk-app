@@ -75,6 +75,7 @@ void main() {
               'items': [
                 {
                   'id': itemId,
+                  'item_type': 'catalog',
                   'product_id': '55555555-5555-4555-8555-555555555555',
                   'product_name': 'Product One',
                   'unit_price': '12.50',
@@ -274,6 +275,7 @@ void main() {
               'items': [
                 {
                   'id': itemId,
+                  'item_type': 'catalog',
                   'product_id': '55555555-5555-4555-8555-555555555555',
                   'product_name': 'Product One',
                   'unit_price': '12.50',

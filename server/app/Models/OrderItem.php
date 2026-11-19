@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'supplier_id',
     'supplier_name',
     'image_url',
+    'item_type',
+    'unit',
+    'note',
 ])]
 class OrderItem extends Model
 {
