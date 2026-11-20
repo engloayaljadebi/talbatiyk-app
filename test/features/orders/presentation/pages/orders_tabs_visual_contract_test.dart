@@ -14,9 +14,9 @@ void main() {
 
     expect(source, contains('indicatorSize: TabBarIndicatorSize.tab'));
 
-    expect(source, contains('colors.primary.withValues(alpha: 0.10)'));
+    expect(source, contains('colors.primaryContainer'));
 
-    expect(source, contains('colors.surfaceContainerLow'));
+    expect(source, contains('ordersCanvasColor(colors)'));
 
     expect(source, isNot(contains('bottom: const TabBar(')));
   });

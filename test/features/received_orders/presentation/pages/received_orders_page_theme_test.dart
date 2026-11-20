@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/theme/app_theme.dart';
+import 'package:talbatiyk/features/orders/presentation/widgets/order_card_surface.dart';
 import 'package:talbatiyk/features/received_orders/domain/entities/received_order_entity.dart';
 import 'package:talbatiyk/features/received_orders/domain/repositories/received_orders_repository.dart';
 import 'package:talbatiyk/features/received_orders/domain/usecases/received_orders_usecase.dart';
@@ -41,7 +42,8 @@ final class _MockReceivedOrdersRepository implements ReceivedOrdersRepository {
 }
 
 ReceivedOrderEntity _createSampleOrder({
-  ReceivedOrderFulfillmentStatus? status = ReceivedOrderFulfillmentStatus.confirmed,
+  ReceivedOrderFulfillmentStatus? status =
+      ReceivedOrderFulfillmentStatus.confirmed,
 }) {
   return ReceivedOrderEntity(
     id: 'recipient-1',
@@ -87,9 +89,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            receivedOrdersControllerProvider('business-1').overrideWith(
-              (ref) => controller,
-            ),
+            receivedOrdersControllerProvider(
+              'business-1',
+            ).overrideWith((ref) => controller),
           ],
           child: MaterialApp(
             theme: AppTheme.light,
@@ -101,13 +103,23 @@ void main() {
 
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
       final theme = AppTheme.light;
-      expect(scaffold.backgroundColor, equals(theme.colorScheme.surfaceContainerLowest));
-
-      final cardBoxes = tester.widgetList<DecoratedBox>(find.byType(DecoratedBox));
-      final cardBox = cardBoxes.firstWhere(
-        (box) => (box.decoration as BoxDecoration).color == theme.colorScheme.surface,
+      expect(
+        scaffold.backgroundColor,
+        equals(theme.colorScheme.surfaceContainer),
       );
-      expect((cardBox.decoration as BoxDecoration).color, equals(theme.colorScheme.surface));
+
+      final cardInk = tester.widget<Ink>(
+        find
+            .descendant(
+              of: find.byType(OrderCardSurface),
+              matching: find.byType(Ink),
+            )
+            .first,
+      );
+      final gradient =
+          (cardInk.decoration as BoxDecoration).gradient! as LinearGradient;
+      expect(gradient.colors.first, equals(theme.colorScheme.surface));
+      expect(gradient.colors.last, isNot(equals(gradient.colors.first)));
 
       expect(find.text('الطلبات'), findsOneWidget);
       expect(find.text('الطلبات المستلمة'), findsOneWidget);
@@ -135,9 +147,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            receivedOrdersControllerProvider('business-1').overrideWith(
-              (ref) => controller,
-            ),
+            receivedOrdersControllerProvider(
+              'business-1',
+            ).overrideWith((ref) => controller),
           ],
           child: MaterialApp(
             theme: darkTheme,
@@ -148,19 +160,34 @@ void main() {
       await tester.pumpAndSettle();
 
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-      expect(scaffold.backgroundColor, equals(darkTheme.colorScheme.surfaceContainerLowest));
-
-      final cardBoxes = tester.widgetList<DecoratedBox>(find.byType(DecoratedBox));
-      final cardBox = cardBoxes.firstWhere(
-        (box) => (box.decoration as BoxDecoration).color == darkTheme.colorScheme.surface,
+      expect(
+        scaffold.backgroundColor,
+        equals(darkTheme.colorScheme.surfaceContainer),
       );
-      expect((cardBox.decoration as BoxDecoration).color, equals(darkTheme.colorScheme.surface));
+
+      final cardInk = tester.widget<Ink>(
+        find
+            .descendant(
+              of: find.byType(OrderCardSurface),
+              matching: find.byType(Ink),
+            )
+            .first,
+      );
+      final gradient =
+          (cardInk.decoration as BoxDecoration).gradient! as LinearGradient;
+      expect(
+        gradient.colors.first,
+        equals(darkTheme.colorScheme.surfaceContainerHigh),
+      );
+      expect(gradient.colors.last, isNot(equals(gradient.colors.first)));
 
       expect(find.text('الطلبات'), findsOneWidget);
       expect(find.text('الطلبات المستلمة'), findsOneWidget);
     });
 
-    testWidgets('renders embedded mode matching parent background', (tester) async {
+    testWidgets('renders embedded mode matching parent background', (
+      tester,
+    ) async {
       repository.orders = [_createSampleOrder()];
 
       final controller = ReceivedOrdersController(
@@ -173,9 +200,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            receivedOrdersControllerProvider('business-1').overrideWith(
-              (ref) => controller,
-            ),
+            receivedOrdersControllerProvider(
+              'business-1',
+            ).overrideWith((ref) => controller),
           ],
           child: MaterialApp(
             theme: AppTheme.light,
@@ -190,11 +217,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final coloredBoxes = tester.widgetList<ColoredBox>(find.byType(ColoredBox));
-      final embeddedCanvas = coloredBoxes.firstWhere(
-        (box) => box.color == AppTheme.light.colorScheme.surfaceContainerLowest,
+      final coloredBoxes = tester.widgetList<ColoredBox>(
+        find.byType(ColoredBox),
       );
-      expect(embeddedCanvas.color, equals(AppTheme.light.colorScheme.surfaceContainerLowest));
+      final embeddedCanvas = coloredBoxes.firstWhere(
+        (box) => box.color == AppTheme.light.colorScheme.surfaceContainer,
+      );
+      expect(
+        embeddedCanvas.color,
+        equals(AppTheme.light.colorScheme.surfaceContainer),
+      );
     });
 
     testWidgets('renders empty state in Light and Dark Mode', (tester) async {
@@ -217,9 +249,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            receivedOrdersControllerProvider('business-1').overrideWith(
-              (ref) => controller,
-            ),
+            receivedOrdersControllerProvider(
+              'business-1',
+            ).overrideWith((ref) => controller),
           ],
           child: MaterialApp(
             theme: darkTheme,
