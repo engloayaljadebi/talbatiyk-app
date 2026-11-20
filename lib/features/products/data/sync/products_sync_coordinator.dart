@@ -70,6 +70,10 @@ final class ProductsSyncCoordinator {
           await _syncDelete(operation, lease);
         }
       }
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 401) {
+        rethrow;
+      }
     } finally {
       _isSyncing = false;
     }
@@ -164,6 +168,10 @@ final class ProductsSyncCoordinator {
         lease.ensureCurrent();
       });
     } catch (error) {
+      if (error is DioException && error.response?.statusCode == 401) {
+        rethrow;
+      }
+
       lease.ensureCurrent();
       if (_isPermanentRemoteFailure(error)) {
         await _markPermanentFailure(
@@ -239,6 +247,10 @@ final class ProductsSyncCoordinator {
         lease.ensureCurrent();
       });
     } catch (error) {
+      if (error is DioException && error.response?.statusCode == 401) {
+        rethrow;
+      }
+
       lease.ensureCurrent();
       if (_isPermanentRemoteFailure(error)) {
         await _markPermanentFailure(
@@ -382,7 +394,6 @@ final class ProductsSyncCoordinator {
 
     return statusCode >= 400 &&
         statusCode < 500 &&
-        statusCode != 401 &&
         statusCode != 408 &&
         statusCode != 429;
   }

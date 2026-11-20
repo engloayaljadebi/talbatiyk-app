@@ -29,6 +29,8 @@
 |
 */
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
 
@@ -40,9 +42,19 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/auth_usecase.dart';
 import '../controllers/auth_controller.dart';
 
+final _authSessionExpiryProvider = Provider<StreamController<void>>((ref) {
+  final events = StreamController<void>.broadcast(sync: true);
+  ref.onDispose(events.close);
+  return events;
+});
+
 /// يوفر مصدر المصادقة البعيد المرتبط بعميل OpenAPI.
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   final apiClient = ref.watch(generatedApiClientProvider);
+  final events = ref.watch(_authSessionExpiryProvider);
+
+  apiClient.onSessionExpired = () => events.add(null);
+  ref.onDispose(() => apiClient.onSessionExpired = null);
 
   return AuthRemoteDataSourceImpl(apiClient);
 });
@@ -91,5 +103,22 @@ final authUseCaseProvider = Provider<AuthUseCase>((ref) {
 /// AuthController سيبدأ تلقائيًا بمحاولة restoreSession()
 /// عند أول استخدام للـProvider.
 final authProvider = ChangeNotifierProvider<AuthController>((ref) {
-  return AuthController(ref.watch(authUseCaseProvider));
+  final controller = AuthController(ref.watch(authUseCaseProvider));
+  final events = ref.watch(_authSessionExpiryProvider);
+
+  final subscription = events.stream.listen((_) {
+    final tokenStorage = ref.read(authTokenStorageProvider);
+    final sessionStorage = ref.read(verifiedAuthSessionStorageProvider);
+
+    controller.handleSessionExpired(() async {
+      try {
+        await tokenStorage.deleteAccessToken();
+      } finally {
+        await sessionStorage.deleteVerifiedSession();
+      }
+    });
+  });
+  ref.onDispose(subscription.cancel);
+
+  return controller;
 });

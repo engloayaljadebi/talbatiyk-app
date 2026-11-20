@@ -67,7 +67,14 @@ final class OrdersSyncCoordinator {
 
       for (final SyncOperation operation in operations) {
         lease.ensureCurrent();
-        await _syncCreate(operation, lease);
+        try {
+          await _syncCreate(operation, lease);
+        } on DioException catch (error) {
+          if (error.response?.statusCode == 401) {
+            return;
+          }
+          rethrow;
+        }
       }
     } finally {
       _isSyncing = false;
@@ -142,6 +149,10 @@ final class OrdersSyncCoordinator {
         serverOrderId: remoteOrder.id,
       );
     } catch (error) {
+      if (error is DioException && error.response?.statusCode == 401) {
+        rethrow;
+      }
+
       lease.ensureCurrent();
 
       if (_isPermanentRemoteFailure(error)) {
@@ -155,7 +166,6 @@ final class OrdersSyncCoordinator {
       }
 
       // أخطاء الاتصال، 408/429/5xx، والنتائج الغامضة تبقى Retryable.
-      // 401 يبقى هنا مؤقتًا إلى أن نعالج Auth/Offline policy في blocker مستقل.
       await _localDataSource.markCreateSyncRetry(
         operationId: operation.id,
         attempts: attempts,
@@ -176,11 +186,9 @@ final class OrdersSyncCoordinator {
       return false;
     }
 
-    // 401 مرتبط بالـsession وقد ينجح بعد استعادة Authentication.
     // 408 و429 حالات مؤقتة بطبيعتها، لذلك تبقى Retryable.
     return statusCode >= 400 &&
         statusCode < 500 &&
-        statusCode != 401 &&
         statusCode != 408 &&
         statusCode != 429;
   }

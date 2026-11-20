@@ -72,6 +72,46 @@ void main() {
       expect(controller.state.isBusy, isFalse);
     });
 
+    test('login waits for expired session cleanup', () async {
+      await controller.restoreSession();
+      expect(controller.state.status, AuthStatus.authenticated);
+
+      final cleanup = Completer<void>();
+      var cleanupCalls = 0;
+
+      Future<void> clearSavedSession() {
+        cleanupCalls++;
+        return cleanup.future;
+      }
+
+      controller.handleSessionExpired(clearSavedSession);
+      controller.handleSessionExpired(clearSavedSession);
+
+      expect(cleanupCalls, 1);
+      expect(controller.state.status, AuthStatus.unauthenticated);
+      expect(controller.state.session, isNull);
+
+      final newSession = AuthSessionEntity(user: user);
+      repository.loginResult = newSession;
+      final login = controller.login(
+        login: user.username,
+        password: 'test-password',
+        deviceName: 'test-device',
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.state.status, AuthStatus.authenticating);
+      expect(repository.loginCalled, isFalse);
+
+      cleanup.complete();
+
+      expect(await login, isTrue);
+      expect(repository.loginCalled, isTrue);
+      expect(repository.logoutCalled, isFalse);
+      expect(controller.state.status, AuthStatus.authenticated);
+      expect(controller.state.session, same(newSession));
+    });
+
     test('fetchRegistrationCategories returns available categories', () async {
       repository.registrationCategories = [
         (id: 'category-1', name: 'Category One'),

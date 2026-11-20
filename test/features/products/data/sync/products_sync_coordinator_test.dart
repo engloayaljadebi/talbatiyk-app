@@ -89,6 +89,56 @@ void main() {
     },
   );
 
+  test('resumes product image replacement after HTTP 401', () async {
+    await _seedProduct(
+      local,
+      id: 'image-auth-expiry',
+      version: 7,
+      imageUrl: 'https://server.test/old.jpg',
+    );
+
+    await local.updateProduct(
+      _editedProduct(
+        id: 'image-auth-expiry',
+        imageUrl: '',
+        localImagePath: '/local/replacement.jpg',
+      ),
+    );
+
+    final outbox = database.select(database.syncOperations);
+    final before = await outbox.getSingle();
+
+    // Let metadata succeed, then reject the following image upload.
+    remote.afterMetadataSuccess = () => remote.failureStatus = 401;
+    await coordinator.syncPendingProducts();
+
+    expect(remote.metadataExpectedVersions, [7]);
+    expect(remote.mutationCalls, 2);
+    expect(remote.imageExpectedVersions, isEmpty);
+    expect(await outbox.getSingle(), before);
+
+    remote.afterMetadataSuccess = null;
+    remote.failureStatus = null;
+    final resumedCoordinator = ProductsSyncCoordinator(
+      localDataSource: local,
+      remoteDataSource: remote,
+      sessionFence: createLegacyOrderTestFence(),
+    );
+    await resumedCoordinator.syncPendingProducts();
+
+    expect(remote.metadataExpectedVersions, [7, 7]);
+    expect(remote.imageExpectedVersions, [8]);
+    expect(await outbox.get(), isEmpty);
+
+    final record = await (database.select(
+      database.productRecords,
+    )..where((row) => row.id.equals('image-auth-expiry'))).getSingle();
+    expect(record.serverVersion, 9);
+    expect(record.syncStatus, ProductSyncStatus.synced.name);
+    expect(record.localImagePath, null);
+    expect(record.remoteImageUrl, 'https://server.test/new.jpg');
+  });
+
   test('repeated offline edit preserves durable remove image intent', () async {
     await _seedProduct(
       local,
@@ -132,6 +182,52 @@ void main() {
     expect(record.remoteImageUrl, null);
     expect(record.syncStatus, ProductSyncStatus.synced.name);
   });
+
+  for (final firstOperation in ['update', 'delete']) {
+    test('stops on HTTP 401 during product $firstOperation', () async {
+      const imageUrl = 'https://server.test/old.jpg';
+      await _seedProduct(
+        local,
+        id: 'update-product',
+        version: 4,
+        imageUrl: imageUrl,
+      );
+      await _seedProduct(
+        local,
+        id: 'delete-product',
+        version: 7,
+        imageUrl: imageUrl,
+      );
+
+      await local.updateProduct(
+        _editedProduct(id: 'update-product', imageUrl: imageUrl),
+      );
+      await local.deleteProduct('delete-product');
+
+      final firstRow = database.update(database.syncOperations)
+        ..where((row) => row.operation.equals(firstOperation));
+      await firstRow.write(
+        SyncOperationsCompanion(createdAt: Value(DateTime.utc(2026, 1, 1))),
+      );
+
+      final before = await database.select(database.syncOperations).get();
+      expect(before, hasLength(2));
+      remote.failureStatus = 401;
+
+      await coordinator.syncPendingProducts();
+
+      expect(remote.mutationCalls, 1);
+      final after = await database.select(database.syncOperations).get();
+      expect(after, unorderedEquals(before));
+
+      remote.failureStatus = null;
+      await coordinator.syncPendingProducts();
+
+      expect(remote.metadataExpectedVersions, [4]);
+      expect(remote.deleteExpectedVersions, [7]);
+      expect(await database.select(database.syncOperations).get(), isEmpty);
+    });
+  }
 
   test('HTTP 409 becomes permanent conflict instead of retry loop', () async {
     await _seedProduct(
@@ -506,6 +602,7 @@ ProductModel _editedProduct({
 final class _FakeMutationRemoteDataSource
     implements ProductsMutationRemoteDataSource {
   int? failureStatus;
+  int mutationCalls = 0;
   void Function()? afterMetadataSuccess;
 
   final List<int> metadataExpectedVersions = <int>[];
@@ -578,6 +675,7 @@ final class _FakeMutationRemoteDataSource
   }
 
   void _throwIfConfigured() {
+    mutationCalls++;
     final status = failureStatus;
 
     if (status == null) {
