@@ -58,6 +58,19 @@ final class GeneratedApiClient {
           options.headers['Authorization'] = 'Bearer $token';
           handler.next(options);
         },
+        onError: (error, handler) {
+          final requestRevision =
+              error.requestOptions.extra[_orderAuthRevisionExtraKey];
+
+          if (error.response?.statusCode == 401 &&
+              requestRevision == _authRevision &&
+              _accessToken != null) {
+            clearAccessToken();
+            onSessionExpired?.call();
+          }
+
+          handler.next(error);
+        },
       ),
     );
   }
@@ -70,6 +83,8 @@ final class GeneratedApiClient {
 
   String? _accessToken;
   int _authRevision = 0;
+
+  void Function()? onSessionExpired;
 
   factory GeneratedApiClient.create({String? baseUrl}) {
     return GeneratedApiClient._(

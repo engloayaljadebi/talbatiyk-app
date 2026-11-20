@@ -33,6 +33,31 @@ final class AuthController extends ChangeNotifier {
   }
 
   final AuthUseCase _useCase;
+  Future<void>? _expiredSessionCleanup;
+
+  void handleSessionExpired(Future<void> Function() clearSavedSession) {
+    if (!state.isAuthenticated || state.isRegistering) {
+      return;
+    }
+
+    _expiredSessionCleanup = _clearExpiredSession(clearSavedSession);
+    state = state.copyWith(
+      status: AuthStatus.unauthenticated,
+      clearSession: true,
+      errorMessage: 'انتهت جلستك. سجّل الدخول للمتابعة.',
+    );
+    notifyListeners();
+  }
+
+  Future<void> _clearExpiredSession(
+    Future<void> Function() clearSavedSession,
+  ) async {
+    try {
+      await clearSavedSession();
+    } catch (_) {
+      debugPrint('Failed to clear the expired session from secure storage.');
+    }
+  }
 
   /// الحالة الحالية للمصادقة.
   AuthState state = const AuthState();
@@ -46,6 +71,10 @@ final class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final cleanup = _expiredSessionCleanup;
+      if (cleanup != null) {
+        await cleanup;
+      }
       final session = await _useCase.restoreSession();
 
       if (session == null) {
@@ -92,6 +121,10 @@ final class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final cleanup = _expiredSessionCleanup;
+      if (cleanup != null) {
+        await cleanup;
+      }
       final session = await _useCase.login(
         login: login,
         password: password,
@@ -139,6 +172,10 @@ final class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final cleanup = _expiredSessionCleanup;
+      if (cleanup != null) {
+        await cleanup;
+      }
       final session = await _useCase.registerFromMobile(payload);
 
       state = state.copyWith(

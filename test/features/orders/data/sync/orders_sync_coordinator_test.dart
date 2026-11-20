@@ -289,6 +289,64 @@ void main() {
       expect(remote.createCalls, 1);
       expect(secondOperation.attempts, 1);
     });
+    test('stops the batch on HTTP 401 and keeps queued orders', () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+
+      final sessionFence = createLegacyOrderTestFence();
+      final local = OrdersLocalDataSource(
+        database,
+        sessionFence: sessionFence,
+      );
+
+      for (final note in ['First queued order', 'Second queued order']) {
+        await local.createOrder(
+          CreateOrderModel(
+            supplierIds: const ['supplier-1'],
+            notes: note,
+            items: const [
+              OrderItemModel(
+                productId: 'product-1',
+                productName: 'Product 1',
+                unitPrice: 100,
+                quantity: 1,
+                supplierId: 'supplier-1',
+                supplierName: 'Supplier 1',
+              ),
+            ],
+          ),
+        );
+      }
+
+      final before = await database.select(database.syncOperations).get();
+      expect(before, hasLength(2));
+
+      final requestOptions = RequestOptions(path: '/orders');
+      final remote = _FakeOrdersDataSource(
+        createError: DioException(
+          requestOptions: requestOptions,
+          response: Response<dynamic>(
+            requestOptions: requestOptions,
+            statusCode: 401,
+          ),
+          type: DioExceptionType.badResponse,
+        ),
+      );
+
+      final coordinator = OrdersSyncCoordinator(
+        sessionFence: sessionFence,
+        database: database,
+        localDataSource: local,
+        remoteDataSource: remote,
+      );
+
+      await coordinator.syncPendingOrders();
+
+      expect(remote.createCalls, 1);
+      final after = await database.select(database.syncOperations).get();
+      expect(after, unorderedEquals(before));
+    });
+
     test('keeps HTTP 503 retryable with backoff', () async {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
 
