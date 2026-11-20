@@ -14,10 +14,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class OrderSupplierSelectionFulfillmentIntegrationTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -179,12 +181,15 @@ class OrderSupplierSelectionFulfillmentIntegrationTest extends TestCase
     private function fixture(): array
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = Business::query()->create([
             'name' => 'Selection fulfillment supplier',
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach(
             'supplier',

@@ -10,10 +10,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class ProductPublishingApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private const PUBLISH_IDEMPOTENCY_KEY =
@@ -92,6 +94,7 @@ class ProductPublishingApiTest extends TestCase
             'status' => 'active',
         ]);
 
+        $this->joinMarket($customer, $this->market());
         Sanctum::actingAs($customer);
 
         $this->getJson('/api/v1/products?per_page=100')
@@ -549,6 +552,8 @@ class ProductPublishingApiTest extends TestCase
             'enabled_at' => now(),
             'disabled_at' => null,
         ]);
+
+        $business->categories()->attach($this->market()->id);
 
         return $business;
     }

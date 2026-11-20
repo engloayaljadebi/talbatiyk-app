@@ -15,10 +15,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderFulfillmentLifecycleTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -158,6 +160,7 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
     public function test_two_suppliers_progress_independently(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $memberA = User::factory()->create();
         $memberB = User::factory()->create();
@@ -444,6 +447,7 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
     private function fixture(): array
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -561,6 +565,8 @@ class SupplierOrderFulfillmentLifecycleTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach(
             'supplier',

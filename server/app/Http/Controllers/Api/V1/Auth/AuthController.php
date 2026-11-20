@@ -64,7 +64,7 @@ class AuthController extends Controller
     ): JsonResponse {
         $items = [];
 
-        foreach ($categories->selectableLeafOptions() as $id => $name) {
+        foreach ($categories->registrationOptions() as $id => $name) {
             $items[] = [
                 'id' => $id,
                 'name' => $name,

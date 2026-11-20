@@ -12,10 +12,12 @@ use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderReceptionApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private const FIRST_PRODUCT_ID = '00000000-0000-4000-8000-000000000401';
@@ -32,6 +34,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_order_creation_broadcasts_all_items_to_selected_suppliers(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $firstSupplier = $this->createSupplier('First recipient supplier');
         $secondSupplier = $this->createSupplier('Second recipient supplier');
 
@@ -99,6 +102,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_active_member_lists_only_recipient_for_requested_supplier(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $firstSupplier = $this->createSupplier(
@@ -159,6 +163,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_user_without_membership_cannot_read_supplier_orders(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Private supplier');
 
         Sanctum::actingAs($user);
@@ -173,6 +178,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_suspended_membership_cannot_read_supplier_orders(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier(
             'Suspended membership supplier',
             member: $user,
@@ -191,6 +197,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_left_membership_cannot_read_supplier_orders(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             'Left membership supplier',
@@ -210,6 +217,7 @@ class SupplierOrderReceptionApiTest extends TestCase
     public function test_historical_received_order_remains_visible_after_supplier_capability_is_disabled(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -253,6 +261,8 @@ class SupplierOrderReceptionApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),

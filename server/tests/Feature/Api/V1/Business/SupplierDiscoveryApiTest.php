@@ -8,10 +8,12 @@ use App\Models\User;
 use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierDiscoveryApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -31,10 +33,14 @@ class SupplierDiscoveryApiTest extends TestCase
     public function test_active_supplier_is_returned_without_requiring_membership(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Visible supplier',
         );
+
+        $otherMarket = $this->createSupplier(name: 'Other market supplier');
+        $otherMarket->categories()->sync($this->market('other_market')->id);
 
         /*
          * Supplier discovery is customer-facing RFQ discovery.
@@ -68,6 +74,7 @@ class SupplierDiscoveryApiTest extends TestCase
     public function test_ineligible_businesses_are_omitted(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $visible = $this->createSupplier(
             name: 'Eligible supplier',
@@ -124,6 +131,7 @@ class SupplierDiscoveryApiTest extends TestCase
     public function test_retired_supplier_capability_is_omitted(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Retired capability supplier',
@@ -149,6 +157,7 @@ class SupplierDiscoveryApiTest extends TestCase
     public function test_suppliers_are_ordered_by_name(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplierZ = $this->createSupplier(
             name: 'Zulu supplier',
@@ -182,6 +191,16 @@ class SupplierDiscoveryApiTest extends TestCase
             );
     }
 
+    public function test_account_without_a_market_does_not_receive_suppliers(): void
+    {
+        $this->createSupplier(name: 'Active supplier');
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->getJson('/api/v1/suppliers')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
     private function createSupplier(
         string $name,
         string $status = 'active',
@@ -203,6 +222,8 @@ class SupplierDiscoveryApiTest extends TestCase
                         : null,
                 ],
             );
+
+        $supplier->categories()->attach($this->market()->id);
 
         return $supplier;
     }

@@ -95,6 +95,7 @@ class AuthService
                 $business = $this->onboarding->create(
                     $user,
                     $businessData,
+                    registration: true,
                 );
             }
 

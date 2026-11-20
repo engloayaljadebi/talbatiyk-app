@@ -32,6 +32,7 @@ class ProductController extends Controller
         IndexProductsRequest $request,
     ): AnonymousResourceCollection {
         $products = $this->discoveryService->getDiscoverableProducts(
+            $request->user(),
             (int) $request->validated('per_page', 20),
         );
 

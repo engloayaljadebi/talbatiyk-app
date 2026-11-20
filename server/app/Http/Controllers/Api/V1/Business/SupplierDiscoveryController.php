@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Business;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\SupplierSummaryResource;
 use App\Services\Business\SupplierDiscoveryService;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SupplierDiscoveryController extends Controller
@@ -13,10 +14,10 @@ class SupplierDiscoveryController extends Controller
         private readonly SupplierDiscoveryService $supplierDiscoveryService,
     ) {}
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
         return SupplierSummaryResource::collection(
-            $this->supplierDiscoveryService->available(),
+            $this->supplierDiscoveryService->available($request->user()),
         );
     }
 }

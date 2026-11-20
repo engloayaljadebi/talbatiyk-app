@@ -18,10 +18,12 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class OrderResponseComparisonConcurrencyTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use DatabaseMigrations;
 
     private const PRODUCT_ID =
@@ -38,6 +40,7 @@ class OrderResponseComparisonConcurrencyTest extends TestCase
         $this->seed(BusinessCapabilitySeeder::class);
 
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $supplier = $this->createSupplier();
         $product = $this->createProduct($supplier);
 
@@ -276,6 +279,8 @@ class OrderResponseComparisonConcurrencyTest extends TestCase
             'name' => 'Selection concurrency supplier',
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),

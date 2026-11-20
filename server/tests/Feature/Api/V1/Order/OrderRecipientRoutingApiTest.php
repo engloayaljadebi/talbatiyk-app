@@ -10,10 +10,12 @@ use App\Models\User;
 use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class OrderRecipientRoutingApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -26,6 +28,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_supplier_ids_are_required(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $sourceSupplier = $this->createSupplier(
             'Required supplier source',
@@ -61,6 +64,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_supplier_ids_cannot_be_empty(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $sourceSupplier = $this->createSupplier(
             'Empty supplier source',
@@ -94,6 +98,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_each_supplier_id_must_be_uuid(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $sourceSupplier = $this->createSupplier(
             'UUID supplier source',
@@ -127,6 +132,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_supplier_ids_must_be_distinct(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             'Distinct supplier',
@@ -167,6 +173,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_selected_recipient_requires_active_supplier_capability(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $sourceSupplier = $this->createSupplier(
             'Eligible product source',
@@ -205,6 +212,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_single_selected_supplier_receives_entire_cross_source_basket(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $sourceSupplierA = $this->createSupplier(
             'Catalog source A',
@@ -315,6 +323,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_reordered_supplier_set_replays_same_idempotent_order(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplierA = $this->createSupplier(
             'Canonical supplier A',
@@ -374,6 +383,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_changed_supplier_set_conflicts_for_same_idempotency_key(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplierA = $this->createSupplier(
             'Conflict supplier A',
@@ -451,6 +461,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_manual_items_are_broadcast_to_every_selected_recipient_without_product_or_supplier(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $catalogSourceSupplier = $this->createSupplier(
             'Catalog source supplier',
@@ -562,6 +573,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     public function test_order_with_only_manual_items_is_created_for_selected_recipient(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $recipient = $this->createSupplier(
             'Manual only recipient',
@@ -608,9 +620,57 @@ class OrderRecipientRoutingApiTest extends TestCase
         );
     }
 
+    public function test_manual_order_rejects_a_recipient_from_another_market(): void
+    {
+        $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
+        $sameMarket = $this->createSupplier('Local supplier');
+        $otherMarket = $this->createSupplier('Other market supplier');
+        $otherMarket->categories()->sync($this->market('other_market')->id);
+
+        $this->withToken($this->tokenFor($user))
+            ->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/api/v1/orders', [
+                'supplier_ids' => [$sameMarket->id, $otherMarket->id],
+                'items' => [$this->manualItem()],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['supplier_ids']);
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_recipients', 0);
+    }
+
+    public function test_catalog_order_rejects_a_product_from_another_market(): void
+    {
+        $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
+        $recipient = $this->createSupplier('Local supplier');
+        $otherMarket = $this->createSupplier('Other market supplier');
+        $otherMarket->categories()->sync($this->market('other_market')->id);
+        $product = $this->createProduct($otherMarket, 'Other market item');
+
+        $this->withToken($this->tokenFor($user))
+            ->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/api/v1/orders', [
+                'supplier_ids' => [$recipient->id],
+                'items' => [[
+                    'product_id' => $product->id,
+                    'quantity' => 1,
+                    'expected_unit_price' => $product->price,
+                    'expected_supplier_id' => $otherMarket->id,
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['items.0.product_id']);
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     public function test_manual_items_reject_invalid_or_catalog_only_fields(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $recipient = $this->createSupplier(
             'Manual validation recipient',
@@ -726,6 +786,7 @@ class OrderRecipientRoutingApiTest extends TestCase
     private function createSupplier(string $name): Business
     {
         $supplier = $this->createBusiness($name);
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach(
             'supplier',

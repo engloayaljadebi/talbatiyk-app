@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
+import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
 import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
 import 'package:talbatiyk/features/products/data/models/products_model.dart';
 import 'package:talbatiyk/features/products/presentation/providers/products_provider.dart';
@@ -41,10 +46,11 @@ void main() {
   );
 
   test(
-    'discovery persists remote snapshot in dedicated cache and reuses it offline',
+    'discovery rejects stale product cache and responses after a session switch',
     () async {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
 
+      var session = _session('market-a');
       final remoteDataSource = _ControllableProductsDataSource(
         products: const [
           ProductModel(
@@ -67,6 +73,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(database),
+          accountSessionFenceProvider.overrideWithValue(
+            AccountSessionFence(() => session),
+          ),
           productDiscoveryRemoteDataSourceProvider.overrideWithValue(
             remoteDataSource,
           ),
@@ -83,38 +92,28 @@ void main() {
       expect(onlineProducts, hasLength(1));
       expect(onlineProducts.single.id, 'server-product-1');
 
-      final cachedProducts = await container
-          .read(productDiscoveryLocalDataSourceProvider)
-          .getCachedProducts();
+      final discovery = container.read(productDiscoveryLocalDataSourceProvider);
+      expect(await discovery.getCachedProducts(), isEmpty);
 
-      expect(cachedProducts, hasLength(1));
-      expect(cachedProducts.single.id, 'server-product-1');
-
-      final discoveryRecords = await database
-          .select(database.productDiscoveryRecords)
-          .get();
-
-      final managementRecords = await database
-          .select(database.productRecords)
-          .get();
-
-      final outboxOperations = await database
-          .select(database.syncOperations)
-          .get();
-
-      expect(discoveryRecords, hasLength(1));
-      expect(managementRecords, isEmpty);
-      expect(outboxOperations, isEmpty);
-
+      await discovery.replaceCachedProducts(await remoteDataSource.getProducts());
+      session = _session('market-b');
       remoteDataSource.error = StateError('network unavailable');
 
-      final offlineProducts = await container
-          .read(productDiscoveryUseCaseProvider)
-          .getProducts();
+      await expectLater(
+        container.read(productDiscoveryUseCaseProvider).getProducts(),
+        throwsStateError,
+      );
 
-      expect(offlineProducts, hasLength(1));
-      expect(offlineProducts.single.id, 'server-product-1');
-      expect(offlineProducts.single.name, 'Server product');
+      remoteDataSource.error = null;
+      final pending = Completer<List<ProductModel>>();
+      remoteDataSource.pending = pending;
+      final load = container.read(productDiscoveryDataSourceProvider).getProducts();
+      session = _session('market-c');
+      pending.complete([]);
+      await expectLater(load, throwsStateError);
+
+      expect(await database.select(database.productRecords).get(), isEmpty);
+      expect(await database.select(database.syncOperations).get(), isEmpty);
     },
   );
 
@@ -171,6 +170,7 @@ class _ControllableProductsDataSource implements ProductsDataSource {
   final List<ProductModel> _products;
 
   Object? error;
+  Completer<List<ProductModel>>? pending;
 
   @override
   Future<List<ProductModel>> getProducts() async {
@@ -180,6 +180,20 @@ class _ControllableProductsDataSource implements ProductsDataSource {
       throw currentError;
     }
 
+    final request = pending;
+    if (request != null) return request.future;
+
     return List<ProductModel>.unmodifiable(_products);
   }
 }
+
+AuthSessionEntity _session(String id) => AuthSessionEntity(
+  user: AuthUserEntity(
+    id: id,
+    username: id,
+    displayName: id,
+    status: 'active',
+    lastLoginAt: null,
+    contacts: const [],
+  ),
+);

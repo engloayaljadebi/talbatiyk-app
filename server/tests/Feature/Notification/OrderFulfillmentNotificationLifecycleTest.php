@@ -22,10 +22,12 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 final class OrderFulfillmentNotificationLifecycleTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use DatabaseMigrations;
 
     protected function setUp(): void
@@ -507,6 +509,7 @@ final class OrderFulfillmentNotificationLifecycleTest extends TestCase
     {
         $buyer =
             User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $member =
             User::factory()->create();
@@ -516,6 +519,8 @@ final class OrderFulfillmentNotificationLifecycleTest extends TestCase
                 'name' => 'Fulfillment notification supplier',
                 'status' => 'active',
             ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier
             ->capabilities()

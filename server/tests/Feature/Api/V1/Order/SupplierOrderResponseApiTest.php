@@ -12,10 +12,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderResponseApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private const IDEMPOTENCY_KEY = '10000000-0000-4000-8000-000000000001';
@@ -426,6 +428,7 @@ class SupplierOrderResponseApiTest extends TestCase
         string $membershipStatus = 'active',
     ): array {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member ??= User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -485,6 +488,8 @@ class SupplierOrderResponseApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),

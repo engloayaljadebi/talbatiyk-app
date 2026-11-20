@@ -9,6 +9,18 @@ use Illuminate\Validation\ValidationException;
 
 class BusinessCategorySelectionService
 {
+    /** @return array<string, string> */
+    public function registrationOptions(): array
+    {
+        return BusinessCategory::query()
+            ->whereNull('parent_id')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name_ar')
+            ->pluck('name_ar', 'id')
+            ->all();
+    }
+
     /**
      * Get selectable leaf categories with active ancestor chains.
      *
@@ -80,30 +92,32 @@ class BusinessCategorySelectionService
      * @param  array<int, string>  $categoryIds
      * @return Collection<int, BusinessCategory>
      */
-    public function validate(array $categoryIds)
+    public function validate(array $categoryIds, bool $registration = false)
     {
+        $field = $registration ? 'category_id' : 'category_ids';
+
         if ($categoryIds === []) {
             throw ValidationException::withMessages([
-                'category_ids' => 'يجب اختيار فئة نشاط واحدة على الأقل.',
+                $field => 'يجب اختيار فئة نشاط واحدة على الأقل.',
             ]);
         }
 
         if (count($categoryIds) !== 1) {
             throw ValidationException::withMessages([
-                'category_ids' => 'يجب اختيار فئة واحدة فقط لكل نشاط تجاري.',
+                $field => 'يجب اختيار فئة واحدة فقط لكل نشاط تجاري.',
             ]);
         }
 
         if (count($categoryIds) !== count(array_unique($categoryIds))) {
             throw ValidationException::withMessages([
-                'category_ids' => 'لا يمكن تكرار فئة النشاط.',
+                $field => 'لا يمكن تكرار فئة النشاط.',
             ]);
         }
 
         foreach ($categoryIds as $id) {
             if (! is_string($id) || ! Str::isUuid($id)) {
                 throw ValidationException::withMessages([
-                    'category_ids' => 'معرّفات الفئات غير صحيحة.',
+                    $field => 'معرّفات الفئات غير صحيحة.',
                 ]);
             }
         }
@@ -114,20 +128,30 @@ class BusinessCategorySelectionService
 
         if ($categories->count() !== count($categoryIds)) {
             throw ValidationException::withMessages([
-                'category_ids' => 'إحدى فئات النشاط غير موجودة.',
+                $field => 'إحدى فئات النشاط غير موجودة.',
             ]);
         }
 
         foreach ($categories as $category) {
             if (! $category->is_active) {
                 throw ValidationException::withMessages([
-                    'category_ids' => 'لا يمكن اختيار فئة نشاط معطلة.',
+                    $field => 'لا يمكن اختيار فئة نشاط معطلة.',
                 ]);
+            }
+
+            if ($registration) {
+                if ($category->parent_id !== null) {
+                    throw ValidationException::withMessages([
+                        $field => 'يجب اختيار فئة نشاط رئيسية.',
+                    ]);
+                }
+
+                continue;
             }
 
             if ($category->children()->exists()) {
                 throw ValidationException::withMessages([
-                    'category_ids' => 'يجب اختيار الفئات النهائية فقط.',
+                    $field => 'يجب اختيار الفئات النهائية فقط.',
                 ]);
             }
 
@@ -137,7 +161,7 @@ class BusinessCategorySelectionService
             while ($parentId !== null) {
                 if (isset($visited[$parentId])) {
                     throw ValidationException::withMessages([
-                        'category_ids' => 'شجرة فئات الأنشطة تحتوي على دورة غير صحيحة.',
+                        $field => 'شجرة فئات الأنشطة تحتوي على دورة غير صحيحة.',
                     ]);
                 }
 
@@ -147,7 +171,7 @@ class BusinessCategorySelectionService
 
                 if ($parent === null || ! $parent->is_active) {
                     throw ValidationException::withMessages([
-                        'category_ids' => 'إحدى الفئات الرئيسية غير نشطة أو غير موجودة.',
+                        $field => 'إحدى الفئات الرئيسية غير نشطة أو غير موجودة.',
                     ]);
                 }
 

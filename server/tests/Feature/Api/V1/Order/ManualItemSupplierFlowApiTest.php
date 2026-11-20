@@ -13,10 +13,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class ManualItemSupplierFlowApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -29,6 +31,7 @@ class ManualItemSupplierFlowApiTest extends TestCase
     public function test_manual_item_flows_through_response_comparison_and_selection(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $memberA = User::factory()->create();
         $memberB = User::factory()->create();
 
@@ -150,6 +153,7 @@ class ManualItemSupplierFlowApiTest extends TestCase
     public function test_manual_only_order_can_be_answered_and_selected(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
         $supplier = $this->createSupplier('Manual only supplier', $member);
 
@@ -269,6 +273,8 @@ class ManualItemSupplierFlowApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),

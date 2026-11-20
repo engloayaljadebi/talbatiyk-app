@@ -27,6 +27,11 @@ final class BusinessCategorySeeder extends Seeder
                 'name_ar' => 'الطاقة والكهرباء',
                 'sort_order' => 3,
             ],
+            [
+                'code' => 'pharmacies',
+                'name_ar' => 'الصيدليات',
+                'sort_order' => 4,
+            ],
         ];
 
         foreach ($definitions as $definition) {

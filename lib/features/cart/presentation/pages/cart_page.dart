@@ -366,6 +366,11 @@ class CartPage extends ConsumerWidget {
     if (!context.mounted ||
         selectedSuppliers == null ||
         selectedSuppliers.isEmpty ||
+        !identical(ref.read(cartProvider), cart) ||
+        !identical(
+          ref.read(supplierDiscoveryControllerProvider),
+          supplierDiscoveryController,
+        ) ||
         cart.isSwitching ||
         cart.activeCartId != submittingCartId) {
       return;
