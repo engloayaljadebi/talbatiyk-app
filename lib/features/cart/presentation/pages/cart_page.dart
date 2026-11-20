@@ -10,6 +10,7 @@ import 'package:talbatiyk/features/products/presentation/widgets/product_image.d
 import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
 import 'package:talbatiyk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
 import 'package:talbatiyk/features/cart/presentation/widgets/cart_management_bar.dart';
+import 'package:talbatiyk/features/cart/presentation/widgets/cart_share_button.dart';
 
 /// صفحة سلة المشتريات.
 ///
@@ -191,6 +192,7 @@ class CartPage extends ConsumerWidget {
         ],
       ),
       actions: [
+        const CartShareButton(),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           transitionBuilder: (child, animation) {
