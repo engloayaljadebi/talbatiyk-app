@@ -72,17 +72,29 @@ class ProductsController extends ChangeNotifier {
         state.maxPrice != null;
   }
 
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> loadProducts() async {
+    if (_disposed) return;
     state = state.copyWith(isLoading: true, clearErrorMessage: true);
     notifyListeners();
 
     try {
-      _allProducts = await _useCase.getProducts();
+      final products = await _useCase.getProducts();
+      if (_disposed) return;
+      _allProducts = products;
 
       state = state.copyWith(isLoading: false, clearErrorMessage: true);
 
       _applyCurrentFilters();
     } catch (_) {
+      if (_disposed) return;
       _allProducts = [];
 
       state = state.copyWith(

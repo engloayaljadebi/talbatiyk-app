@@ -8,10 +8,12 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class ProductDiscoveryApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private function authenticatedUser(
@@ -21,6 +23,7 @@ class ProductDiscoveryApiTest extends TestCase
             'status' => $status,
         ]);
 
+        $this->joinMarket($user, $this->market());
         Sanctum::actingAs($user);
 
         return $user;
@@ -53,6 +56,8 @@ class ProductDiscoveryApiTest extends TestCase
             'enabled_at' => $enabledAt,
             'disabled_at' => $disabled ? $enabledAt : null,
         ]);
+
+        $business->categories()->attach($this->market()->id);
 
         return $business;
     }
@@ -90,6 +95,10 @@ class ProductDiscoveryApiTest extends TestCase
         $supplierA = $this->supplier();
         $supplierB = $this->supplier();
 
+        $otherMarket = $this->supplier();
+        $otherMarket->categories()->sync($this->market('other_market')->id);
+        $hiddenProduct = $this->product($otherMarket);
+
         $productA = $this->product($supplierA, [
             'name' => 'Supplier A Product',
         ]);
@@ -101,7 +110,19 @@ class ProductDiscoveryApiTest extends TestCase
         $this->getJson('/api/v1/products')
             ->assertOk()
             ->assertJsonFragment(['id' => $productA->id])
-            ->assertJsonFragment(['id' => $productB->id]);
+            ->assertJsonFragment(['id' => $productB->id])
+            ->assertJsonMissing(['id' => $hiddenProduct->id]);
+    }
+
+    public function test_user_with_memberships_in_different_markets_cannot_discover_products(): void
+    {
+        $user = $this->authenticatedUser();
+        $this->joinMarket($user, $this->market('other_market'));
+        $this->product($this->supplier());
+
+        $this->getJson('/api/v1/products')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
     }
 
     public function test_suspended_user_cannot_discover_products(): void

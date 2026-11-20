@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Business\BusinessMarketScope;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,6 +27,7 @@ class OrderService
 {
     public function __construct(
         private readonly OrderAggregateStatusResolver $aggregateStatusResolver,
+        private readonly BusinessMarketScope $marketScope,
     ) {}
 
     /**
@@ -109,12 +111,16 @@ class OrderService
                 );
             }
 
+            $categoryIds = $this->marketScope->categoryIdsFor($user);
+
             $authoritativeItems = $this->resolveAuthoritativeItems(
                 $data['items'],
+                $categoryIds,
             );
 
             $recipientSuppliers = $this->resolveRecipientSuppliers(
                 $data['supplier_ids'],
+                $categoryIds,
             );
 
             $createdItems = collect();
@@ -189,10 +195,12 @@ class OrderService
      * historical supplier attached to each Product.
      *
      * @param  array<int, string>  $supplierIds
+     * @param  list<string>  $categoryIds
      * @return Collection<int, Business>
      */
     private function resolveRecipientSuppliers(
         array $supplierIds,
+        array $categoryIds,
     ): Collection {
         $requestedIds = collect($supplierIds)
             ->map(static fn (mixed $id): string => trim((string) $id))
@@ -203,6 +211,7 @@ class OrderService
         $suppliers = Business::query()
             ->whereIn('id', $requestedIds)
             ->where('status', 'active')
+            ->whereHas('categories', fn ($query) => $query->whereIn('business_categories.id', $categoryIds))
             ->whereHas('capabilities', function ($query): void {
                 $query
                     ->where('business_capabilities.code', 'supplier')
@@ -226,7 +235,7 @@ class OrderService
         return $suppliers;
     }
 
-    private function resolveAuthoritativeItems(array $items): array
+    private function resolveAuthoritativeItems(array $items, array $categoryIds): array
     {
         $productIds = collect($items)
             ->reject(
@@ -256,6 +265,7 @@ class OrderService
         $validSupplierIds = Business::query()
             ->whereIn('id', $supplierIds)
             ->where('status', 'active')
+            ->whereHas('categories', fn ($query) => $query->whereIn('business_categories.id', $categoryIds))
             ->whereHas('capabilities', function ($query): void {
                 $query
                     ->where('business_capabilities.code', 'supplier')

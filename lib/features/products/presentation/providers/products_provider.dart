@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/core/database/database_provider.dart';
 import 'package:talbatiyk/core/network/network_providers.dart';
 import '../../../auth/presentation/providers/account_session_fence_provider.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 
 import '../../data/datasources/local/products_discovery_local_datasource.dart';
 import '../../data/datasources/local/products_local_datasource.dart';
 import '../../data/datasources/products_datasource.dart';
-import '../../data/datasources/products_offline_first_datasource.dart';
+import '../../data/datasources/products_market_datasource.dart';
 import '../../data/datasources/remote/products_remote_datasource.dart';
 import '../../data/mappers/products_mapper.dart';
 import '../../data/repositories/products_repository_impl.dart';
@@ -135,14 +136,11 @@ final productDiscoveryRemoteDataSourceProvider = Provider<ProductsDataSource>((
   return ref.watch(productsRemoteDataSourceProvider);
 });
 
-/// Offline-capable Product Discovery source.
-///
-/// Success: Remote -> dedicated Drift snapshot -> local read.
-/// Failure: existing dedicated Drift snapshot -> local read.
+/// Discovery requires a fresh server response for the current market.
 final productDiscoveryDataSourceProvider = Provider<ProductsDataSource>((ref) {
-  return ProductsOfflineFirstDataSource(
-    localDataSource: ref.watch(productDiscoveryLocalDataSourceProvider),
-    remoteDataSource: ref.watch(productDiscoveryRemoteDataSourceProvider),
+  return ProductsMarketDataSource(
+    ref.watch(productDiscoveryRemoteDataSourceProvider),
+    ref.watch(accountSessionFenceProvider),
   );
 });
 
@@ -160,6 +158,7 @@ final productDiscoveryUseCaseProvider = Provider<ProductsUseCase>((ref) {
 final productDiscoveryProvider = ChangeNotifierProvider<ProductsController>((
   ref,
 ) {
+  ref.watch(authProvider.select((auth) => auth.state.session));
   return ProductsController(ref.watch(productDiscoveryUseCaseProvider));
 });
 

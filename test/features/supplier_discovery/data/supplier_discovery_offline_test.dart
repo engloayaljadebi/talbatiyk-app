@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
 import 'package:talbatiyk/features/supplier_discovery/data/datasources/local/supplier_discovery_local_datasource.dart';
 import 'package:talbatiyk/features/supplier_discovery/data/datasources/remote/supplier_discovery_remote_datasource.dart';
 import 'package:talbatiyk/features/supplier_discovery/data/repositories/supplier_discovery_repository_impl.dart';
@@ -13,34 +15,40 @@ void main() {
   late AppDatabase database;
   late SupplierDiscoveryLocalDataSource local;
   late _Remote remote;
-  late String userId;
+  const userId = 'user-a';
+  late AuthSessionEntity session;
   late SupplierDiscoveryRepositoryImpl repository;
 
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
     local = SupplierDiscoveryLocalDataSource(database);
     remote = _Remote();
-    userId = 'user-a';
+    session = _session(userId);
     repository = SupplierDiscoveryRepositoryImpl(
       remote,
-      localDataSource: local,
-      currentUserId: () => userId,
+      AccountSessionFence(() => session),
     );
   });
   tearDown(() => database.close());
 
   test(
-    'online snapshot survives a network failure and is scoped by user',
+    'network failure never exposes a supplier list from before market isolation',
     () async {
       final online = await repository.getSuppliers();
       expect(online.single.isFromCache, isFalse);
 
       remote.error = _error(DioExceptionType.connectionError);
-      final offline = await repository.getSuppliers();
-      expect(offline.single.id, 'supplier-a');
-      expect(offline.single.isFromCache, isTrue);
+      await local.replace(
+        userId: userId,
+        suppliers: const [SupplierCandidateEntity(id: 'old', name: 'Old')],
+      );
 
-      userId = 'user-b';
+      await expectLater(
+        repository.getSuppliers(),
+        throwsA(isA<DioException>()),
+      );
+
+      session = _session('user-b');
       await expectLater(
         repository.getSuppliers(),
         throwsA(isA<DioException>()),
@@ -48,7 +56,7 @@ void main() {
     },
   );
 
-  test('authoritative empty response clears old snapshot', () async {
+  test('an empty server response returns an empty supplier list', () async {
     await repository.getSuppliers();
     remote.suppliers = BuiltList<SupplierSummaryResource>();
     expect(await repository.getSuppliers(), isEmpty);
@@ -103,3 +111,14 @@ final class _Remote implements SupplierDiscoveryRemoteDataSource {
     return suppliers;
   }
 }
+
+AuthSessionEntity _session(String id) => AuthSessionEntity(
+  user: AuthUserEntity(
+    id: id,
+    username: id,
+    displayName: id,
+    status: 'active',
+    lastLoginAt: null,
+    contacts: const [],
+  ),
+);

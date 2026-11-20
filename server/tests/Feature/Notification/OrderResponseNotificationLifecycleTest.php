@@ -21,10 +21,12 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use RuntimeException;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 final class OrderResponseNotificationLifecycleTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use DatabaseMigrations;
 
     private const IDEMPOTENCY_KEY =
@@ -418,6 +420,7 @@ final class OrderResponseNotificationLifecycleTest extends TestCase
     {
         $buyer =
             User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $member =
             User::factory()->create();
@@ -427,6 +430,8 @@ final class OrderResponseNotificationLifecycleTest extends TestCase
                 'name' => 'Notification supplier',
                 'status' => 'active',
             ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier
             ->capabilities()

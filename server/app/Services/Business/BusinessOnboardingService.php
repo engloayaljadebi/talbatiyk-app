@@ -47,10 +47,10 @@ class BusinessOnboardingService
         private readonly BusinessCategorySelectionService $categorySelection,
     ) {}
 
-    public function create(User $user, array $data): Business
+    public function create(User $user, array $data, bool $registration = false): Business
     {
-        return DB::transaction(function () use ($user, $data): Business {
-            $categories = $this->categorySelection->validate($data['category_ids'] ?? []);
+        return DB::transaction(function () use ($user, $data, $registration): Business {
+            $categories = $this->categorySelection->validate($data['category_ids'] ?? [], $registration);
 
             /*
              * ------------------------------------------------------------

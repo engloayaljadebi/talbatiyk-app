@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 /*
@@ -20,6 +21,7 @@ use Tests\TestCase;
 */
 class OrderCommercialAuthorityTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private const IDEMPOTENCY_KEY = '550e8400-e29b-41d4-a716-446655440001';
@@ -27,6 +29,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_create_order_uses_server_authoritative_product_snapshot(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Authoritative supplier');
 
         $product = $this->createProduct($supplier, [
@@ -81,6 +84,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_product_must_exist_when_creating_order(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Existing supplier');
 
         $this
@@ -109,6 +113,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_unavailable_product_cannot_be_ordered(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Unavailable supplier');
 
         $product = $this->createProduct($supplier, [
@@ -134,6 +139,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_requested_quantity_can_exceed_catalog_stock_for_rfq(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('RFQ stock-independent supplier');
 
         $product = $this->createProduct($supplier, [
@@ -164,6 +170,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_changed_product_price_returns_conflict(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Price supplier');
 
         $product = $this->createProduct($supplier, [
@@ -189,6 +196,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_changed_product_supplier_returns_conflict(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $expectedSupplier = $this->createSupplier(
             'Previously viewed supplier',
@@ -232,6 +240,8 @@ class OrderCommercialAuthorityTest extends TestCase
             'status' => 'active',
         ]);
 
+        $supplier->categories()->attach($this->market()->id);
+
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),
             'disabled_at' => null,
@@ -243,6 +253,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_expected_price_above_product_storage_capacity_is_rejected(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             'Price capacity supplier',
@@ -326,6 +337,7 @@ class OrderCommercialAuthorityTest extends TestCase
     public function test_idempotent_replay_survives_product_soft_delete(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Replay supplier');
 
         $product = $this->createProduct(

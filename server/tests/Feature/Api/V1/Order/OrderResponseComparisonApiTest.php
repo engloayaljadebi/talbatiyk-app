@@ -13,10 +13,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class OrderResponseComparisonApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -174,6 +176,7 @@ class OrderResponseComparisonApiTest extends TestCase
     public function test_multi_supplier_order_compares_and_selects_independent_supplier_items(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $memberA = User::factory()->create();
         $memberB = User::factory()->create();
@@ -571,6 +574,7 @@ class OrderResponseComparisonApiTest extends TestCase
     public function test_one_order_item_cannot_be_selected_from_two_suppliers(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $memberA = User::factory()->create();
         $memberB = User::factory()->create();
@@ -713,6 +717,7 @@ class OrderResponseComparisonApiTest extends TestCase
     private function fixture(): array
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -834,6 +839,8 @@ class OrderResponseComparisonApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),

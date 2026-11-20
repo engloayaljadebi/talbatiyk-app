@@ -1,3 +1,7 @@
+import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
+import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
+import 'package:talbatiyk/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
@@ -18,6 +22,12 @@ void main() {
     (tester) async {
       final container = ProviderContainer(
         overrides: [
+          authProvider.overrideWith(
+            (ref) => AuthController(
+              AuthUseCase(_UnusedAuthRepository()),
+              autoRestore: false,
+            ),
+          ),
           cartProvider.overrideWith((ref) => CartController()),
           supplierFollowRepositoryProvider.overrideWithValue(
             _FakeSupplierFollowRepository(),
@@ -179,4 +189,11 @@ final class _FakeSupplierFollowRepository implements SupplierFollowRepository {
 
   @override
   Future<bool> unfollow(String businessId) async => false;
+}
+
+final class _UnusedAuthRepository implements AuthRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }

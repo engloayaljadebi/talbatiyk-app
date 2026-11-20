@@ -8,10 +8,12 @@ use App\Models\User;
 use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class OrderApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     private const IDEMPOTENCY_KEY = '550e8400-e29b-41d4-a716-446655440000';
@@ -58,6 +60,7 @@ class OrderApiTest extends TestCase
     public function test_items_are_required(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $this
             ->withToken($this->tokenFor($user))
@@ -80,6 +83,7 @@ class OrderApiTest extends TestCase
     public function test_item_quantity_must_be_greater_than_zero(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Quantity supplier');
 
         $payload = $this->orderPayload($supplier);
@@ -103,6 +107,7 @@ class OrderApiTest extends TestCase
     public function test_expected_supplier_id_must_be_valid_uuid(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
         $supplier = $this->createSupplier('Expected supplier');
 
         $payload = $this->orderPayload($supplier);
@@ -127,6 +132,7 @@ class OrderApiTest extends TestCase
     public function test_supplier_must_have_active_supplier_capability(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Disabled supplier',
@@ -156,6 +162,7 @@ class OrderApiTest extends TestCase
     public function test_authenticated_active_user_can_create_order(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Active supplier',
@@ -189,6 +196,7 @@ class OrderApiTest extends TestCase
     public function test_idempotency_key_is_required(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Idempotency supplier',
@@ -212,6 +220,7 @@ class OrderApiTest extends TestCase
     public function test_idempotency_key_must_be_valid_uuid(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Invalid key supplier',
@@ -239,6 +248,7 @@ class OrderApiTest extends TestCase
     public function test_same_idempotency_key_and_payload_returns_same_order(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Replay supplier',
@@ -286,6 +296,7 @@ class OrderApiTest extends TestCase
     public function test_same_idempotency_key_with_different_payload_is_conflict(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Conflict supplier',
@@ -331,7 +342,9 @@ class OrderApiTest extends TestCase
     public function test_same_idempotency_key_is_scoped_per_user(): void
     {
         $firstUser = User::factory()->create();
+        $this->joinMarket($firstUser, $this->market());
         $secondUser = User::factory()->create();
+        $this->joinMarket($secondUser, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Shared key supplier',
@@ -385,6 +398,7 @@ class OrderApiTest extends TestCase
     public function test_order_and_order_items_are_persisted(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Persistence supplier',
@@ -429,6 +443,7 @@ class OrderApiTest extends TestCase
     public function test_multi_supplier_order_can_be_created(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $firstSupplier = $this->createSupplier(
             name: 'First supplier',
@@ -515,6 +530,7 @@ class OrderApiTest extends TestCase
     public function test_response_contains_correct_order_structure(): void
     {
         $user = User::factory()->create();
+        $this->joinMarket($user, $this->market());
 
         $supplier = $this->createSupplier(
             name: 'Response supplier',
@@ -616,6 +632,8 @@ class OrderApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $enabledAt = now()->subMinute();
 

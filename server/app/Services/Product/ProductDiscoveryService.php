@@ -3,18 +3,26 @@
 namespace App\Services\Product;
 
 use App\Models\Product;
+use App\Models\User;
+use App\Services\Business\BusinessMarketScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class ProductDiscoveryService
 {
+    public function __construct(private readonly BusinessMarketScope $marketScope) {}
+
     public function getDiscoverableProducts(
+        User $user,
         int $perPage = 20
     ): LengthAwarePaginator {
         $perPage = max(1, min($perPage, 100));
 
+        $categoryIds = $this->marketScope->categoryIdsFor($user);
+
         return Product::query()
+            ->whereHas('supplier.categories', fn ($query) => $query->whereIn('business_categories.id', $categoryIds))
             ->with([
                 'supplier:id,name',
 

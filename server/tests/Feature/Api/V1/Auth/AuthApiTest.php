@@ -695,6 +695,13 @@ class AuthApiTest extends TestCase
             'sort_order' => 0,
         ]);
 
+        BusinessCategory::query()->create([
+            'code' => 'mobile_full_registration_child',
+            'name_ar' => 'فئة فرعية',
+            'parent_id' => $category->id,
+            'is_active' => true,
+        ]);
+
         foreach (['shop', 'supplier'] as $type) {
             $username = 'mobile'.$type;
             $phone = $type === 'shop' ? '077123456' : '077234567';
@@ -805,7 +812,7 @@ class AuthApiTest extends TestCase
         ]);
     }
 
-    public function test_registration_categories_are_public_and_only_active_leaves(): void
+    public function test_registration_categories_are_public_and_only_active_roots(): void
     {
         $parent = BusinessCategory::query()->create([
             'code' => 'registration_parent',
@@ -814,7 +821,7 @@ class AuthApiTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $leaf = BusinessCategory::query()->create([
+        BusinessCategory::query()->create([
             'code' => 'registration_active_leaf',
             'name_ar' => 'الفئة المتاحة',
             'parent_id' => $parent->id,
@@ -848,8 +855,27 @@ class AuthApiTest extends TestCase
         $this->getJson('/api/v1/auth/registration-categories')
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $leaf->id)
-            ->assertJsonPath('data.0.name', 'الفئة المتاحة');
+            ->assertJsonPath('data.0.id', $parent->id)
+            ->assertJsonPath('data.0.name', 'القسم الرئيسي');
+    }
+
+    public function test_mobile_registration_rejects_a_subcategory(): void
+    {
+        $payload = $this->registrationPayload();
+        $child = BusinessCategory::query()->create([
+            'code' => 'registration_child',
+            'name_ar' => 'فئة فرعية',
+            'parent_id' => $payload['category_id'],
+            'is_active' => true,
+        ]);
+
+        $payload['category_id'] = $child->id;
+
+        $this->postJson('/api/v1/auth/register', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['category_id']);
+
+        $this->assertDatabaseMissing('users', ['username' => $payload['username']]);
     }
 
     public function test_full_registration_rolls_back_when_owner_role_is_missing(): void

@@ -7,13 +7,20 @@ final class SupplierDiscoveryController extends ChangeNotifier {
   SupplierDiscoveryController(this._useCase);
 
   final SupplierDiscoveryUseCase _useCase;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   SupplierDiscoveryState _state = const SupplierDiscoveryState();
 
   SupplierDiscoveryState get state => _state;
 
   Future<bool> loadSuppliers() async {
-    if (_state.isLoading) {
+    if (_disposed || _state.isLoading) {
       return false;
     }
 
@@ -22,6 +29,7 @@ final class SupplierDiscoveryController extends ChangeNotifier {
 
     try {
       final suppliers = await _useCase.getSuppliers();
+      if (_disposed) return false;
 
       _state = SupplierDiscoveryState(
         suppliers: suppliers,
@@ -31,6 +39,7 @@ final class SupplierDiscoveryController extends ChangeNotifier {
 
       return true;
     } catch (_) {
+      if (_disposed) return false;
       _state = const SupplierDiscoveryState(
         errorMessage: 'تعذر تحميل الموردين المتاحين. حاول مرة أخرى.',
       );

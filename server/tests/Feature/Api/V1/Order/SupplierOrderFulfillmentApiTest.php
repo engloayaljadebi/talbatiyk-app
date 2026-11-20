@@ -13,10 +13,12 @@ use Database\Seeders\BusinessCapabilitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderFulfillmentApiTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -305,6 +307,7 @@ class SupplierOrderFulfillmentApiTest extends TestCase
     private function fixture(bool $selected): array
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -386,6 +389,8 @@ class SupplierOrderFulfillmentApiTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach(
             'supplier',

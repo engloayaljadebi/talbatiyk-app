@@ -18,10 +18,12 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderFulfillmentConcurrencyTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use DatabaseTruncation;
 
     protected function setUp(): void
@@ -44,6 +46,7 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
     public function test_same_recipient_same_version_allows_exactly_one_transition(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $member = User::factory()->create();
 
         $supplier = $this->createSupplier(
@@ -249,6 +252,7 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
     public function test_different_recipients_can_transition_without_version_conflict(): void
     {
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
 
         $memberA = User::factory()->create();
         $memberB = User::factory()->create();
@@ -563,6 +567,8 @@ class SupplierOrderFulfillmentConcurrencyTest extends TestCase
             'name' => $name,
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach(
             'supplier',

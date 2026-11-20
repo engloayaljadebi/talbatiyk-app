@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Tests\Support\BuildsBusinessMarkets;
 use Tests\TestCase;
 
 class SupplierOrderResponseConcurrencyTest extends TestCase
 {
+    use BuildsBusinessMarkets;
     use DatabaseMigrations;
 
     private const IDEMPOTENCY_KEY = '650e8400-e29b-41d4-a716-446655440099';
@@ -34,6 +36,7 @@ class SupplierOrderResponseConcurrencyTest extends TestCase
         );
 
         $buyer = User::factory()->create();
+        $this->joinMarket($buyer, $this->market());
         $supplier = $this->createSupplier();
         $product = $this->createProduct($supplier);
 
@@ -184,6 +187,8 @@ class SupplierOrderResponseConcurrencyTest extends TestCase
             'name' => 'Response concurrency supplier',
             'status' => 'active',
         ]);
+
+        $supplier->categories()->attach($this->market()->id);
 
         $supplier->capabilities()->attach('supplier', [
             'enabled_at' => now()->subMinute(),
