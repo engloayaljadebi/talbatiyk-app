@@ -24,7 +24,7 @@ void main() {
 
     expect(ordersSource, contains('orders-received-tab'));
 
-    expect(ordersSource, contains("'طلباتي'"));
+    expect(ordersSource, contains("'المرسلة'"));
 
     expect(ordersSource, contains("'المستلمة'"));
 
@@ -38,7 +38,10 @@ void main() {
 
     expect(receivedSource, contains('if (embedded)'));
 
-    expect(accountSource, contains('receivedOrdersControllerProvider(selectedBusiness.id)'));
+    expect(
+      accountSource,
+      contains('receivedOrdersControllerProvider(selectedBusiness.id)'),
+    );
 
     expect(accountSource, contains('class _OrdersTab'));
 

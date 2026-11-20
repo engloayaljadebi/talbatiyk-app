@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('both order surfaces keep item rows horizontal and theme-driven', () {
+  test('order lists keep product rows in details', () {
     final sentSource = File(
       'lib/features/orders/presentation/pages/orders_page.dart',
     ).readAsStringSync();
@@ -14,11 +14,11 @@ void main() {
       'lib/features/orders/presentation/pages/order_details_page.dart',
     ).readAsStringSync();
 
-    expect(sentSource, contains('sent-order-items-horizontal'));
+    expect(sentSource, isNot(contains('sent-order-items-horizontal')));
     expect(receivedSource, contains('received-order-items-horizontal'));
     expect(detailsSource, contains('sent-order-details-items-horizontal'));
 
-    for (final source in [sentSource, receivedSource, detailsSource]) {
+    for (final source in [receivedSource, detailsSource]) {
       expect(source, contains('scrollDirection: Axis.horizontal'));
       expect(source, contains('colors.primary'));
     }
@@ -34,19 +34,16 @@ void main() {
         .split('final class _OrderHeader extends StatelessWidget {')
         .first;
 
-    // Surfaces must never be outlined; received order also has no divider lines.
-    expect(sentCard, isNot(contains('Border.all(')));
-    expect(receivedCard, isNot(contains('Border.all(')));
-    expect(sentCard, contains('color: colors.surface'));
-    expect(sentCard, contains('shadowColor: colors.shadow'));
-    expect(receivedCard, isNot(contains('boxShadow: [')));
-    expect(receivedCard, isNot(contains('Divider(')));
+    expect(sentCard, contains('OrderCardSurface('));
+    expect(sentCard, isNot(contains('_OrderItemsPreview')));
+    expect(receivedCard, contains('OrderCardSurface('));
 
     final receivedItems = receivedSource
         .split('final class _OrderItemsSection extends StatelessWidget {')
         .last
         .split('final class _OrderNotes extends StatelessWidget {')
         .first;
+    expect(receivedItems, contains('ExpansionTile('));
     expect(receivedItems, contains('Image.network('));
     expect(receivedItems, contains('item.imageUrl'));
     expect(receivedItems, contains('item.productName'));
