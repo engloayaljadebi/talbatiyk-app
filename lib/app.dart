@@ -1,6 +1,6 @@
 /*
 |--------------------------------------------------------------------------
-| Talbatiyk App
+| Talbytk App
 |--------------------------------------------------------------------------
 |
 | محتويات الملف:
@@ -24,8 +24,8 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
 /// الواجهة العليا والرئيسية لتطبيق طلبيتك.
-class TalbatiykApp extends ConsumerWidget {
-  const TalbatiykApp({super.key});
+class TalbytkApp extends ConsumerWidget {
+  const TalbytkApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

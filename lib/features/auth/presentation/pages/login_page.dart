@@ -18,7 +18,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:talbatiyk/core/router/route_names.dart';
+import 'package:talbytk/core/router/route_names.dart';
 
 import '../providers/auth_providers.dart';
 import '../states/auth_state.dart';
@@ -31,7 +31,7 @@ final class LoginPage extends ConsumerStatefulWidget {
 }
 
 final class _LoginPageState extends ConsumerState<LoginPage> {
-  static const String _deviceName = 'talbatiyk-flutter-app';
+  static const String _deviceName = 'talbytk-flutter-app';
 
   final _formKey = GlobalKey<FormState>();
 

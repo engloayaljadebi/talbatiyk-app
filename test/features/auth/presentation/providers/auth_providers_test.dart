@@ -18,26 +18,26 @@
 import 'dart:typed_data';
 
 import 'package:drift/native.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_datasource.dart';
-import 'package:talbatiyk/features/orders/data/datasources/remote/orders_remote_datasource.dart';
-import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
-import 'package:talbatiyk/features/orders/data/sync/orders_sync_coordinator.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/orders/data/datasources/local/orders_local_datasource.dart';
+import 'package:talbytk/features/orders/data/datasources/remote/orders_remote_datasource.dart';
+import 'package:talbytk/features/orders/data/models/orders_model.dart';
+import 'package:talbytk/features/orders/data/sync/orders_sync_coordinator.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storage.dart';
-import 'package:talbatiyk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
-import 'package:talbatiyk/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
-import 'package:talbatiyk/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
-import 'package:talbatiyk/features/auth/presentation/states/auth_state.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/core/network/network_providers.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_token_storage.dart';
+import 'package:talbytk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
+import 'package:talbytk/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/usecases/auth_usecase.dart';
+import 'package:talbytk/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:talbytk/features/auth/presentation/providers/account_session_fence_provider.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/features/auth/presentation/states/auth_state.dart';
 
 void main() {
   test(

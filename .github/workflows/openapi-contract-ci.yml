@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "server/**"
-      - "packages/talbatiyk_api/**"
+      - "packages/talbytk_api/**"
       - "package.json"
       - "package-lock.json"
       - "openapitools.json"
@@ -17,7 +17,7 @@ on:
       - main
     paths:
       - "server/**"
-      - "packages/talbatiyk_api/**"
+      - "packages/talbytk_api/**"
       - "package.json"
       - "package-lock.json"
       - "openapitools.json"
@@ -36,7 +36,7 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_DB: talbatiyk_test
+          POSTGRES_DB: talbytk_test
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
@@ -52,7 +52,7 @@ jobs:
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
       DB_PORT: 5432
-      DB_DATABASE: talbatiyk_test
+      DB_DATABASE: talbytk_test
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
 
@@ -143,25 +143,25 @@ jobs:
           npx --no-install openapi-generator-cli generate \
             -i ./server/openapi.json \
             -g dart-dio \
-            -o ./packages/talbatiyk_api \
-            --additional-properties=pubName=talbatiyk_api,pubVersion=0.1.0,pubHomepage=homepage \
+            -o ./packages/talbytk_api \
+            --additional-properties=pubName=talbytk_api,pubVersion=0.1.0,pubHomepage=homepage \
             --inline-schema-name-mappings=notification_index_200_response_links=product_index_200_response_links,notification_index_200_response_meta=product_index_200_response_meta,notification_index_200_response_meta_links_inner=product_index_200_response_meta_links_inner
 
       - name: Resolve generated SDK dependencies
-        working-directory: packages/talbatiyk_api
+        working-directory: packages/talbytk_api
         run: dart pub get
 
       - name: Rebuild generated SDK
-        working-directory: packages/talbatiyk_api
+        working-directory: packages/talbytk_api
         run: dart run build_runner build
 
       - name: Verify generated SDK has no drift
         shell: bash
         run: |
-          changes="$(git status --porcelain --untracked-files=all -- packages/talbatiyk_api)"
+          changes="$(git status --porcelain --untracked-files=all -- packages/talbytk_api)"
           if [[ -n "$changes" ]]; then
-            echo "::error::packages/talbatiyk_api is out of date with server/openapi.json."
-            git status --short --untracked-files=all -- packages/talbatiyk_api
-            git diff -- packages/talbatiyk_api
+            echo "::error::packages/talbytk_api is out of date with server/openapi.json."
+            git status --short --untracked-files=all -- packages/talbytk_api
+            git diff -- packages/talbytk_api
             exit 1
           fi

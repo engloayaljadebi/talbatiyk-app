@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/usecases/supplier_follow_usecase.dart';
-import 'package:talbatiyk/features/supplier_follow/presentation/controllers/supplier_follow_controller.dart';
+import 'package:talbytk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
+import 'package:talbytk/features/supplier_follow/domain/usecases/supplier_follow_usecase.dart';
+import 'package:talbytk/features/supplier_follow/presentation/controllers/supplier_follow_controller.dart';
 
 void main() {
   group('SupplierFollowController', () {

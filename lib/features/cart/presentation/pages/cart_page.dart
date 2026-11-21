@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
-import 'package:talbatiyk/features/orders/domain/entities/orders_entity.dart';
-import 'package:talbatiyk/features/orders/presentation/providers/orders_provider.dart';
-import 'package:talbatiyk/features/products/presentation/widgets/product_image.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
-import 'package:talbatiyk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
-import 'package:talbatiyk/features/cart/presentation/widgets/cart_management_bar.dart';
-import 'package:talbatiyk/features/cart/presentation/widgets/cart_share_button.dart';
+import 'package:talbytk/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/orders/domain/entities/orders_entity.dart';
+import 'package:talbytk/features/orders/presentation/providers/orders_provider.dart';
+import 'package:talbytk/features/products/presentation/widgets/product_image.dart';
+import 'package:talbytk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbytk/features/supplier_discovery/presentation/providers/supplier_discovery_provider.dart';
+import 'package:talbytk/features/cart/presentation/widgets/cart_management_bar.dart';
+import 'package:talbytk/features/cart/presentation/widgets/cart_share_button.dart';
 
 /// صفحة سلة المشتريات.
 ///

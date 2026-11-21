@@ -1,8 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 void main() {
   test('Product Discovery persists supplier governorate offline', () async {
@@ -22,7 +22,7 @@ void main() {
         price: 1500,
         imageUrl: '',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         quantity: 2,
       ),

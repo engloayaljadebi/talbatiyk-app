@@ -4,7 +4,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   test('v15 supports independent carts and manual items', () async {
@@ -93,7 +93,7 @@ void main() {
 
   test('v14 to v15 preserves cart, orders and outbox', () async {
     final directory = await Directory.systemTemp.createTemp(
-      'talbatiyk-multicart-v14-',
+      'talbytk-multicart-v14-',
     );
 
     try {

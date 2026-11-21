@@ -1,4 +1,4 @@
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 const Object _cartItemUnset = Object();
 

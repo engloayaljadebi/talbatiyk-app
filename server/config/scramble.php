@@ -46,7 +46,7 @@ return [
         'version' => env('API_VERSION', '1.0.0'),
 
         'description' => <<<'MD'
-   # Talbatiyk API
+   # Talbytk API
 
    واجهة برمجة تطبيقات منصة **طلبيتك**.
 

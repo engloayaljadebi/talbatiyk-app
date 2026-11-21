@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
-import 'package:talbatiyk/features/business/presentation/pages/business_profile_edit_page.dart';
-import 'package:talbatiyk/features/business/presentation/pages/business_workspace_page.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/core/network/network_providers.dart';
+import 'package:talbytk/features/business/domain/entities/business_entity.dart';
+import 'package:talbytk/features/business/presentation/pages/business_profile_edit_page.dart';
+import 'package:talbytk/features/business/presentation/pages/business_workspace_page.dart';
 
 void main() {
   testWidgets('business workspace exposes profile management entry', (

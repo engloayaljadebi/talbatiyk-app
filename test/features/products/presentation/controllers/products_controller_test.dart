@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/data/repositories/products_repository_impl.dart';
-import 'package:talbatiyk/features/products/domain/usecases/products_usecase.dart';
-import 'package:talbatiyk/features/products/presentation/controllers/products_controller.dart';
-import 'package:talbatiyk/features/products/presentation/state/products_state.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/data/repositories/products_repository_impl.dart';
+import 'package:talbytk/features/products/domain/usecases/products_usecase.dart';
+import 'package:talbytk/features/products/presentation/controllers/products_controller.dart';
+import 'package:talbytk/features/products/presentation/state/products_state.dart';
 
 void main() {
   late ProductsController controller;

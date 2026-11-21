@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
-import 'package:talbatiyk/features/notifications/data/models/notifications_model.dart';
-import 'package:talbatiyk/features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'package:talbytk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
+import 'package:talbytk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
+import 'package:talbytk/features/notifications/data/models/notifications_model.dart';
+import 'package:talbytk/features/notifications/data/repositories/notifications_repository_impl.dart';
 
 void main() {
   group('NotificationsRepositoryImpl mutations', () {

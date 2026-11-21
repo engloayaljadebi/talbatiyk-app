@@ -27,8 +27,8 @@ final class AdminUserDetailsTest extends TestCase
         )->name;
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
-            || $actual !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
+            || $actual !== 'talbytk_testing'
         ) {
             throw new \RuntimeException('Unsafe test database.');
         }

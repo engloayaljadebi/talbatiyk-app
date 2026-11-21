@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/notifications/domain/entities/notifications_entity.dart';
-import 'package:talbatiyk/features/notifications/domain/repositories/notifications_repository.dart';
-import 'package:talbatiyk/features/notifications/domain/usecases/notifications_usecase.dart';
-import 'package:talbatiyk/features/notifications/presentation/controllers/notifications_controller.dart';
-import 'package:talbatiyk/features/notifications/presentation/state/notifications_state.dart';
+import 'package:talbytk/features/notifications/domain/entities/notifications_entity.dart';
+import 'package:talbytk/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:talbytk/features/notifications/domain/usecases/notifications_usecase.dart';
+import 'package:talbytk/features/notifications/presentation/controllers/notifications_controller.dart';
+import 'package:talbytk/features/notifications/presentation/state/notifications_state.dart';
 
 void main() {
   group('NotificationsController', () {

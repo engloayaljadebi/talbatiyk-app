@@ -1,5 +1,5 @@
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 abstract interface class SupplierFollowRemoteDataSource {
   Future<bool> isFollowing(String businessId);

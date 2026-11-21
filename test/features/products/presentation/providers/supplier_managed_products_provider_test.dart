@@ -2,14 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/core/database/database_provider.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/account_session_fence_provider.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/presentation/providers/products_provider.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/core/database/database_provider.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbytk/features/auth/presentation/providers/account_session_fence_provider.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/presentation/providers/products_provider.dart';
 
 final _providerTestSession = AuthSessionEntity(
   user: AuthUserEntity(
@@ -178,7 +178,7 @@ ProductModel _product({
     imageUrl: '',
     serverVersion: version,
     category: 'Tests',
-    brand: 'Talbatiyk',
+    brand: 'Talbytk',
     isAvailable: true,
     quantity: 5,
     createdAt: DateTime.utc(2026, 10, 6),

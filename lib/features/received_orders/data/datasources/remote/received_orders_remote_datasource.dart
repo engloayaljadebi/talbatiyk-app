@@ -1,7 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart' as api;
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk_api/talbytk_api.dart' as api;
 
 import '../../../domain/entities/received_order_entity.dart';
 import '../../../domain/errors/stale_recipient_fulfillment_version_exception.dart';

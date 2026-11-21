@@ -44,7 +44,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Online Published Product',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '1250.50',
                 'quantity' => '8',
                 'description' => 'Published directly through the server.',
@@ -133,7 +133,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Relative Image Product',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '250.00',
                 'quantity' => '3',
                 'description' => 'Relative image path verification.',
@@ -221,7 +221,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Product Without Image',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '100.00',
                 'quantity' => '1',
                 'description' => '',
@@ -266,7 +266,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Legacy Image Product',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '150.00',
                 'quantity' => '2',
                 'description' => '',
@@ -323,7 +323,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Storage Prefix Product',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '175.00',
                 'quantity' => '2',
                 'description' => '',
@@ -391,7 +391,7 @@ class ProductPublishingApiTest extends TestCase
                 [
                     'name' => $case['name'],
                     'category' => 'Electronics',
-                    'brand' => 'Talbatiyk Test',
+                    'brand' => 'Talbytk Test',
                     'price' => '100.50',
                     'quantity' => '2',
                     'description' => 'Generated-client multipart boolean compatibility.',
@@ -446,7 +446,7 @@ class ProductPublishingApiTest extends TestCase
             [
                 'name' => 'Invalid Multipart Boolean',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk Test',
+                'brand' => 'Talbytk Test',
                 'price' => '100.50',
                 'quantity' => '2',
                 'description' => 'Invalid boolean must remain invalid.',

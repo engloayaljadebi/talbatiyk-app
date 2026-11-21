@@ -11,13 +11,13 @@
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_session_storage.dart';
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storage.dart';
-import 'package:talbatiyk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
-import 'package:talbatiyk/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/entities/registration_validation_exception.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_session_storage.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_token_storage.dart';
+import 'package:talbytk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
+import 'package:talbytk/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/entities/registration_validation_exception.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 void main() {
   const String userId = '11111111-1111-4111-8111-111111111111';

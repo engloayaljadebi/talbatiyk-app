@@ -515,7 +515,7 @@ class ProductPublishingIdempotencyApiTest extends TestCase
             [
                 'name' => 'Idempotent Product',
                 'category' => 'Electronics',
-                'brand' => 'Talbatiyk',
+                'brand' => 'Talbytk',
                 'price' => 1250.50,
                 'quantity' => 8,
                 'description' => 'Stable logical product publication.',

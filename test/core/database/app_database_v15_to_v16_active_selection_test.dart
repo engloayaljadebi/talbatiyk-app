@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   test('v15 to v16 creates active selection and preserves cart data', () async {
     final directory = await Directory.systemTemp.createTemp(
-      'talbatiyk-v15-v16-',
+      'talbytk-v15-v16-',
     );
 
     final file = File(

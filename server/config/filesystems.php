@@ -38,9 +38,9 @@ return [
             'report' => false,
         ],
 
-        'talbatiyk_private' => [
+        'talbytk_private' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/talbatiyk'),
+            'root' => storage_path('app/private/talbytk'),
             'visibility' => 'private',
             'throw' => true,
         ],

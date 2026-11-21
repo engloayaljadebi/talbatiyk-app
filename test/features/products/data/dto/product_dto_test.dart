@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/dto/products_dto.dart';
+import 'package:talbytk/features/products/data/dto/products_dto.dart';
 
 void main() {
   group('ProductDto.fromJson', () {

@@ -1,5 +1,5 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 import '../../../../../core/network/generated_api_client.dart';
 import '../../models/orders_model.dart';

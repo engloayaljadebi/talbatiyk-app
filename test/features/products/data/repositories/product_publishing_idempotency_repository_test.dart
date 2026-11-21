@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/data/repositories/products_repository_impl.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/data/repositories/products_repository_impl.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   test(
@@ -17,7 +17,7 @@ void main() {
         price: 2500,
         imageUrl: '',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         description: 'Same logical publication',
         quantity: 3,
@@ -31,7 +31,7 @@ void main() {
         price: 2500,
         imageUrl: 'https://example.test/product.jpg',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         description: 'Same logical publication',
         quantity: 3,
@@ -96,7 +96,7 @@ void main() {
         price: 1700,
         imageUrl: '',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         quantity: 2,
       );
@@ -109,7 +109,7 @@ void main() {
         price: 1700,
         imageUrl: '',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         quantity: 2,
         syncStatus: ProductSyncStatus.synced,
@@ -166,7 +166,7 @@ void main() {
           price: 1800,
           imageUrl: '',
           category: 'Electronics',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 1,
         );
@@ -179,7 +179,7 @@ void main() {
           price: 1800,
           imageUrl: '',
           category: 'Electronics',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 1,
         );
@@ -248,7 +248,7 @@ void main() {
         price: 1900,
         imageUrl: '',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         quantity: 5,
       );
@@ -261,7 +261,7 @@ void main() {
         price: 1900,
         imageUrl: 'https://example.test/reconciled.jpg',
         category: 'Electronics',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
         quantity: 5,
         syncStatus: ProductSyncStatus.synced,

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:talbatiyk/core/database/database_provider.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
+import 'package:talbytk/core/database/database_provider.dart';
+import 'package:talbytk/core/network/network_providers.dart';
 import '../../../auth/presentation/providers/account_session_fence_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 

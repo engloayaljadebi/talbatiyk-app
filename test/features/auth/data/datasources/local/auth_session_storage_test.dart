@@ -23,9 +23,9 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_session_storage.dart';
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storage.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_session_storage.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_token_storage.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
 
 void main() {
   /*
@@ -200,7 +200,7 @@ void main() {
        * - Cache قديمة أو غير صالحة.
        */
       await secureStore.write(
-        key: 'talbatiyk.auth.verified_session',
+        key: 'talbytk.auth.verified_session',
         value: '{invalid-json',
       );
 
@@ -237,7 +237,7 @@ void main() {
        * بواسطة Schema مختلف أو إصدار غير معروف.
        */
       await secureStore.write(
-        key: 'talbatiyk.auth.verified_session',
+        key: 'talbytk.auth.verified_session',
         value: '{"version":999,"user":{}}',
       );
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
-import 'package:talbatiyk/features/business/presentation/pages/business_workspace_page.dart';
-import 'package:talbatiyk/features/products/presentation/pages/add_product_page.dart';
+import 'package:talbytk/features/business/domain/entities/business_entity.dart';
+import 'package:talbytk/features/business/presentation/pages/business_workspace_page.dart';
+import 'package:talbytk/features/products/presentation/pages/add_product_page.dart';
 
 void main() {
   testWidgets(

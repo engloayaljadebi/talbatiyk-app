@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
-import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbytk/features/products/data/datasources/local/products_local_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 const _key = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
@@ -17,7 +17,7 @@ const _product = ProductModel(
   imageUrl: '',
   serverVersion: 1,
   category: 'Electronics',
-  brand: 'Talbatiyk',
+  brand: 'Talbytk',
   isAvailable: true,
   quantity: 3,
 );

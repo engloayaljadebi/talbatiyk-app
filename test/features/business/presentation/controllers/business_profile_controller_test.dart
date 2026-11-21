@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_profile_update.dart';
-import 'package:talbatiyk/features/business/domain/repositories/business_profile_repository.dart';
-import 'package:talbatiyk/features/business/domain/usecases/update_business_profile_usecase.dart';
-import 'package:talbatiyk/features/business/presentation/controllers/business_profile_controller.dart';
+import 'package:talbytk/features/business/domain/entities/business_entity.dart';
+import 'package:talbytk/features/business/domain/entities/business_profile_update.dart';
+import 'package:talbytk/features/business/domain/repositories/business_profile_repository.dart';
+import 'package:talbytk/features/business/domain/usecases/update_business_profile_usecase.dart';
+import 'package:talbytk/features/business/presentation/controllers/business_profile_controller.dart';
 
 void main() {
   test('save replaces profile with canonical repository result', () async {

@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   test('v16 to v17 keeps order items and allows manual order items', () async {
     final directory = await Directory.systemTemp.createTemp(
-      'talbatiyk-v16-v17-',
+      'talbytk-v16-v17-',
     );
 
     final file = File(

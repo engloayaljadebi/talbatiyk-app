@@ -23,8 +23,8 @@ class AdminSupplierCategoryPanelTest extends TestCase
         parent::setUp();
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
-            || DB::selectOne('SELECT current_database() AS name')->name !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
+            || DB::selectOne('SELECT current_database() AS name')->name !== 'talbytk_testing'
         ) {
             throw new \RuntimeException('Unsafe test database.');
         }

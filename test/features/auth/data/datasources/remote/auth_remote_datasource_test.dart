@@ -20,9 +20,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/auth/data/datasources/remote/auth_remote_datasource.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 void main() {
   const userId = '11111111-1111-4111-8111-111111111111';

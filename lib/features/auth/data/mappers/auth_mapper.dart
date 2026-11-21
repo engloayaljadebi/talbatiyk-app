@@ -14,8 +14,8 @@
 |
 */
 
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 /// تحويل وسيلة التواصل المولدة من OpenAPI إلى Domain Entity.
 extension UserResourceContactsInnerAuthMapper on UserResourceContactsInner {

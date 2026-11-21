@@ -22,9 +22,9 @@ import 'dart:io';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/business/data/datasources/remote/business_remote_datasource.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/business/data/datasources/remote/business_remote_datasource.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 void main() {
   group('BusinessRemoteDataSourceImpl', () {
@@ -196,8 +196,8 @@ void main() {
 
         final createRequest = CreateBusinessRequest(
           (builder) => builder
-            ..name = 'Talbatiyk Test Business'
-            ..legalName = 'Talbatiyk Test Business LLC'
+            ..name = 'Talbytk Test Business'
+            ..legalName = 'Talbytk Test Business LLC'
             ..description = 'Business created from Flutter test'
             ..capabilities.replace(BuiltList<String>(['supplier', 'shop']))
             ..location.replace(location)
@@ -223,9 +223,9 @@ void main() {
 
         final requestBody = jsonDecode(rawBody) as Map<String, dynamic>;
 
-        expect(requestBody['name'], 'Talbatiyk Test Business');
+        expect(requestBody['name'], 'Talbytk Test Business');
 
-        expect(requestBody['legal_name'], 'Talbatiyk Test Business LLC');
+        expect(requestBody['legal_name'], 'Talbytk Test Business LLC');
 
         expect(
           requestBody['description'],
@@ -273,8 +273,8 @@ void main() {
           jsonEncode({
             'data': {
               'id': '33333333-3333-4333-8333-333333333333',
-              'name': 'Talbatiyk Test Business',
-              'legal_name': 'Talbatiyk Test Business LLC',
+              'name': 'Talbytk Test Business',
+              'legal_name': 'Talbytk Test Business LLC',
               'description': 'Business created from Flutter test',
               'status': 'active',
               'created_at': '2026-08-13T12:00:00+03:00',
@@ -289,9 +289,9 @@ void main() {
 
         expect(result.id, '33333333-3333-4333-8333-333333333333');
 
-        expect(result.name, 'Talbatiyk Test Business');
+        expect(result.name, 'Talbytk Test Business');
 
-        expect(result.legalName, 'Talbatiyk Test Business LLC');
+        expect(result.legalName, 'Talbytk Test Business LLC');
 
         expect(result.description, 'Business created from Flutter test');
 

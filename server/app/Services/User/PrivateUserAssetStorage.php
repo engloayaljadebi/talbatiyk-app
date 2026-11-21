@@ -14,7 +14,7 @@ use Throwable;
 
 final class PrivateUserAssetStorage
 {
-    private const DISK = 'talbatiyk_private';
+    private const DISK = 'talbytk_private';
 
     private const STAGING_PREFIX = 'staging/admin-user-creation/';
 

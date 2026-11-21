@@ -29,8 +29,8 @@ final class AdminUserUpdateTest extends TestCase
         )->name;
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
-            || $database !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
+            || $database !== 'talbytk_testing'
         ) {
             throw new \RuntimeException('Unsafe test database.');
         }

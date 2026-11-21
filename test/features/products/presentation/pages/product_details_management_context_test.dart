@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
-import 'package:talbatiyk/features/products/presentation/pages/product_details_page.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/products/presentation/pages/product_details_page.dart';
 
 void main() {
   testWidgets('matching managed Business exposes Product management', (
@@ -24,7 +24,7 @@ void main() {
       price: 100,
       imageUrl: '',
       category: 'Tests',
-      brand: 'Talbatiyk',
+      brand: 'Talbytk',
       isAvailable: true,
       serverVersion: 3,
     );
@@ -63,7 +63,7 @@ void main() {
       price: 100,
       imageUrl: '',
       category: 'Tests',
-      brand: 'Talbatiyk',
+      brand: 'Talbytk',
       isAvailable: true,
     );
 
@@ -96,7 +96,7 @@ void main() {
         price: 100,
         imageUrl: '',
         category: 'Tests',
-        brand: 'Talbatiyk',
+        brand: 'Talbytk',
         isAvailable: true,
       );
 

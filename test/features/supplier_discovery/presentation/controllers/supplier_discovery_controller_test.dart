@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/repositories/supplier_discovery_repository.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/usecases/supplier_discovery_usecase.dart';
-import 'package:talbatiyk/features/supplier_discovery/presentation/controllers/supplier_discovery_controller.dart';
+import 'package:talbytk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbytk/features/supplier_discovery/domain/repositories/supplier_discovery_repository.dart';
+import 'package:talbytk/features/supplier_discovery/domain/usecases/supplier_discovery_usecase.dart';
+import 'package:talbytk/features/supplier_discovery/presentation/controllers/supplier_discovery_controller.dart';
 
 void main() {
   test('loadSuppliers exposes server candidates', () async {

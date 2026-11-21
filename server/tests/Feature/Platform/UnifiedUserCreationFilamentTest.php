@@ -41,13 +41,13 @@ final class UnifiedUserCreationFilamentTest extends TestCase
         $actual = DB::selectOne('SELECT current_database() AS name')->name;
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
-            || $actual !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
+            || $actual !== 'talbytk_testing'
         ) {
             throw new RuntimeException('Unsafe database.');
         }
 
-        Storage::fake('talbatiyk_private');
+        Storage::fake('talbytk_private');
 
         $this->seed(BusinessRoleSeeder::class);
         $this->seed(BusinessCapabilitySeeder::class);
@@ -208,7 +208,7 @@ final class UnifiedUserCreationFilamentTest extends TestCase
     {
         $admin = $this->loginAdmin();
         $payload = $this->payload('shop');
-        $disk = Storage::disk('talbatiyk_private');
+        $disk = Storage::disk('talbytk_private');
 
         $disk->putFileAs('staging/admin-user-creation', UploadedFile::fake()->image('profile.png'), 'profile.png');
         $disk->putFileAs('staging/admin-user-creation', UploadedFile::fake()->image('front.png'), 'front.png');

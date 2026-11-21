@@ -4,13 +4,13 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'legacy_ownership_schema_fixture.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase v7 repair migration', () {
     test('repairs v7 missing notification_records without data loss', () async {
       final Directory directory = await Directory.systemTemp.createTemp(
-        'talbatiyk-v7-repair-',
+        'talbytk-v7-repair-',
       );
 
       addTearDown(() async {
@@ -54,7 +54,7 @@ void main() {
 
     test('upgrades healthy v7 without losing existing notifications', () async {
       final Directory directory = await Directory.systemTemp.createTemp(
-        'talbatiyk-v7-healthy-',
+        'talbytk-v7-healthy-',
       );
 
       addTearDown(() async {

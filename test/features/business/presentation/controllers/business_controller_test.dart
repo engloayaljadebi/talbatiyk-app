@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_entity.dart';
-import 'package:talbatiyk/features/business/domain/repositories/business_repository.dart';
-import 'package:talbatiyk/features/business/domain/usecases/business_usecase.dart';
-import 'package:talbatiyk/features/business/presentation/controllers/business_controller.dart';
-import 'package:talbatiyk/features/business/presentation/state/business_state.dart';
+import 'package:talbytk/features/business/domain/entities/business_entity.dart';
+import 'package:talbytk/features/business/domain/repositories/business_repository.dart';
+import 'package:talbytk/features/business/domain/usecases/business_usecase.dart';
+import 'package:talbytk/features/business/presentation/controllers/business_controller.dart';
+import 'package:talbytk/features/business/presentation/state/business_state.dart';
 
 void main() {
   test('loadBusinesses exposes accessible businesses', () async {

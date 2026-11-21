@@ -1,5 +1,5 @@
 # =============================================================================
-# Talbatiyk Project Structure Builder
+# Talbytk Project Structure Builder
 # =============================================================================
 #
 # Purpose:
@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 $Root = (Get-Location).Path
 
 if (-not (Test-Path (Join-Path $Root "pubspec.yaml"))) {
-    throw "Run this script from the Talbatiyk project root."
+    throw "Run this script from the Talbytk project root."
 }
 
 if (-not (Test-Path (Join-Path $Root "server\artisan"))) {
@@ -328,7 +328,7 @@ Ensure-Directory "tool"
 
 Write-Host ""
 Write-Host "============================================================"
-Write-Host "Talbatiyk project structure completed successfully."
+Write-Host "Talbytk project structure completed successfully."
 Write-Host "============================================================"
 Write-Host ""
 Write-Host "Created directories : $CreatedDirectories"

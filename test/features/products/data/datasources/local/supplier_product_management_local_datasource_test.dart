@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import '../../../../../support/legacy_order_test_fence.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/products/data/datasources/local/products_local_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   test(
@@ -166,7 +166,7 @@ ProductModel _product({
     imageUrl: '',
     serverVersion: version,
     category: 'Tests',
-    brand: 'Talbatiyk',
+    brand: 'Talbytk',
     isAvailable: true,
     description: 'Test Product',
     quantity: quantity,

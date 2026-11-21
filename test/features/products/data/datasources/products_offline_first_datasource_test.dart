@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_offline_first_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/datasources/products_offline_first_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 void main() {
   group('ProductsOfflineFirstDataSource', () {

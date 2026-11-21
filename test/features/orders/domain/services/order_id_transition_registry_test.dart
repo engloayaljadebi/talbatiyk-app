@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/orders/domain/services/order_id_transition_registry.dart';
+import 'package:talbytk/features/orders/domain/services/order_id_transition_registry.dart';
 
 void main() {
   group('OrderIdTransitionRegistry', () {

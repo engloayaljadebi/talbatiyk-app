@@ -1,7 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/cart/data/datasources/local/cart_local_datasource.dart';
 
 void main() {
   late AppDatabase database;

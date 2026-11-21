@@ -58,7 +58,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     } catch (error, stackTrace) {
       developer.log(
         'Pending Product publication recovery failed.',
-        name: 'talbatiyk.products.publishing',
+        name: 'talbytk.products.publishing',
         error: error,
         stackTrace: stackTrace,
       );
@@ -171,7 +171,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
          */
         developer.log(
           'Product was published by Laravel but local reconciliation failed.',
-          name: 'talbatiyk.products.publishing',
+          name: 'talbytk.products.publishing',
           error: error,
           stackTrace: stackTrace,
         );
@@ -281,7 +281,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
         developer.log(
           'Product was accepted remotely but local reconciliation failed; '
           'durable idempotent attempt retained.',
-          name: 'talbatiyk.products.publishing',
+          name: 'talbytk.products.publishing',
           error: error,
           stackTrace: stackTrace,
         );
@@ -329,7 +329,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
        */
       developer.log(
         'Failed to persist Product publication retry state.',
-        name: 'talbatiyk.products.publishing',
+        name: 'talbytk.products.publishing',
         error: persistenceError,
         stackTrace: persistenceStackTrace,
       );
@@ -337,7 +337,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
 
     developer.log(
       'Product publication failed or had an ambiguous remote outcome.',
-      name: 'talbatiyk.products.publishing',
+      name: 'talbytk.products.publishing',
       error: error,
       stackTrace: stackTrace,
     );
