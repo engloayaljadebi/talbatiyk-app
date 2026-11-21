@@ -397,7 +397,7 @@ class NotificationRecords extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(driftDatabase(name: 'talbatiyk'));
+  AppDatabase() : super(driftDatabase(name: 'talbytk'));
 
   /// Test-only constructor that accepts an in-memory database executor.
   AppDatabase.forTesting(super.e);

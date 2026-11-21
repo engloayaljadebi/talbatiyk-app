@@ -36,13 +36,13 @@ final class AdminUserManagementTest extends TestCase
         )->name;
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
-            || $actual !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
+            || $actual !== 'talbytk_testing'
         ) {
             throw new \RuntimeException('Unsafe database.');
         }
 
-        Storage::fake('talbatiyk_private');
+        Storage::fake('talbytk_private');
 
         $this->seed(BusinessRoleSeeder::class);
         $this->seed(BusinessCapabilitySeeder::class);

@@ -21,7 +21,7 @@ final class VerifiedAuthSessionStorageImpl
 
   final SecureKeyValueStore _storage;
 
-  static const String _verifiedSessionKey = 'talbatiyk.auth.verified_session';
+  static const String _verifiedSessionKey = 'talbytk.auth.verified_session';
 
   static const int _schemaVersion = 1;
 

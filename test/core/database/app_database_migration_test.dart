@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   group('AppDatabase migrations', () {
     test('migrates persisted data from v4 to v17 without loss', () async {
       final Directory tempDirectory = await Directory.systemTemp.createTemp(
-        'talbatiyk-drift-migration-',
+        'talbytk-drift-migration-',
       );
 
       addTearDown(() async {

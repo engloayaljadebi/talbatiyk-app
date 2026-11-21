@@ -1,8 +1,8 @@
-# Talbatiyk Project Structure
+# Talbytk Project Structure
 
 ## 1. Purpose
 
-هذه الوثيقة هي المرجع الرسمي لهيكل مشروع **Talbatiyk / طلبيتك**.
+هذه الوثيقة هي المرجع الرسمي لهيكل مشروع **Talbytk / طلبيتك**.
 
 الهدف منها:
 
@@ -18,7 +18,7 @@
 
 # 2. Project Root
 ```text
-talbatiyk/
+talbytk/
 │
 ├── lib/                       Flutter application
 ├── test/                      Flutter tests

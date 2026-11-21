@@ -1,18 +1,18 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/core/database/database_provider.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
-import 'package:talbatiyk/features/notifications/data/repositories/notifications_repository_impl.dart';
-import 'package:talbatiyk/features/notifications/domain/entities/notifications_entity.dart';
-import 'package:talbatiyk/features/notifications/domain/repositories/notifications_repository.dart';
-import 'package:talbatiyk/features/notifications/domain/usecases/notifications_usecase.dart';
-import 'package:talbatiyk/features/notifications/presentation/controllers/notifications_controller.dart';
-import 'package:talbatiyk/features/notifications/presentation/providers/notifications_provider.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/core/database/database_provider.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/core/network/network_providers.dart';
+import 'package:talbytk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
+import 'package:talbytk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
+import 'package:talbytk/features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'package:talbytk/features/notifications/domain/entities/notifications_entity.dart';
+import 'package:talbytk/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:talbytk/features/notifications/domain/usecases/notifications_usecase.dart';
+import 'package:talbytk/features/notifications/presentation/controllers/notifications_controller.dart';
+import 'package:talbytk/features/notifications/presentation/providers/notifications_provider.dart';
 
 void main() {
   test(

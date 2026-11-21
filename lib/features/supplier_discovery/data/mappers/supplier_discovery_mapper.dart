@@ -1,4 +1,4 @@
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 import '../../domain/entities/supplier_candidate_entity.dart';
 

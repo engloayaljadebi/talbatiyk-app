@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/notifications/data/datasources/remote/notifications_remote_datasource.dart';
 
 void main() {
   group('NotificationsRemoteDatasourceImpl', () {

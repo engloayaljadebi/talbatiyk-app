@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/business/data/datasources/remote/business_remote_datasource.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/business/data/datasources/remote/business_remote_datasource.dart';
 
 void main() {
   test('queued business index rejects account switch', () async {

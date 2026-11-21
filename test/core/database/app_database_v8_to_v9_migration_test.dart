@@ -4,9 +4,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'legacy_ownership_schema_fixture.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/supplier_discovery/data/datasources/local/supplier_discovery_local_datasource.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/supplier_discovery/data/datasources/local/supplier_discovery_local_datasource.dart';
+import 'package:talbytk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
 
 void main() {
   test(

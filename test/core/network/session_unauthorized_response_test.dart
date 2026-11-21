@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
 
 void main() {
   for (final replaceSession in [false, true]) {

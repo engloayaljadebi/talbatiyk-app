@@ -1,15 +1,15 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/core/database/database_provider.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
-import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/core/database/database_provider.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/repositories/auth_repository.dart';
+import 'package:talbytk/features/auth/domain/usecases/auth_usecase.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   test('account switching preserves each cart and pending writes', () async {

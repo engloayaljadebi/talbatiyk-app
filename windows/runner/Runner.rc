@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.talbatiyk" "\0"
-            VALUE "FileDescription", "talbatiyk" "\0"
+            VALUE "CompanyName", "com.talbytk" "\0"
+            VALUE "FileDescription", "Talbytk" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "talbatiyk" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.talbatiyk. All rights reserved." "\0"
-            VALUE "OriginalFilename", "talbatiyk.exe" "\0"
-            VALUE "ProductName", "talbatiyk" "\0"
+            VALUE "InternalName", "talbytk" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.talbytk. All rights reserved." "\0"
+            VALUE "OriginalFilename", "talbytk.exe" "\0"
+            VALUE "ProductName", "Talbytk" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

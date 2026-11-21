@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/received_orders/data/datasources/remote/received_orders_remote_datasource.dart';
-import 'package:talbatiyk/features/received_orders/domain/entities/received_order_entity.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/received_orders/data/datasources/remote/received_orders_remote_datasource.dart';
+import 'package:talbytk/features/received_orders/domain/entities/received_order_entity.dart';
 
 const businessId = '11111111-1111-4111-8111-111111111111';
 const recipientId = '22222222-2222-4222-8222-222222222222';

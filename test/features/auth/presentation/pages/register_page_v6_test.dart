@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/entities/registration_validation_exception.dart';
-import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
-import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
-import 'package:talbatiyk/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:talbatiyk/features/auth/presentation/pages/register_page.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
-import 'package:talbatiyk/features/auth/presentation/states/auth_state.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/entities/registration_validation_exception.dart';
+import 'package:talbytk/features/auth/domain/repositories/auth_repository.dart';
+import 'package:talbytk/features/auth/domain/usecases/auth_usecase.dart';
+import 'package:talbytk/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:talbytk/features/auth/presentation/pages/register_page.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/features/auth/presentation/states/auth_state.dart';
 
 const _categoryId = '11111111-1111-4111-8111-111111111111';
 const _otherCategoryId = '22222222-2222-4222-8222-222222222222';

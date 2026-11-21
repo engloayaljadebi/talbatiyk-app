@@ -26,7 +26,7 @@
 
         <!-- اختبارات Laravel تستخدم PostgreSQL مثل بيئة الإنتاج والتطوير. -->
         <env name="DB_CONNECTION" value="pgsql"/>
-        <env name="DB_DATABASE" value="talbatiyk_testing"/>
+        <env name="DB_DATABASE" value="talbytk_testing"/>
 
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>

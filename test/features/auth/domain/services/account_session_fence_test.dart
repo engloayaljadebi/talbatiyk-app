@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/services/account_session_fence.dart';
 
 void main() {
   group('AccountSessionFence', () {

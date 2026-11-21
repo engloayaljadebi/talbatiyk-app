@@ -22,9 +22,9 @@ final class BusinessCategoryPanelTest extends TestCase
         parent::setUp();
 
         if (
-            DB::connection()->getDatabaseName() !== 'talbatiyk_testing'
+            DB::connection()->getDatabaseName() !== 'talbytk_testing'
             || DB::selectOne('SELECT current_database() AS db')->db
-                !== 'talbatiyk_testing'
+                !== 'talbytk_testing'
         ) {
             throw new \RuntimeException('Unsafe test database.');
         }

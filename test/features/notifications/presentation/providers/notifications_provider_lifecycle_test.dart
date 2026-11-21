@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/notifications/domain/entities/notifications_entity.dart';
-import 'package:talbatiyk/features/notifications/domain/repositories/notifications_repository.dart';
-import 'package:talbatiyk/features/notifications/domain/usecases/notifications_usecase.dart';
-import 'package:talbatiyk/features/notifications/presentation/providers/notifications_provider.dart';
+import 'package:talbytk/features/notifications/domain/entities/notifications_entity.dart';
+import 'package:talbytk/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:talbytk/features/notifications/domain/usecases/notifications_usecase.dart';
+import 'package:talbytk/features/notifications/presentation/providers/notifications_provider.dart';
 
 void main() {
   test(

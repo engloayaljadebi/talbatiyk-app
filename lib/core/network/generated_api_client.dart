@@ -4,7 +4,7 @@
 |--------------------------------------------------------------------------
 |
 | المسؤوليات:
-| - إنشاء TalbatiykApi المولد من OpenAPI.
+| - إنشاء TalbytkApi المولد من OpenAPI.
 | - تمرير Base URL الخاص بالبيئة الحالية.
 | - تفعيل وإزالة Sanctum Bearer Token.
 | - توفير نقاط الوصول للـ APIs المولدة.
@@ -14,12 +14,12 @@
 | قواعد الأمان:
 | - التوكن لا يخرج خارج هذه الطبقة.
 | - أي Raw authenticated request يفشل مغلقًا إذا لم توجد جلسة.
-| - لا يتم تعديل الملفات المولدة داخل packages/talbatiyk_api.
+| - لا يتم تعديل الملفات المولدة داخل packages/talbytk_api.
 |
 */
 
 import 'package:dio/dio.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 import 'api_environment.dart';
 
@@ -77,9 +77,9 @@ final class GeneratedApiClient {
 
   static const String _bearerSecurityName = 'http';
   static const String _orderAuthRevisionExtraKey =
-      '_talbatiykOrderAuthRevision';
+      '_talbytkOrderAuthRevision';
 
-  final TalbatiykApi client;
+  final TalbytkApi client;
 
   String? _accessToken;
   int _authRevision = 0;
@@ -88,7 +88,7 @@ final class GeneratedApiClient {
 
   factory GeneratedApiClient.create({String? baseUrl}) {
     return GeneratedApiClient._(
-      TalbatiykApi(basePathOverride: baseUrl ?? ApiEnvironment.baseUrl),
+      TalbytkApi(basePathOverride: baseUrl ?? ApiEnvironment.baseUrl),
     );
   }
 

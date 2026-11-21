@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/usecases/supplier_follow_usecase.dart';
+import 'package:talbytk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
+import 'package:talbytk/features/supplier_follow/domain/usecases/supplier_follow_usecase.dart';
 
 void main() {
   group('SupplierFollowUseCase', () {

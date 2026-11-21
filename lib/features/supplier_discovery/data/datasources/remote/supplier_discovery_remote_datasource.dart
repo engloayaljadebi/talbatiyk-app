@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 abstract interface class SupplierDiscoveryRemoteDataSource {
   Future<BuiltList<SupplierSummaryResource>> index();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
+import 'package:talbytk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
 
 void main() {
   Widget buildNavigation(int count) {

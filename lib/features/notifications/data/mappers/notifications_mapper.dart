@@ -1,4 +1,4 @@
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 import '../../domain/entities/notifications_entity.dart';
 import '../models/notifications_model.dart';

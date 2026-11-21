@@ -1,8 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
-import 'package:talbatiyk/features/notifications/data/models/notifications_model.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/notifications/data/datasources/local/notifications_local_datasource.dart';
+import 'package:talbytk/features/notifications/data/models/notifications_model.dart';
 
 void main() {
   late AppDatabase database;

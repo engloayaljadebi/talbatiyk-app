@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   const ProductEntity firstSupplierProduct = ProductEntity(

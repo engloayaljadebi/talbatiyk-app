@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   group('CartItemEntity', () {

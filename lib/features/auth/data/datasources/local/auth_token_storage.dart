@@ -85,7 +85,7 @@ final class AuthTokenStorageImpl implements AuthTokenStorage {
   ///
   /// نستخدم اسمًا ثابتًا ومحددًا للتطبيق حتى لا يتعارض
   /// مع مفاتيح أخرى مستقبلًا.
-  static const String _accessTokenKey = 'talbatiyk.auth.access_token';
+  static const String _accessTokenKey = 'talbytk.auth.access_token';
 
   @override
   Future<void> saveAccessToken(String token) async {

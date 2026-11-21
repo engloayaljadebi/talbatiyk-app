@@ -1,4 +1,4 @@
-import 'package:talbatiyk_api/talbatiyk_api.dart' as api;
+import 'package:talbytk_api/talbytk_api.dart' as api;
 
 import '../../../orders/domain/entities/orders_entity.dart';
 import '../../domain/entities/order_response_comparison_entity.dart';

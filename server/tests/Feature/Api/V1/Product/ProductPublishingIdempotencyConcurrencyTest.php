@@ -42,7 +42,7 @@ class ProductPublishingIdempotencyConcurrencyTest extends TestCase
         $payload = [
             'name' => 'Concurrent Product',
             'category' => 'Electronics',
-            'brand' => 'Talbatiyk',
+            'brand' => 'Talbytk',
             'price' => 2500.00,
             'quantity' => 10,
             'description' => 'Concurrent product idempotency acceptance.',

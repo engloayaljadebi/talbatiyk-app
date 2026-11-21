@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
-import 'package:talbatiyk/features/products/presentation/pages/product_details_page.dart';
-import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
-import 'package:talbatiyk/features/products/presentation/widgets/product_card.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
-import 'package:talbatiyk/features/supplier_follow/presentation/providers/supplier_follow_provider.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/products/presentation/pages/product_details_page.dart';
+import 'package:talbytk/features/products/presentation/widgets/add_to_cart_button.dart';
+import 'package:talbytk/features/products/presentation/widgets/product_card.dart';
+import 'package:talbytk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
+import 'package:talbytk/features/supplier_follow/presentation/providers/supplier_follow_provider.dart';
 
 void main() {
   const product = ProductEntity(

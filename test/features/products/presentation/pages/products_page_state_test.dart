@@ -1,20 +1,20 @@
-import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
-import 'package:talbatiyk/features/auth/domain/usecases/auth_usecase.dart';
-import 'package:talbatiyk/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/features/auth/domain/repositories/auth_repository.dart';
+import 'package:talbytk/features/auth/domain/usecases/auth_usecase.dart';
+import 'package:talbytk/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/presentation/pages/products_page.dart';
-import 'package:talbatiyk/features/products/presentation/providers/products_provider.dart';
-import 'package:talbatiyk/features/products/presentation/state/products_state.dart';
-import 'package:talbatiyk/features/products/presentation/widgets/product_card.dart';
-import 'package:talbatiyk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
-import 'package:talbatiyk/features/supplier_follow/presentation/providers/supplier_follow_provider.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/presentation/pages/products_page.dart';
+import 'package:talbytk/features/products/presentation/providers/products_provider.dart';
+import 'package:talbytk/features/products/presentation/state/products_state.dart';
+import 'package:talbytk/features/products/presentation/widgets/product_card.dart';
+import 'package:talbytk/features/supplier_follow/domain/repositories/supplier_follow_repository.dart';
+import 'package:talbytk/features/supplier_follow/presentation/providers/supplier_follow_provider.dart';
 
 void main() {
   testWidgets(

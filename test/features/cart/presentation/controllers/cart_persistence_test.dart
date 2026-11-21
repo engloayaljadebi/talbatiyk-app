@@ -2,19 +2,19 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/cart/data/datasources/local/cart_local_datasource.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   test('cart survives database close and application reopen', () async {
     final tempDirectory = await Directory.systemTemp.createTemp(
-      'talbatiyk-cart-persistence-',
+      'talbytk-cart-persistence-',
     );
 
     final databaseFile = File(
-      '${tempDirectory.path}${Platform.pathSeparator}talbatiyk.sqlite',
+      '${tempDirectory.path}${Platform.pathSeparator}talbytk.sqlite',
     );
 
     addTearDown(() async {
@@ -91,7 +91,7 @@ const ProductEntity _product = ProductEntity(
   price: 4500,
   imageUrl: 'https://example.test/charger.jpg',
   category: 'Chargers',
-  brand: 'Talbatiyk',
+  brand: 'Talbytk',
   isAvailable: true,
   description: 'Persistent cart test product.',
   colors: ['Black'],

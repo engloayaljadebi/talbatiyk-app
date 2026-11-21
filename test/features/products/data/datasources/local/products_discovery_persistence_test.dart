@@ -2,22 +2,22 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_offline_first_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/products/data/datasources/local/products_discovery_local_datasource.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/datasources/products_offline_first_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 void main() {
   test(
     'discovery cache survives database close and reopen while remote is offline',
     () async {
       final tempDirectory = await Directory.systemTemp.createTemp(
-        'talbatiyk-discovery-persistence-',
+        'talbytk-discovery-persistence-',
       );
 
       final databaseFile = File(
-        '${tempDirectory.path}${Platform.pathSeparator}talbatiyk.sqlite',
+        '${tempDirectory.path}${Platform.pathSeparator}talbytk.sqlite',
       );
 
       addTearDown(() async {
@@ -44,7 +44,7 @@ void main() {
               price: 4500,
               imageUrl: 'https://example.test/product.jpg',
               category: 'Chargers',
-              brand: 'Talbatiyk',
+              brand: 'Talbytk',
               isAvailable: true,
               description: 'Product persisted across database reopen.',
               colors: ['Black'],

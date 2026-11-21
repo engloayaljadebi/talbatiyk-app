@@ -1,5 +1,5 @@
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 import '../../../domain/entities/business_profile_update.dart';
 import '../../mappers/business_profile_patch_mapper.dart';

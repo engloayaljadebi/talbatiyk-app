@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/browse/presentation/pages/browse_page.dart';
-import 'package:talbatiyk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
+import 'package:talbytk/features/browse/presentation/pages/browse_page.dart';
+import 'package:talbytk/features/navigation/presentation/widgets/home_bottom_navigation.dart';
 
 void main() {
   testWidgets('browse has products and stores tabs with working selection', (

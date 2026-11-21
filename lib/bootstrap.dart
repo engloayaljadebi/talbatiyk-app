@@ -3,7 +3,7 @@
 // - تحديد بيئة تشغيل التطبيق.
 // - تسجيل الاعتمادات والخدمات.
 // - تغليف التطبيق بـ Riverpod.
-// - تشغيل TalbatiykApp.
+// - تشغيل TalbytkApp.
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,5 +23,5 @@ Future<void> bootstrap() async {
   // تسجيل الخدمات والاعتمادات العامة للتطبيق.
   await AppInitializer.initialize();
 
-  runApp(const ProviderScope(child: TalbatiykApp()));
+  runApp(const ProviderScope(child: TalbytkApp()));
 }

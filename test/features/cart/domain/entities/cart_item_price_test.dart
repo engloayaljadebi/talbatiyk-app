@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
-import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
-import 'package:talbatiyk/features/cart/presentation/controllers/cart_controller.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/cart/data/datasources/local/cart_local_datasource.dart';
+import 'package:talbytk/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:talbytk/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   group('Cart item unified price', () {

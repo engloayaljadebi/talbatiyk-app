@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/mappers/products_mapper.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/data/repositories/products_repository_impl.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/mappers/products_mapper.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/data/repositories/products_repository_impl.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   final repository = ProductsRepositoryImpl(
@@ -74,7 +74,7 @@ void main() {
           price: 1500,
           imageUrl: '',
           category: 'إلكترونيات',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 4,
         );
@@ -87,7 +87,7 @@ void main() {
           price: 1500,
           imageUrl: 'https://example.test/product.jpg',
           category: 'إلكترونيات',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 4,
           syncStatus: ProductSyncStatus.synced,
@@ -127,7 +127,7 @@ void main() {
           price: 1500,
           imageUrl: '',
           category: 'إلكترونيات',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 4,
         );
@@ -140,7 +140,7 @@ void main() {
           price: 1500,
           imageUrl: 'https://example.test/product.jpg',
           category: 'إلكترونيات',
-          brand: 'Talbatiyk',
+          brand: 'Talbytk',
           isAvailable: true,
           quantity: 4,
           syncStatus: ProductSyncStatus.synced,

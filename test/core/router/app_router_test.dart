@@ -20,15 +20,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/router/app_router.dart';
-import 'package:talbatiyk/core/router/route_names.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/repositories/auth_repository.dart';
-import 'package:talbatiyk/features/auth/presentation/pages/auth_session_page.dart';
-import 'package:talbatiyk/features/auth/presentation/pages/login_page.dart';
-import 'package:talbatiyk/features/auth/presentation/pages/register_page.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
-import 'package:talbatiyk/features/navigation/presentation/pages/main_page.dart';
+import 'package:talbytk/core/router/app_router.dart';
+import 'package:talbytk/core/router/route_names.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/repositories/auth_repository.dart';
+import 'package:talbytk/features/auth/presentation/pages/auth_session_page.dart';
+import 'package:talbytk/features/auth/presentation/pages/login_page.dart';
+import 'package:talbytk/features/auth/presentation/pages/register_page.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/features/navigation/presentation/pages/main_page.dart';
 
 void main() {
   const user = AuthUserEntity(

@@ -2,14 +2,14 @@ import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
-import 'package:talbatiyk/features/supplier_discovery/data/datasources/local/supplier_discovery_local_datasource.dart';
-import 'package:talbatiyk/features/supplier_discovery/data/datasources/remote/supplier_discovery_remote_datasource.dart';
-import 'package:talbatiyk/features/supplier_discovery/data/repositories/supplier_discovery_repository_impl.dart';
-import 'package:talbatiyk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbytk/features/supplier_discovery/data/datasources/local/supplier_discovery_local_datasource.dart';
+import 'package:talbytk/features/supplier_discovery/data/datasources/remote/supplier_discovery_remote_datasource.dart';
+import 'package:talbytk/features/supplier_discovery/data/repositories/supplier_discovery_repository_impl.dart';
+import 'package:talbytk/features/supplier_discovery/domain/entities/supplier_candidate_entity.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 void main() {
   late AppDatabase database;

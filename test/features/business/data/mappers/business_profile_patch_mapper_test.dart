@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/business/data/mappers/business_profile_patch_mapper.dart';
-import 'package:talbatiyk/features/business/domain/entities/business_profile_update.dart';
+import 'package:talbytk/features/business/data/mappers/business_profile_patch_mapper.dart';
+import 'package:talbytk/features/business/domain/entities/business_profile_update.dart';
 
 void main() {
   test('patch payload preserves explicit null and omits absent fields', () {

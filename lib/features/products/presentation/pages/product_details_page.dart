@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:talbatiyk/features/cart/presentation/providers/cart_provider.dart';
+import 'package:talbytk/features/cart/presentation/providers/cart_provider.dart';
 import '../utils/product_cart_action.dart';
-import 'package:talbatiyk/features/products/presentation/widgets/add_to_cart_button.dart';
+import 'package:talbytk/features/products/presentation/widgets/add_to_cart_button.dart';
 import '../../../supplier_follow/presentation/providers/supplier_follow_provider.dart';
 import '../../domain/entities/products_entity.dart';
 import '../providers/products_provider.dart';

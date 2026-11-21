@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/api_environment.dart';
+import 'package:talbytk/core/network/api_environment.dart';
 
 void main() {
   group('ApiEnvironment.normalizeBaseUrl', () {

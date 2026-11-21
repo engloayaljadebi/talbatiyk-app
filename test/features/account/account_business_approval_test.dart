@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/features/account/presentation/providers/account_business_approvals_provider.dart';
+import 'package:talbytk/features/account/presentation/providers/account_business_approvals_provider.dart';
 
 void main() {
   test(

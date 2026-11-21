@@ -111,7 +111,7 @@ final class ManageUsers extends ManageRecords
                                 ->label('الصورة الشخصية')
                                 ->image()
                                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                ->disk('talbatiyk_private')
+                                ->disk('talbytk_private')
                                 ->directory('staging/admin-user-creation')
                                 ->visibility('private')
                                 ->maxSize(5120),
@@ -132,7 +132,7 @@ final class ManageUsers extends ManageRecords
                                 ->label('صورة الوثيقة من الأمام (عند الحاجة)')
                                 ->image()
                                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                ->disk('talbatiyk_private')
+                                ->disk('talbytk_private')
                                 ->directory('staging/admin-user-creation')
                                 ->visibility('private')
                                 ->maxSize(5120),
@@ -141,7 +141,7 @@ final class ManageUsers extends ManageRecords
                                 ->label('صورة الوثيقة من الخلف (عند الحاجة)')
                                 ->image()
                                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                ->disk('talbatiyk_private')
+                                ->disk('talbytk_private')
                                 ->directory('staging/admin-user-creation')
                                 ->visibility('private')
                                 ->maxSize(5120),
@@ -174,7 +174,7 @@ final class ManageUsers extends ManageRecords
                                 ->label('شعار النشاط التجاري')
                                 ->image()
                                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                ->disk('talbatiyk_private')
+                                ->disk('talbytk_private')
                                 ->directory('staging/admin-user-creation')
                                 ->visibility('private')
                                 ->maxSize(5120),

@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/products/data/datasources/remote/products_remote_datasource.dart';
-import 'package:talbatiyk/features/orders/data/datasources/remote/orders_remote_datasource.dart';
-import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/products/data/datasources/remote/products_remote_datasource.dart';
+import 'package:talbytk/features/orders/data/datasources/remote/orders_remote_datasource.dart';
+import 'package:talbytk/features/orders/data/models/orders_model.dart';
 
 void main() {
   group('Order HTTP account token isolation', () {

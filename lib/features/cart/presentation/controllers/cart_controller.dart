@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import 'package:talbatiyk/features/cart/data/datasources/local/cart_local_datasource.dart';
-import 'package:talbatiyk/features/cart/domain/entities/cart_item_entity.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/features/cart/data/datasources/local/cart_local_datasource.dart';
+import 'package:talbytk/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 /// نتيجة محاولة إضافة منتج إلى السلة.
 enum CartAddResult {
@@ -376,7 +376,7 @@ class CartController extends ChangeNotifier {
           FlutterErrorDetails(
             exception: error,
             stack: stackTrace,
-            library: 'Talbatiyk Cart persistence',
+            library: 'Talbytk Cart persistence',
           ),
         );
       },

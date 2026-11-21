@@ -4,14 +4,14 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
-import 'package:talbatiyk/core/database/app_database.dart';
+import 'package:talbytk/core/database/app_database.dart';
 
 void main() {
   test(
     'v12 to v13 preserves legacy order and outbox without inventing owner',
     () async {
       final directory = await Directory.systemTemp.createTemp(
-        'talbatiyk-ownership-migration-',
+        'talbytk-ownership-migration-',
       );
 
       addTearDown(() async {

@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/products/data/datasources/remote/products_remote_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/products/data/datasources/remote/products_remote_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 void main() {
   test(
@@ -18,7 +18,7 @@ void main() {
       });
 
       final tempDirectory = await Directory.systemTemp.createTemp(
-        'talbatiyk-product-publishing-',
+        'talbytk-product-publishing-',
       );
 
       addTearDown(() async {
@@ -83,7 +83,7 @@ void main() {
                   'name': 'Online Flutter Product',
                   'description': 'Published directly from Flutter.',
                   'category': 'Electronics',
-                  'brand': 'Talbatiyk Test',
+                  'brand': 'Talbytk Test',
                   'price': 1250.5,
                   'quantity': 8,
                   'is_available': true,
@@ -125,7 +125,7 @@ void main() {
         imageUrl: '',
         localImagePath: image.path,
         category: 'Electronics',
-        brand: 'Talbatiyk Test',
+        brand: 'Talbytk Test',
         isAvailable: true,
         description: 'Published directly from Flutter.',
         quantity: 8,
@@ -150,7 +150,7 @@ void main() {
 
       expect(receivedBody, contains('Electronics'));
 
-      expect(receivedBody, contains('Talbatiyk Test'));
+      expect(receivedBody, contains('Talbytk Test'));
 
       expect(receivedBody, contains('product.jpg'));
 

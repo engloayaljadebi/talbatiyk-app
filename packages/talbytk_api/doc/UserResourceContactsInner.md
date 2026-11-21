@@ -1,0 +1,19 @@
+# talbytk_api.model.UserResourceContactsInner
+
+## Load the model package
+```dart
+import 'package:talbytk_api/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**id** | **String** |  | 
+**type** | **String** |  | 
+**value** | **String** |  | 
+**isPrimary** | **bool** |  | 
+**verifiedAt** | **String** |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

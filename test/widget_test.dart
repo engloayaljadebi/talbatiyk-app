@@ -1,6 +1,6 @@
 /*
 |--------------------------------------------------------------------------
-| Talbatiyk App Widget Test
+| Talbytk App Widget Test
 |--------------------------------------------------------------------------
 |
 | محتويات الملف:
@@ -16,16 +16,16 @@ import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/app.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/core/database/database_provider.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
-import 'package:talbatiyk/features/auth/data/datasources/local/auth_token_storage.dart';
-import 'package:talbatiyk/features/auth/presentation/providers/auth_providers.dart';
+import 'package:talbytk/app.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/core/database/database_provider.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/core/network/network_providers.dart';
+import 'package:talbytk/features/auth/data/datasources/local/auth_token_storage.dart';
+import 'package:talbytk/features/auth/presentation/providers/auth_providers.dart';
 
 void main() {
-  testWidgets('Talbatiyk app starts successfully', (WidgetTester tester) async {
+  testWidgets('Talbytk app starts successfully', (WidgetTester tester) async {
     // قاعدة بيانات مؤقتة لا تلمس بيانات الجهاز.
     final database = AppDatabase.forTesting(NativeDatabase.memory());
 
@@ -51,7 +51,7 @@ void main() {
 
           secureKeyValueStoreProvider.overrideWithValue(secureStorage),
         ],
-        child: const TalbatiykApp(),
+        child: const TalbytkApp(),
       ),
     );
 
@@ -61,7 +61,7 @@ void main() {
        */
     await tester.pump();
 
-    expect(find.byType(TalbatiykApp), findsOneWidget);
+    expect(find.byType(TalbytkApp), findsOneWidget);
 
     // إزالة التطبيق وإنهاء الموارد المرتبطة بالواجهة.
     await tester.pumpWidget(const SizedBox.shrink());

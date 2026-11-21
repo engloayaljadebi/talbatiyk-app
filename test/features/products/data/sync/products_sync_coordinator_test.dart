@@ -1,18 +1,18 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:talbatiyk/features/auth/domain/entities/auth_entity.dart';
-import 'package:talbatiyk/features/auth/domain/services/account_session_fence.dart';
+import 'package:talbytk/features/auth/domain/entities/auth_entity.dart';
+import 'package:talbytk/features/auth/domain/services/account_session_fence.dart';
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import '../../../../support/legacy_order_test_fence.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/products/data/datasources/local/products_local_datasource.dart';
-import 'package:talbatiyk/features/products/data/datasources/products_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
-import 'package:talbatiyk/features/products/data/sync/products_sync_coordinator.dart';
-import 'package:talbatiyk/features/products/domain/entities/products_entity.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/products/data/datasources/local/products_local_datasource.dart';
+import 'package:talbytk/features/products/data/datasources/products_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
+import 'package:talbytk/features/products/data/sync/products_sync_coordinator.dart';
+import 'package:talbytk/features/products/domain/entities/products_entity.dart';
 
 void main() {
   late AppDatabase database;
@@ -567,7 +567,7 @@ Future<void> _seedProduct(
       imageUrl: imageUrl,
       serverVersion: version,
       category: 'Tests',
-      brand: 'Talbatiyk',
+      brand: 'Talbytk',
       isAvailable: true,
       description: 'Server product',
       quantity: 5,
@@ -592,7 +592,7 @@ ProductModel _editedProduct({
     imageUrl: imageUrl,
     localImagePath: localImagePath,
     category: 'Tests',
-    brand: 'Talbatiyk',
+    brand: 'Talbytk',
     isAvailable: true,
     description: 'Edited product',
     quantity: 10,

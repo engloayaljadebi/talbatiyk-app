@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/order_response_comparison/data/datasources/remote/order_response_comparison_remote_datasource.dart';
-import 'package:talbatiyk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/order_response_comparison/data/datasources/remote/order_response_comparison_remote_datasource.dart';
+import 'package:talbytk/features/order_response_comparison/domain/entities/order_response_comparison_entity.dart';
 
 const _orderId = '11111111-1111-4111-8111-111111111111';
 

@@ -18,8 +18,8 @@
 */
 
 import 'package:dio/dio.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk_api/talbatiyk_api.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk_api/talbytk_api.dart';
 
 /// Approval state returned without exposing generated SDK models.
 typedef BusinessApprovalSnapshot = ({

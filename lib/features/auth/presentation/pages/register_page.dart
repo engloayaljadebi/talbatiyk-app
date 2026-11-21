@@ -20,7 +20,7 @@ enum _AccountKind { shop, supplier }
 enum _Step { kind, account, personal, business, location, review }
 
 final class _RegisterPageState extends ConsumerState<RegisterPage> {
-  static const String _deviceName = 'talbatiyk-flutter-app';
+  static const String _deviceName = 'talbytk-flutter-app';
 
   final Map<_Step, GlobalKey<FormState>> _forms = {
     for (final step in _Step.values) step: GlobalKey<FormState>(),

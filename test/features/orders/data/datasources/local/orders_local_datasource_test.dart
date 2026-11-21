@@ -1,8 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/database/app_database.dart';
-import 'package:talbatiyk/features/orders/data/datasources/local/orders_local_datasource.dart';
-import 'package:talbatiyk/features/orders/data/models/orders_model.dart';
+import 'package:talbytk/core/database/app_database.dart';
+import 'package:talbytk/features/orders/data/datasources/local/orders_local_datasource.dart';
+import 'package:talbytk/features/orders/data/models/orders_model.dart';
 import '../../../../../support/legacy_order_test_fence.dart';
 
 void main() {

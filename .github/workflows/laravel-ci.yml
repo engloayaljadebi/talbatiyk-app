@@ -26,13 +26,13 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_DB: talbatiyk_testing
-          POSTGRES_USER: talbatiyk_app
+          POSTGRES_DB: talbytk_testing
+          POSTGRES_USER: talbytk_app
           POSTGRES_PASSWORD: ci_test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U talbatiyk_app -d talbatiyk_testing"
+          --health-cmd="pg_isready -U talbytk_app -d talbytk_testing"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -42,8 +42,8 @@ jobs:
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
       DB_PORT: 5432
-      DB_DATABASE: talbatiyk_testing
-      DB_USERNAME: talbatiyk_app
+      DB_DATABASE: talbytk_testing
+      DB_USERNAME: talbytk_app
       DB_PASSWORD: ci_test_password
       CACHE_STORE: array
       SESSION_DRIVER: array

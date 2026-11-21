@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('type');
 
-            // Talbatiyk User primary keys are UUIDs.
+            // Talbytk User primary keys are UUIDs.
             $table->uuidMorphs('notifiable');
 
             $table->json('data');

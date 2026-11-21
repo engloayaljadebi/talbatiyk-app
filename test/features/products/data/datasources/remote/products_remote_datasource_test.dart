@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talbatiyk/core/network/generated_api_client.dart';
-import 'package:talbatiyk/features/products/data/datasources/remote/products_remote_datasource.dart';
-import 'package:talbatiyk/features/products/data/models/products_model.dart';
+import 'package:talbytk/core/network/generated_api_client.dart';
+import 'package:talbytk/features/products/data/datasources/remote/products_remote_datasource.dart';
+import 'package:talbytk/features/products/data/models/products_model.dart';
 
 void main() {
   group('ProductsRemoteDataSource', () {
@@ -272,7 +272,7 @@ void main() {
         });
 
         final tempDirectory = await Directory.systemTemp.createTemp(
-          'talbatiyk-product-mutation-image-',
+          'talbytk-product-mutation-image-',
         );
 
         addTearDown(() async {

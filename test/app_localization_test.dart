@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:talbatiyk/app.dart';
-import 'package:talbatiyk/core/router/app_router.dart';
-import 'package:talbatiyk/features/users/presentation/pages/users_page.dart';
-import 'package:talbatiyk/features/voice/presentation/pages/voice_page.dart';
-import 'package:talbatiyk/features/wallet/presentation/pages/wallet_page.dart';
+import 'package:talbytk/app.dart';
+import 'package:talbytk/core/router/app_router.dart';
+import 'package:talbytk/features/users/presentation/pages/users_page.dart';
+import 'package:talbytk/features/voice/presentation/pages/voice_page.dart';
+import 'package:talbytk/features/wallet/presentation/pages/wallet_page.dart';
 
 void main() {
   testWidgets(
-    'TalbatiykApp exposes Arabic locale and Arabic material localization',
+    'TalbytkApp exposes Arabic locale and Arabic material localization',
     (tester) async {
       final router = GoRouter(
         initialLocation: '/',
@@ -37,7 +37,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [appRouterProvider.overrideWithValue(router)],
-          child: const TalbatiykApp(),
+          child: const TalbytkApp(),
         ),
       );
 

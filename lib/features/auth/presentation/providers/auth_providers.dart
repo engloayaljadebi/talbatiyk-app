@@ -32,7 +32,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:talbatiyk/core/network/network_providers.dart';
+import 'package:talbytk/core/network/network_providers.dart';
 
 import '../../data/datasources/local/auth_session_storage.dart';
 import '../../data/datasources/local/auth_token_storage.dart';
