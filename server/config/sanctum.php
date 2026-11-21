@@ -52,6 +52,9 @@ return [
 
     'expiration' => null,
 
+    // Optional lifetime in minutes for newly issued application tokens.
+    'token_ttl_minutes' => env('SANCTUM_TOKEN_TTL_MINUTES'),
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix

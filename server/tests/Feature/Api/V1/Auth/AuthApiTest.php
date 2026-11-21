@@ -31,6 +31,7 @@ use Database\Seeders\BusinessRoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
@@ -75,6 +76,9 @@ class AuthApiTest extends TestCase
      */
     public function test_user_can_register(): void
     {
+        config(['sanctum.token_ttl_minutes' => 5]);
+        $this->freezeTime();
+
         $response = $this->postJson('/api/v1/auth/register', $this->registrationPayload([
             'username' => 'newuser',
             'display_name' => 'مستخدم جديد',
@@ -113,6 +117,11 @@ class AuthApiTest extends TestCase
         $this->assertNotEmpty(
             $response->json('data.access_token'),
         );
+
+        $user = User::query()->findOrFail($response->json('data.user.id'));
+        $expiresAt = $user->tokens()->sole()->expires_at;
+        $this->assertNotNull($expiresAt);
+        $this->assertSame(now()->addMinutes(5)->timestamp, $expiresAt->timestamp);
 
         $this->assertDatabaseHas('users', [
             'username' => 'newuser',
@@ -374,6 +383,37 @@ class AuthApiTest extends TestCase
     /**
      * /me محمي بواسطة Sanctum.
      */
+    public function test_login_token_expires_after_configured_lifetime(): void
+    {
+        config(['sanctum.token_ttl_minutes' => 5]);
+        $this->freezeTime();
+
+        $user = User::factory()->create([
+            'status' => 'active',
+            'password' => Hash::make('test-password'),
+        ]);
+
+        $login = $this->postJson('/api/v1/auth/login', [
+            'login' => $user->username,
+            'password' => 'test-password',
+            'device_name' => 'Test Device',
+        ]);
+
+        $login->assertOk();
+        $token = $login->json('data.access_token');
+        $expiresAt = $user->tokens()->sole()->expires_at;
+
+        $this->assertNotNull($expiresAt);
+        $this->assertSame(now()->addMinutes(5)->timestamp, $expiresAt->timestamp);
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/v1/auth/me')->assertOk();
+
+        $this->travel(6)->minutes();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/v1/auth/me')->assertUnauthorized();
+    }
+
     public function test_guest_cannot_access_current_profile(): void
     {
         $this
@@ -415,6 +455,7 @@ class AuthApiTest extends TestCase
 
         $plainTextToken = $newToken->plainTextToken;
         $tokenId = $newToken->accessToken->id;
+        $otherToken = $user->createToken('Second Device')->plainTextToken;
 
         $this
             ->withToken($plainTextToken)
@@ -450,6 +491,24 @@ class AuthApiTest extends TestCase
             ->withToken($plainTextToken)
             ->getJson('/api/v1/auth/me')
             ->assertUnauthorized();
+
+        Auth::forgetGuards();
+        $this->withToken($otherToken)->getJson('/api/v1/auth/me')->assertOk();
+    }
+
+    public function test_configured_lifetime_preserves_legacy_tokens(): void
+    {
+        $this->freezeTime();
+        $user = $this->createUser();
+        $legacyToken = $user->createToken('Legacy Device');
+
+        config(['sanctum.token_ttl_minutes' => 5]);
+        $this->travel(6)->minutes();
+
+        $this->assertNull($legacyToken->accessToken->fresh()->expires_at);
+        $this->withToken($legacyToken->plainTextToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk();
     }
 
     public function test_register_rejects_password_over_bcrypt_byte_limit(): void
