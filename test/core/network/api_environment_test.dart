@@ -50,6 +50,44 @@ void main() {
       );
     });
 
+    test('internal release uses an explicit HTTPS Render endpoint', () {
+      const endpoint = 'https://talbytk-internal.onrender.com/api/v1';
+      expect(
+        ApiEnvironment.normalizeBaseUrl(
+          endpoint,
+          isRelease: true,
+          allowInternalTest: true,
+        ),
+        endpoint,
+      );
+      expect(
+        () => ApiEnvironment.normalizeBaseUrl(endpoint, isRelease: true),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('internal release rejects URLs outside its expected endpoint', () {
+      for (final endpoint in [
+        'http://talbytk-internal.onrender.com/api/v1',
+        'https://talbytk-internal.onrender.com.example.com/api/v1',
+        'https://example@talbytk-internal.onrender.com/api/v1',
+        'https://talbytk-internal.onrender.com/other',
+        'https://talbytk-internal.onrender.com/api/v1?redirect=x',
+        'https://talbytk-internal.onrender.com/api/v1#fragment',
+        ApiEnvironment.productionBaseUrl,
+      ]) {
+        expect(
+          () => ApiEnvironment.normalizeBaseUrl(
+            endpoint,
+            isRelease: true,
+            allowInternalTest: true,
+          ),
+          throwsA(isA<StateError>()),
+          reason: endpoint,
+        );
+      }
+    });
+
     test('rejects malformed non HTTP API URLs', () {
       expect(
         () =>

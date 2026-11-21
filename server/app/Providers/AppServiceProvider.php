@@ -4,9 +4,12 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\OpenApi\ApplyCommercialInputBounds;
+use Aws\CommandInterface;
+use Aws\Middleware;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +27,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Storage::extend('supabase-s3', static function ($app, array $config) {
+            $disk = $app['filesystem']->createS3Driver($config);
+
+            // Supabase manages visibility at the bucket level and does not support object ACLs.
+            $disk->getClient()->getHandlerList()->appendInit(
+                Middleware::mapCommand(static function (CommandInterface $command): CommandInterface {
+                    unset($command['ACL']);
+
+                    return $command;
+                }),
+                'supabase-storage-acl',
+            );
+
+            return $disk;
+        });
+
         $platformAdminAbility = static function (User $user): bool {
             // Always check the current user status in the database.
             $isActive = User::query()

@@ -11,3 +11,8 @@ windows/flutter/generated_plugins.cmake text eol=lf
 # OpenAPI Generator owns this package. Keep its emitted LF endings stable and
 # do not fail whitespace checks on generator-authored trailing spaces.
 packages/talbytk_api/** text eol=lf whitespace=-trailing-space
+
+# Keep container startup files executable by Linux shells on Windows checkouts.
+server/Dockerfile text eol=lf
+server/deploy/*.sh text eol=lf
+server/deploy/Caddyfile text eol=lf
