@@ -8,9 +8,9 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:talbatiyk_api/src/model/auth_login403_response.dart';
 import 'package:talbatiyk_api/src/model/create_order_request.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
-import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/order_index200_response.dart';
 import 'package:talbatiyk_api/src/model/order_store201_response.dart';
 
@@ -102,7 +102,7 @@ class OrderApi {
   }
 
   /// Create a new order for the authenticated user
-  /// 
+  /// Retry with the same Idempotency-Key and payload.  The API returns the existing order with HTTP 201.  Reusing the key for a different payload returns HTTP 409.
   ///
   /// Parameters:
   /// * [idempotencyKey] - Stable UUID reused for retries of the same logical order creation.

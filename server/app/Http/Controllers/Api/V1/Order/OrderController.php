@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\OrderResource;
 use App\Services\Order\OrderQueryService;
 use App\Services\Order\OrderService;
 use Dedoc\Scramble\Attributes\HeaderParameter;
+use Dedoc\Scramble\Attributes\Response as OpenApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -32,6 +33,12 @@ class OrderController extends Controller
 
     /**
      * Create a new order for the authenticated user.
+     *
+     * Retry with the same Idempotency-Key and payload.
+     *
+     * The API returns the existing order with HTTP 201.
+     *
+     * Reusing the key for a different payload returns HTTP 409.
      */ #[HeaderParameter(
         'Idempotency-Key',
         description: 'Stable UUID reused for retries of the same logical order creation.',
@@ -40,6 +47,7 @@ class OrderController extends Controller
         format: 'uuid',
         example: '550e8400-e29b-41d4-a716-446655440000',
     )]
+    #[OpenApiResponse(409, 'The Idempotency-Key was already used for a different order payload.', type: 'array{message: string}')]
     public function store(CreateOrderRequest $request): JsonResponse
     {
         $order = $this->orderService->create(

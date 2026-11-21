@@ -10,12 +10,13 @@ import 'package:dio/dio.dart';
 
 import 'package:talbatiyk_api/src/model/auth_business_approvals200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_login200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_login403_response.dart';
 import 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_me200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_me403_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response.dart';
 import 'package:talbatiyk_api/src/model/auth_registration_categories200_response.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
-import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
 import 'package:talbatiyk_api/src/model/register_request.dart';
 import 'package:talbatiyk_api/src/model/update_profile_request.dart';
@@ -108,7 +109,7 @@ class AuthApi {
   }
 
   /// تسجيل الدخول
-  /// 
+  /// يصدر رمز Bearer للجهاز.  تنتهي صلاحية الرمز حسب إعداد الخادم إذا فُعّل.  بيانات الدخول غير الصحيحة ترجع 401.  الحساب غير النشط يرجع 403.
   ///
   /// Parameters:
   /// * [loginRequest] 
@@ -203,7 +204,7 @@ class AuthApi {
   }
 
   /// تسجيل خروج الجهاز الحالي فقط
-  /// 
+  /// يلغي رمز Bearer المستخدم في الطلب، وتظل رموز الأجهزة الأخرى صالحة.
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -282,7 +283,7 @@ class AuthApi {
   }
 
   /// بيانات المستخدم الحالي
-  /// 
+  /// يتطلب رمزًا صالحًا وحسابًا نشطًا.  الرمز المنتهي أو الملغى يرجع 401.  الحساب غير النشط يرجع 403 مع ACCOUNT_INACTIVE.
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation

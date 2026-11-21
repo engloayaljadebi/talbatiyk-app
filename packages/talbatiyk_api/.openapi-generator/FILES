@@ -6,8 +6,10 @@ doc/AuthBusinessApprovals200Response.md
 doc/AuthBusinessApprovals200ResponseDataInner.md
 doc/AuthLogin200Response.md
 doc/AuthLogin200ResponseData.md
+doc/AuthLogin403Response.md
 doc/AuthLogout200Response.md
 doc/AuthMe200Response.md
+doc/AuthMe403Response.md
 doc/AuthRegister201Response.md
 doc/AuthRegister201ResponseData.md
 doc/AuthRegistrationCategories200Response.md
@@ -37,7 +39,6 @@ doc/CreateOrderRequest.md
 doc/CreateOrderRequestItemsInner.md
 doc/FulfillmentStatus.md
 doc/InlineObject.md
-doc/InlineObject1.md
 doc/LoginRequest.md
 doc/NotificationApi.md
 doc/NotificationIndex200Response.md
@@ -135,8 +136,10 @@ lib/src/model/auth_business_approvals200_response.dart
 lib/src/model/auth_business_approvals200_response_data_inner.dart
 lib/src/model/auth_login200_response.dart
 lib/src/model/auth_login200_response_data.dart
+lib/src/model/auth_login403_response.dart
 lib/src/model/auth_logout200_response.dart
 lib/src/model/auth_me200_response.dart
+lib/src/model/auth_me403_response.dart
 lib/src/model/auth_register201_response.dart
 lib/src/model/auth_register201_response_data.dart
 lib/src/model/auth_registration_categories200_response.dart
@@ -164,7 +167,6 @@ lib/src/model/create_order_request_items_inner.dart
 lib/src/model/date.dart
 lib/src/model/fulfillment_status.dart
 lib/src/model/inline_object.dart
-lib/src/model/inline_object1.dart
 lib/src/model/login_request.dart
 lib/src/model/notification_index200_response.dart
 lib/src/model/notification_mark_all_read200_response.dart

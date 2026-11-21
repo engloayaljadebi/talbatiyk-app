@@ -24,6 +24,7 @@ use App\Http\Resources\Api\V1\UserResource;
 use App\Services\Auth\AuthService;
 use App\Services\Business\BusinessCategorySelectionService;
 use App\Services\User\UserProfileService;
+use Dedoc\Scramble\Attributes\Response as OpenApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +77,16 @@ class AuthController extends Controller
 
     /**
      * تسجيل الدخول.
+     *
+     * يصدر رمز Bearer للجهاز.
+     *
+     * تنتهي صلاحية الرمز حسب إعداد الخادم إذا فُعّل.
+     *
+     * بيانات الدخول غير الصحيحة ترجع 401.
+     *
+     * الحساب غير النشط يرجع 403.
      */
+    #[OpenApiResponse(403, 'The account is inactive.', type: 'array{message: string}')]
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->login(
@@ -94,7 +104,14 @@ class AuthController extends Controller
 
     /**
      * بيانات المستخدم الحالي.
+     *
+     * يتطلب رمزًا صالحًا وحسابًا نشطًا.
+     *
+     * الرمز المنتهي أو الملغى يرجع 401.
+     *
+     * الحساب غير النشط يرجع 403 مع ACCOUNT_INACTIVE.
      */
+    #[OpenApiResponse(403, 'The account is inactive.', type: "array{message: string, code: 'ACCOUNT_INACTIVE'}")]
     public function me(Request $request): UserResource
     {
         return new UserResource(
@@ -184,6 +201,8 @@ class AuthController extends Controller
 
     /**
      * تسجيل خروج الجهاز الحالي فقط.
+     *
+     * يلغي رمز Bearer المستخدم في الطلب، وتظل رموز الأجهزة الأخرى صالحة.
      */
     public function logout(Request $request): JsonResponse
     {

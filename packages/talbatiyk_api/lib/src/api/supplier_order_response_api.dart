@@ -9,8 +9,8 @@ import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
 import 'package:talbatiyk_api/src/api_util.dart';
+import 'package:talbatiyk_api/src/model/auth_login403_response.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
-import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/submit_supplier_order_response_request.dart';
 import 'package:talbatiyk_api/src/model/supplier_order_response_store201_response.dart';
 

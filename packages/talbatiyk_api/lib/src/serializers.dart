@@ -18,8 +18,10 @@ import 'package:talbatiyk_api/src/model/auth_business_approvals200_response.dart
 import 'package:talbatiyk_api/src/model/auth_business_approvals200_response_data_inner.dart';
 import 'package:talbatiyk_api/src/model/auth_login200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_login200_response_data.dart';
+import 'package:talbatiyk_api/src/model/auth_login403_response.dart';
 import 'package:talbatiyk_api/src/model/auth_logout200_response.dart';
 import 'package:talbatiyk_api/src/model/auth_me200_response.dart';
+import 'package:talbatiyk_api/src/model/auth_me403_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response.dart';
 import 'package:talbatiyk_api/src/model/auth_register201_response_data.dart';
 import 'package:talbatiyk_api/src/model/auth_registration_categories200_response.dart';
@@ -46,7 +48,6 @@ import 'package:talbatiyk_api/src/model/create_order_request.dart';
 import 'package:talbatiyk_api/src/model/create_order_request_items_inner.dart';
 import 'package:talbatiyk_api/src/model/fulfillment_status.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
-import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/login_request.dart';
 import 'package:talbatiyk_api/src/model/notification_index200_response.dart';
 import 'package:talbatiyk_api/src/model/notification_mark_all_read200_response.dart';
@@ -116,8 +117,10 @@ part 'serializers.g.dart';
   AuthBusinessApprovals200ResponseDataInner,
   AuthLogin200Response,
   AuthLogin200ResponseData,
+  AuthLogin403Response,
   AuthLogout200Response,
   AuthMe200Response,
+  AuthMe403Response,
   AuthRegister201Response,
   AuthRegister201ResponseData,
   AuthRegistrationCategories200Response,
@@ -144,7 +147,6 @@ part 'serializers.g.dart';
   CreateOrderRequestItemsInner,
   FulfillmentStatus,
   InlineObject,
-  InlineObject1,
   LoginRequest,
   NotificationIndex200Response,
   NotificationMarkAllRead200Response,
