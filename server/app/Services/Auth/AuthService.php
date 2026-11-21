@@ -99,9 +99,7 @@ class AuthService
                 );
             }
 
-            $token = $user
-                ->createToken($data['device_name'])
-                ->plainTextToken;
+            $token = $this->issueToken($user, $data['device_name']);
 
             return [
                 'user' => $user->load('contacts'),
@@ -139,14 +137,36 @@ class AuthService
             'last_login_at' => now(),
         ])->save();
 
-        $token = $user
-            ->createToken($data['device_name'])
-            ->plainTextToken;
+        $token = $this->issueToken($user, $data['device_name']);
 
         return [
             'user' => $user->load('contacts'),
             'token' => $token,
         ];
+    }
+
+    private function issueToken(User $user, string $deviceName): string
+    {
+        $configuredMinutes = config('sanctum.token_ttl_minutes');
+
+        if ($configuredMinutes === null || $configuredMinutes === '') {
+            return $user->createToken($deviceName)->plainTextToken;
+        }
+
+        $minutes = filter_var($configuredMinutes, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+
+        if ($minutes === false) {
+            throw new \InvalidArgumentException(
+                'SANCTUM_TOKEN_TTL_MINUTES must be a positive integer.',
+            );
+        }
+
+        return $user->createToken(
+            $deviceName,
+            expiresAt: now()->addMinutes($minutes),
+        )->plainTextToken;
     }
 
     /**
