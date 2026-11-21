@@ -87,9 +87,13 @@ final class GeneratedApiClient {
   void Function()? onSessionExpired;
 
   factory GeneratedApiClient.create({String? baseUrl}) {
-    return GeneratedApiClient._(
-      TalbytkApi(basePathOverride: baseUrl ?? ApiEnvironment.baseUrl),
+    final client = TalbytkApi(
+      basePathOverride: baseUrl ?? ApiEnvironment.baseUrl,
     );
+    if (ApiEnvironment.isInternalTest) {
+      client.dio.options.receiveTimeout = const Duration(seconds: 90);
+    }
+    return GeneratedApiClient._(client);
   }
 
   AuthApi get auth => client.getAuthApi();

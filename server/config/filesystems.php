@@ -1,5 +1,18 @@
 <?php
 
+$supabaseStorage = env('SUPABASE_STORAGE', false);
+$supabaseS3 = [
+    'driver' => 'supabase-s3',
+    'key' => env('SUPABASE_S3_KEY'),
+    'secret' => env('SUPABASE_S3_SECRET'),
+    'region' => env('SUPABASE_S3_REGION'),
+    'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+    'use_path_style_endpoint' => true,
+    'retain_visibility' => false,
+    'request_checksum_calculation' => 'when_required',
+    'response_checksum_validation' => 'when_required',
+];
+
 return [
 
     /*
@@ -38,14 +51,24 @@ return [
             'report' => false,
         ],
 
-        'talbytk_private' => [
+        'talbytk_private' => $supabaseStorage ? array_merge($supabaseS3, [
+            'bucket' => env('SUPABASE_PRIVATE_BUCKET'),
+            'visibility' => 'private',
+            'throw' => true,
+        ]) : [
             'driver' => 'local',
             'root' => storage_path('app/private/talbytk'),
             'visibility' => 'private',
             'throw' => true,
         ],
 
-        'public' => [
+        'public' => $supabaseStorage ? array_merge($supabaseS3, [
+            'bucket' => env('SUPABASE_PUBLIC_BUCKET'),
+            'url' => rtrim((string) env('SUPABASE_URL'), '/').'/storage/v1/object/public/'.env('SUPABASE_PUBLIC_BUCKET'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => true,
+        ]) : [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
