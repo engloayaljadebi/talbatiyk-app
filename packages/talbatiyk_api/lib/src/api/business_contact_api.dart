@@ -9,11 +9,11 @@ import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
 import 'package:talbatiyk_api/src/api_util.dart';
+import 'package:talbatiyk_api/src/model/auth_login403_response.dart';
 import 'package:talbatiyk_api/src/model/business_contact_index_business200_response.dart';
 import 'package:talbatiyk_api/src/model/business_contact_store_business201_response.dart';
 import 'package:talbatiyk_api/src/model/create_business_contact_request.dart';
 import 'package:talbatiyk_api/src/model/inline_object.dart';
-import 'package:talbatiyk_api/src/model/inline_object1.dart';
 import 'package:talbatiyk_api/src/model/update_business_contact_request.dart';
 
 class BusinessContactApi {

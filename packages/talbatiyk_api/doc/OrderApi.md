@@ -55,6 +55,8 @@ This endpoint does not need any parameter.
 
 Create a new order for the authenticated user
 
+Retry with the same Idempotency-Key and payload.  The API returns the existing order with HTTP 201.  Reusing the key for a different payload returns HTTP 409.
+
 ### Example
 ```dart
 import 'package:talbatiyk_api/api.dart';

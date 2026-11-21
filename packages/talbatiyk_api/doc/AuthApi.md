@@ -60,6 +60,8 @@ This endpoint does not need any parameter.
 
 تسجيل الدخول
 
+يصدر رمز Bearer للجهاز.  تنتهي صلاحية الرمز حسب إعداد الخادم إذا فُعّل.  بيانات الدخول غير الصحيحة ترجع 401.  الحساب غير النشط يرجع 403.
+
 ### Example
 ```dart
 import 'package:talbatiyk_api/api.dart';
@@ -101,6 +103,8 @@ No authorization required
 
 تسجيل خروج الجهاز الحالي فقط
 
+يلغي رمز Bearer المستخدم في الطلب، وتظل رموز الأجهزة الأخرى صالحة.
+
 ### Example
 ```dart
 import 'package:talbatiyk_api/api.dart';
@@ -137,6 +141,8 @@ This endpoint does not need any parameter.
 > AuthMe200Response authMe()
 
 بيانات المستخدم الحالي
+
+يتطلب رمزًا صالحًا وحسابًا نشطًا.  الرمز المنتهي أو الملغى يرجع 401.  الحساب غير النشط يرجع 403 مع ACCOUNT_INACTIVE.
 
 ### Example
 ```dart
